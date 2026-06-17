@@ -9,7 +9,7 @@
     "build:landing":   "pnpm --filter landing build",
     "build:dashboard": "pnpm --filter dashboard build",
     "build":  "pnpm --filter landing build && pnpm --filter dashboard build",
-    "deploy:landing": "pnpm --filter landing deploy",
+    "deploy:landing": "pnpm --filter landing run deploy",
     "check":  "pnpm --filter landing check && pnpm --filter dashboard check",
     "typecheck": "pnpm --filter landing typecheck && pnpm --filter dashboard typecheck"
   },
