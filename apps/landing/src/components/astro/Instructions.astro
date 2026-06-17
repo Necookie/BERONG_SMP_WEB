@@ -1,0 +1,171 @@
+---
+// Instructions.astro – Detailed server connection steps
+---
+
+<section
+  class="py-24 bg-surface-deep border-y border-border-stone relative"
+  id="instructions"
+  aria-labelledby="instructions-heading"
+>
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+    <!-- Section header -->
+    <div class="text-center mb-16">
+      <div class="section-label mx-auto mb-6">
+        <span class="material-symbols-outlined" style="font-size:16px;" aria-hidden="true"
+          >sports_esports</span
+        >
+        Setup Guide
+      </div>
+      <h2
+        id="instructions-heading"
+        class="font-headline text-2xl md:text-3xl font-semibold text-white mb-4"
+      >
+        How to Join the Server
+      </h2>
+      <p class="font-body text-body-md text-on-surface-variant max-w-2xl mx-auto">
+        Follow these steps to install the client dependencies, import the research modpack, and connect to the live simulation environment.
+      </p>
+    </div>
+
+    <!-- Steps Grid -->
+    <div class="grid md:grid-cols-3 gap-8 items-stretch mb-16">
+      <!-- Step 1 -->
+      <div class="bg-surface-elevated stone-border p-8 flex flex-col justify-between group hover:border-primary/40 transition-colors duration-200">
+        <div class="space-y-6">
+          <div class="flex justify-between items-start">
+            <span class="font-mono text-xs font-bold text-primary tracking-widest uppercase">Step 01</span>
+            <span class="material-symbols-outlined text-primary/60 group-hover:text-primary transition-colors" style="font-size: 28px;">download</span>
+          </div>
+          <div class="space-y-3">
+            <h3 class="font-headline text-lg font-bold text-white uppercase tracking-wide">
+              Install CurseForge
+            </h3>
+            <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
+              Download and install the free, official CurseForge App for your computer (<a href="https://www.curseforge.com/download/app" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:text-white transition-colors">curseforge.com/download/app</a>).
+            </p>
+            <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
+              Open the CurseForge app, select <strong>Minecraft</strong> from the game list, and set the folder directory to <strong>Standard</strong> (Recommended).
+            </p>
+          </div>
+        </div>
+        <div class="pt-6">
+          <a
+            href="https://www.curseforge.com/download/app"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center gap-2 w-full px-4 py-2 border border-border-stone hover:border-primary/60 font-mono text-xs uppercase tracking-wider text-on-surface hover:text-white transition-all bg-surface-base"
+          >
+            <span>CurseForge Website</span>
+            <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="bg-surface-elevated stone-border p-8 flex flex-col justify-between group hover:border-primary/40 transition-colors duration-200">
+        <div class="space-y-6">
+          <div class="flex justify-between items-start">
+            <span class="font-mono text-xs font-bold text-primary tracking-widest uppercase">Step 02</span>
+            <span class="material-symbols-outlined text-primary/60 group-hover:text-primary transition-colors" style="font-size: 28px;">unarchive</span>
+          </div>
+          <div class="space-y-3">
+            <h3 class="font-headline text-lg font-bold text-white uppercase tracking-wide">
+              Import Modpack
+            </h3>
+            <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
+              Click the <strong class="text-white">↓ Import</strong> button located next to the "+ Create" button at the top left of your CurseForge screen.
+            </p>
+            <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
+              Select the <code class="bg-surface-base px-1.5 py-0.5 border border-border-stone text-xs text-white">Thesis_Fire_Sim.zip</code> file from the download folder. CurseForge will automatically compile and configure the directories.
+            </p>
+          </div>
+        </div>
+        <div class="pt-6">
+          <a
+            href="https://drive.google.com/drive/folders/1JoOF6JBRDx5FoE_d7DgRgFYwtTNgntbo?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mc-button w-full py-3 flex items-center justify-center gap-2 font-mono text-xs font-medium uppercase tracking-widest"
+          >
+            <span class="material-symbols-outlined" style="font-size: 18px;">cloud_download</span>
+            <span>Download Modpack</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="bg-surface-elevated stone-border p-8 flex flex-col justify-between group hover:border-primary/40 transition-colors duration-200">
+        <div class="space-y-6">
+          <div class="flex justify-between items-start">
+            <span class="font-mono text-xs font-bold text-primary tracking-widest uppercase">Step 03</span>
+            <span class="material-symbols-outlined text-primary/60 group-hover:text-primary transition-colors" style="font-size: 28px;">sports_esports</span>
+          </div>
+          <div class="space-y-3">
+            <h3 class="font-headline text-lg font-bold text-white uppercase tracking-wide">
+              Launch & Connect
+            </h3>
+            <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
+              Click the orange <strong>Play</strong> button on the Thesis Fire Simulation tile, and launch the game profile.
+            </p>
+            <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
+              From the Minecraft main menu, go to <strong>Multiplayer</strong> -> <strong>Direct Connect</strong>, and paste the server address:
+            </p>
+          </div>
+        </div>
+        <div class="pt-6 space-y-3">
+          <div class="flex items-center bg-surface-base border border-border-stone p-1">
+            <div
+              id="instruction-server-address"
+              class="px-3 py-2 font-mono text-[11px] font-medium text-on-surface flex-1 text-left select-all truncate"
+            >
+              berongsmpdev.mcsh.io
+            </div>
+            <button
+              id="instruction-copy-btn"
+              aria-label="Copy server address to clipboard"
+              class="p-2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined" style="font-size: 18px;" aria-hidden="true"
+                >content_copy</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert / Research Note -->
+    <div class="bg-surface-container stone-border p-6 border-l-4 border-l-primary flex items-start gap-4 max-w-3xl mx-auto">
+      <span class="material-symbols-outlined text-primary shrink-0" style="font-size: 24px;">info</span>
+      <div class="space-y-1">
+        <h4 class="font-headline text-xs font-bold uppercase tracking-wider text-white">Simulation Requirement</h4>
+        <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
+          Ensure you log in using your official Microsoft account when prompted by the Minecraft Launcher. The simulation records data for academic research purposes.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const btn = document.getElementById('instruction-copy-btn');
+  const addr = document.getElementById('instruction-server-address');
+  if (btn && addr) {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(addr.textContent?.trim() ?? '');
+        const icon = btn.querySelector('span');
+        if (icon) {
+          icon.textContent = 'check';
+          icon.classList.add('text-primary');
+          setTimeout(() => {
+            icon.textContent = 'content_copy';
+            icon.classList.remove('text-primary');
+          }, 1800);
+        }
+      } catch {
+        /* clipboard not available in insecure context */
+      }
+    });
+  }
+</script>
