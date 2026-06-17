@@ -1,11 +1,28 @@
 ---
 // Footer.astro – Footer with server address copy, nav links, copyright
+import { Image } from 'astro:assets';
+import logo from '../../assets/images/berong-elearning-logo.png';
 ---
 
 <footer class="bg-surface-deep w-full py-12 border-t border-border-stone mt-auto">
   <div
     class="flex flex-col items-center gap-6 px-margin-desktop text-center max-w-container-max mx-auto"
   >
+    <!-- Logo -->
+    <div class="mb-2 flex items-center gap-3 justify-center">
+      <Image
+        src={logo}
+        alt="BERONG SMP logo"
+        class="h-10 w-10 md:h-12 md:w-12 object-contain"
+        width={48}
+        height={48}
+        loading="lazy"
+      />
+      <span class="font-headline text-lg md:text-xl font-bold text-white uppercase tracking-wider">
+        Berong <span class="text-primary">SMP</span>
+      </span>
+    </div>
+
     <!-- Terminal label -->
     <div class="font-mono text-xs font-medium text-primary mb-4 flex items-center gap-2">
       <span class="material-symbols-outlined" style="font-size:18px;" aria-hidden="true"
