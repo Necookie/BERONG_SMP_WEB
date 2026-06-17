@@ -1,0 +1,40 @@
+---
+// pages/index.astro — Landing page entry point
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar        from '../components/astro/Navbar.astro';
+import Hero          from '../components/astro/Hero.astro';
+import About         from '../components/astro/About.astro';
+import Features      from '../components/astro/Features.astro';
+import Timeline      from '../components/astro/Timeline.astro';
+import Gallery       from '../components/astro/Gallery.astro';
+import Rules         from '../components/astro/Rules.astro';
+import EnrollSection from '../components/astro/EnrollSection.astro';
+import Footer        from '../components/astro/Footer.astro';
+---
+
+<BaseLayout
+  title="BERONG SMP — Disaster Simulation Training Portal"
+  description="A rigorous Minecraft-based disaster simulation platform engineered for academic research in fire and earthquake safety protocols. Running on NeoForge 1.21."
+>
+  <!-- Skip to main content (accessibility) -->
+  <a
+    href="#main-content"
+    class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] mc-button px-4 py-2 font-mono text-xs uppercase tracking-widest"
+  >
+    Skip to content
+  </a>
+
+  <Navbar />
+
+  <main id="main-content">
+    <Hero />
+    <About />
+    <Features />
+    <Timeline />
+    <Gallery />
+    <Rules />
+    <EnrollSection />
+  </main>
+
+  <Footer />
+</BaseLayout>

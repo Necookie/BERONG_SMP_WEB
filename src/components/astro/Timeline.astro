@@ -1,0 +1,99 @@
+---
+// Timeline.astro – 4-phase "Deployment Sequence" horizontal timeline
+---
+
+<section
+  class="py-24 bg-surface-base border-y border-border-stone relative overflow-hidden"
+  aria-labelledby="timeline-heading"
+>
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
+    <!-- Section header -->
+    <div class="text-center mb-16">
+      <h2
+        id="timeline-heading"
+        class="font-headline text-2xl md:text-3xl font-semibold text-white mb-4"
+      >
+        Deployment Sequence
+      </h2>
+      <p class="font-body text-body-md text-on-surface-variant max-w-xl mx-auto">
+        From first connection to debrief — the four operational phases of every simulation run.
+      </p>
+    </div>
+
+    <div class="relative">
+      <!-- Horizontal connector line (desktop only) -->
+      <div
+        class="hidden md:block absolute top-1/2 left-0 w-full h-[2px] bg-border-stone -translate-y-1/2"
+        aria-hidden="true"
+      ></div>
+
+      <ol class="grid md:grid-cols-4 gap-8 relative list-none">
+
+        <!-- Phase 01 — above the line -->
+        <li class="relative pt-8 md:pt-0">
+          <div class="timeline-node" aria-hidden="true"></div>
+          <div
+            class="bg-surface-elevated stone-border p-6 text-center md:-mt-24 md:mb-8 hover:-translate-y-2 transition-transform duration-200"
+          >
+            <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
+              Phase 01
+            </div>
+            <h3 class="font-headline text-sm font-semibold text-white mb-2">Connect</h3>
+            <p class="font-body text-body-sm text-on-surface-variant">
+              Join via NeoForge client.
+            </p>
+          </div>
+        </li>
+
+        <!-- Phase 02 — below the line -->
+        <li class="relative pt-8 md:pt-0">
+          <div class="timeline-node" aria-hidden="true"></div>
+          <div
+            class="bg-surface-elevated stone-border p-6 text-center md:mt-24 md:-mb-8 hover:-translate-y-2 transition-transform duration-200"
+          >
+            <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
+              Phase 02
+            </div>
+            <h3 class="font-headline text-sm font-semibold text-white mb-2">Staging</h3>
+            <p class="font-body text-body-sm text-on-surface-variant">
+              Enter Lobby. Receive briefing.
+            </p>
+          </div>
+        </li>
+
+        <!-- Phase 03 — above the line -->
+        <li class="relative pt-8 md:pt-0">
+          <div class="timeline-node" aria-hidden="true"></div>
+          <div
+            class="bg-surface-elevated stone-border p-6 text-center md:-mt-24 md:mb-8 hover:-translate-y-2 transition-transform duration-200"
+          >
+            <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
+              Phase 03
+            </div>
+            <h3 class="font-headline text-sm font-semibold text-white mb-2">Simulate</h3>
+            <p class="font-body text-body-sm text-on-surface-variant">
+              Execute disaster protocols.
+            </p>
+          </div>
+        </li>
+
+        <!-- Phase 04 — below the line -->
+        <li class="relative pt-8 md:pt-0">
+          <div class="timeline-node" aria-hidden="true"></div>
+          <div
+            class="bg-surface-elevated stone-border p-6 text-center md:mt-24 md:-mb-8 hover:-translate-y-2 transition-transform duration-200"
+          >
+            <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
+              Phase 04
+            </div>
+            <h3 class="font-headline text-sm font-semibold text-white mb-2">Review</h3>
+            <p class="font-body text-body-sm text-on-surface-variant">
+              Analyze HUD metrics.
+            </p>
+          </div>
+        </li>
+
+      </ol>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+// @ts-check
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+import tailwind from '@astrojs/tailwind';
+import sitemap from '@astrojs/sitemap';
+
+// https://astro.build/config
+export default defineConfig({
+  site: 'https://berongsmp.dev',
+  output: 'static',
+  integrations: [
+    react(),
+    tailwind({ applyBaseStyles: false, configFile: './tailwind.config.cjs' }),
+    sitemap(),
+  ],
+});

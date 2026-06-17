@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ───────────────────────────────────────────────────── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #0d0d0d;
+    background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
+    background-size: 16px 16px;
+    color: #e5e2e1;
+    font-family: 'Inter', sans-serif;
+    @apply antialiased min-h-screen flex flex-col;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+}
+
+/* ── Components ─────────────────────────────────────────────── */
+@layer components {
+
+  /* Stone border — bevel effect mimicking Minecraft block depth */
+  .stone-border {
+    border: 1px solid #333333;
+    box-shadow:
+      inset 1px 1px 0px 0px rgba(255, 255, 255, 0.05),
+      inset -1px -1px 0px 0px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Primary CTA button — Forest Green with inner bevel */
+  .mc-button {
+    border: 1px solid #1b6d24;
+    background-color: #2e7d32;
+    color: #ffffff;
+    box-shadow:
+      inset 1px 1px 0px 0px #88d982,
+      inset -1px -1px 0px 0px #003909;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .mc-button:hover {
+    background-color: #43a047;
+    box-shadow:
+      inset 2px 2px 0px 0px #88d982,
+      inset -2px -2px 0px 0px #003909;
+  }
+
+  .mc-button:active {
+    transform: translateY(1px);
+    box-shadow:
+      inset 1px 1px 0px 0px #003909,
+      inset -1px -1px 0px 0px #88d982;
+  }
+
+  /* Glass panel — frosted dark overlay for navbar */
+  .glass-panel {
+    background: rgba(18, 18, 18, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(51, 51, 51, 0.8);
+  }
+
+  /* Section heading label (JetBrains Mono badge) */
+  .section-label {
+    @apply inline-flex items-center gap-2 px-3 py-1 bg-surface-container stone-border font-mono text-xs font-medium tracking-widest uppercase text-primary;
+  }
+
+  /* XP bar / segmented progress */
+  .xp-bar {
+    @apply h-1 bg-surface-container-high overflow-hidden;
+  }
+
+  .xp-bar-fill {
+    @apply h-full bg-primary;
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 6px,
+      rgba(0, 0, 0, 0.4) 6px,
+      rgba(0, 0, 0, 0.4) 8px
+    );
+  }
+
+
+  /* Timeline node */
+  .timeline-node {
+    @apply hidden md:flex absolute top-1/2 left-1/2
+           -translate-y-1/2 -translate-x-1/2
+           w-4 h-4 bg-surface-base border-2 border-primary rotate-45 z-10;
+  }
+}
+
+/* ── Utilities ──────────────────────────────────────────────── */
+@layer utilities {
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .text-shadow-mc {
+    text-shadow: 4px 4px 0 rgba(0, 0, 0, 1);
+  }
+}

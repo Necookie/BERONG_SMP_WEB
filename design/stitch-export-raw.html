@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BERONG SMP - Disaster Simulation Platform</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#3a3939",
+                        "on-secondary-container": "#92f28e",
+                        "on-secondary-fixed-variant": "#005313",
+                        "inverse-on-surface": "#313030",
+                        "outline-variant": "#40493d",
+                        "border-stone": "#333333",
+                        "surface-elevated": "#1a1a1a",
+                        "primary": "#88d982",
+                        "on-tertiary": "#610931",
+                        "surface-tint": "#88d982",
+                        "on-tertiary-fixed-variant": "#7f2448",
+                        "on-tertiary-fixed": "#3f001c",
+                        "surface-container-low": "#1c1b1b",
+                        "secondary": "#7ddc7a",
+                        "surface-dim": "#131313",
+                        "on-primary-container": "#cbffc2",
+                        "on-primary-fixed": "#002204",
+                        "background": "#131313",
+                        "primary-fixed-dim": "#88d982",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#98f994",
+                        "tertiary-container": "#b14b6f",
+                        "inverse-primary": "#1b6d24",
+                        "surface-deep": "#0d0d0d",
+                        "on-tertiary-container": "#ffedf0",
+                        "surface-base": "#121212",
+                        "tertiary-fixed": "#ffd9e2",
+                        "on-error": "#690005",
+                        "surface-variant": "#353534",
+                        "on-primary": "#003909",
+                        "on-primary-fixed-variant": "#005312",
+                        "on-secondary-fixed": "#002204",
+                        "experience-orb": "#7cfc00",
+                        "on-secondary": "#00390a",
+                        "tertiary": "#ffb1c7",
+                        "secondary-container": "#03711e",
+                        "tertiary-fixed-dim": "#ffb1c7",
+                        "on-surface": "#e5e2e1",
+                        "text-obsidian": "#888888",
+                        "on-background": "#e5e2e1",
+                        "surface-container": "#201f1f",
+                        "secondary-fixed-dim": "#7ddc7a",
+                        "primary-fixed": "#a3f69c",
+                        "surface-container-lowest": "#0e0e0e",
+                        "outline": "#8a9485",
+                        "surface-container-high": "#2a2a2a",
+                        "inverse-surface": "#e5e2e1",
+                        "on-error-container": "#ffdad6",
+                        "primary-container": "#2e7d32",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#bfcaba",
+                        "surface-container-highest": "#353534",
+                        "surface": "#131313"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "unit": "4px",
+                        "container-max": "1200px",
+                        "gutter": "16px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "label-mono": ["JetBrains Mono"],
+                        "headline-lg": ["Space Grotesk"],
+                        "headline-lg-mobile": ["Space Grotesk"],
+                        "body-md": ["Inter"],
+                        "headline-xl": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-mono": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-xl": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0d0d0d;
+            background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
+            background-size: 16px 16px;
+            color: #e5e2e1;
+        }
+        .stone-border {
+            border: 1px solid #333333;
+            box-shadow: inset 1px 1px 0px 0px rgba(255,255,255,0.05), inset -1px -1px 0px 0px rgba(0,0,0,0.5);
+        }
+        .mc-button {
+            border: 1px solid #1b6d24;
+            background-color: #2e7d32;
+            color: #ffffff;
+            box-shadow: inset 1px 1px 0px 0px #88d982, inset -1px -1px 0px 0px #003909;
+            transition: all 0.2s ease;
+        }
+        .mc-button:hover {
+            background-color: #43a047;
+            box-shadow: inset 2px 2px 0px 0px #88d982, inset -2px -2px 0px 0px #003909;
+        }
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(51, 51, 51, 0.8);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="bg-surface-deep dark:bg-surface-deep fixed top-0 w-full z-50 border-b border-border-stone transition-all duration-300 glass-panel">
+<div class="flex justify-between items-center px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-4">
+<img alt="BERONG SMP Logo" class="h-8 object-contain" src="data:image/png;base64,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"/>
+</div>
+<div class="hidden md:flex items-center gap-8 font-label-mono text-label-mono">
+<a class="text-primary border-b-2 border-primary pb-1 active:scale-95 transition-transform" href="#">Home</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors active:scale-95 transition-transform hover:bg-surface-bright/10 px-2 py-1 rounded" href="#about">About</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors active:scale-95 transition-transform hover:bg-surface-bright/10 px-2 py-1 rounded" href="#features">Features</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors active:scale-95 transition-transform hover:bg-surface-bright/10 px-2 py-1 rounded" href="#gallery">Gallery</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors active:scale-95 transition-transform hover:bg-surface-bright/10 px-2 py-1 rounded" href="#rules">Rules</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="mc-button px-6 py-2 font-label-mono text-label-mono uppercase tracking-wider hidden md:block">Join Server</button>
+<button class="md:hidden text-on-surface p-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="relative pt-32 pb-24 lg:pt-48 lg:pb-32 flex items-center justify-center min-h-[90vh] overflow-hidden">
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-b from-surface-deep/80 via-surface-deep/60 to-surface-deep z-10"></div>
+<img alt="BERONG SMP Hero Background" class="w-full h-full object-cover object-center opacity-40 mix-blend-luminosity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCb83qMqeD8r9Kubrt6b1vtVNSYBl2u7OF6QOP7cjoXs5qWdIy7hyDUgsfOG6yVO5CyKmQjnq2qafOT1And60H-N6hm1O0AYKCwpViKkdmzRCB8vuhPxhc57iaCTlKIo_BV67NcBtgW9ZtJAEbIGNz7NkMU7hkht7llJNI7q_uHqaB9aKr1vm3rh-yWGeWAZDGzXcIX6JzdJ6tEpHgTvSbfkJSqDDsvne82NBmDBxKIbxMzWrYJscLA_USIOER52DHCky_51hP9OLU"/>
+</div>
+<div class="relative z-20 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center flex flex-col items-center">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-elevated stone-border rounded-sm mb-6 font-label-mono text-label-mono text-experience-orb">
+<span class="w-2 h-2 bg-experience-orb shadow-[0_0_8px_#7cfc00]"></span>
+                Server Online - Version 1.21 NeoForge
+            </div>
+<h1 class="font-headline-xl text-headline-xl md:text-[64px] md:leading-[72px] text-white mb-6 tracking-tighter uppercase drop-shadow-[4px_4px_0_rgba(0,0,0,1)]">
+                BERONG <span class="text-primary">SMP</span>
+</h1>
+<p class="font-body-md text-body-md md:text-lg text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed">
+                A rigorous, Minecraft-based disaster simulation platform engineered for academic research in fire and earthquake safety protocols.
+            </p>
+<div class="flex flex-col sm:flex-row items-center gap-4 justify-center">
+<div class="flex items-center bg-surface-elevated stone-border p-1 rounded-sm w-full sm:w-auto">
+<div class="px-4 py-3 font-label-mono text-label-mono text-on-surface border-r border-border-stone select-all flex-1 text-center sm:text-left">
+                        berongsmpdev.mcsh.io
+                    </div>
+<button aria-label="Copy server address" class="p-3 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center" onclick="navigator.clipboard.writeText('berongsmpdev.mcsh.io')">
+<span class="material-symbols-outlined text-[20px]">content_copy</span>
+</button>
+</div>
+<button class="mc-button px-8 py-4 font-label-mono text-label-mono uppercase tracking-widest w-full sm:w-auto">
+                    Join Now
+                </button>
+</div>
+</div>
+</header>
+<!-- About Section -->
+<section class="py-24 bg-surface-base border-y border-border-stone relative" id="about">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="grid lg:grid-cols-2 gap-16 items-center">
+<div class="space-y-8">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-container stone-border rounded-sm font-label-mono text-label-mono text-primary">
+<span class="material-symbols-outlined text-[16px]">info</span>
+                        Thesis Project
+                    </div>
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-white">
+                        The Science of Survival in a Voxel World.
+                    </h2>
+<div class="space-y-4 text-on-surface-variant font-body-md text-body-md">
+<p>
+                            BERONG SMP evolved from an academic "Fire Extinguisher Prototype" into a comprehensive disaster simulation environment. Operating on Minecraft 1.21 via the NeoForge modding API, this platform provides a controlled setting to study human behavior and emergency response during simulated crises.
+                        </p>
+<p>
+                            The environment rigorously tests participants' ability to navigate hazards, utilize safety equipment, and follow established protocols in high-stress, procedurally generated or meticulously reconstructed scenarios.
+                        </p>
+</div>
+<div class="flex items-center gap-6 pt-4">
+<div class="flex flex-col border-l-2 border-primary pl-4">
+<span class="font-headline-lg text-headline-lg text-white">1.21</span>
+<span class="font-label-mono text-label-mono text-on-surface-variant uppercase">NeoForge</span>
+</div>
+<div class="flex flex-col border-l-2 border-primary pl-4">
+<span class="font-headline-lg text-headline-lg text-white">2+</span>
+<span class="font-label-mono text-label-mono text-on-surface-variant uppercase">Sim Types</span>
+</div>
+</div>
+</div>
+<div class="relative group">
+<div class="absolute -inset-2 bg-primary/20 blur-xl rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="relative aspect-video stone-border rounded-sm overflow-hidden bg-surface-container p-2">
+<img alt="Fire Extinguisher Prototype Simulation" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDe3SjsnnBys-YWRaXiNRr7vI6r9JEy2xtNeWO-qkQP9iXmohjVVOpsLzluFP4KTtlwx4qUxbzbA186S_VkcTAqaDEuNaKrthiTbHRdqgcW2-5S3Nk5awLPk4plp3dUALHiovBtWeolzZQRvyHjqz0gk-rzVcIsGylVuhKHc5iOf7TRduajCdJRS7nxk9whr6mTZcHf4qeODSk2WPf8T79-Puz9EaSJqUKkII--LIDBx1qDG6y0S7flqnMJfPgGEbz90aSumOaQHYM"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Section -->
+<section class="py-24 relative" id="features">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="text-center mb-16">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-white mb-4">Core Systems</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto">Engineered modifications designed for realistic emergency scenarios.</p>
+</div>
+<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Feature 1 -->
+<div class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors group relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></div>
+<div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<h3 class="font-headline-lg text-body-md font-bold text-white mb-3 uppercase tracking-wide">Fire Simulation</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Advanced fire propagation physics and interactive extinguisher mechanics requiring proper P.A.S.S. technique.</p>
+</div>
+<!-- Feature 2 -->
+<div class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors group relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></div>
+<div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">broken_image</span>
+</div>
+<h3 class="font-headline-lg text-body-md font-bold text-white mb-3 uppercase tracking-wide">Earthquake Engine</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Procedural structural degradation, falling debris hazards, and simulated seismic tremors affecting player movement.</p>
+</div>
+<!-- Feature 3 -->
+<div class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors group relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></div>
+<div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">meeting_room</span>
+</div>
+<h3 class="font-headline-lg text-body-md font-bold text-white mb-3 uppercase tracking-wide">Lobby System</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">A secure staging area for protocol briefing, equipment loadout, and scenario selection before deployment.</p>
+</div>
+<!-- Feature 4 -->
+<div class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors group relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></div>
+<div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">timer</span>
+</div>
+<h3 class="font-headline-lg text-body-md font-bold text-white mb-3 uppercase tracking-wide">Real-Time HUD</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Customized interface displaying critical mission timers, objective checklists, and environmental hazard warnings.</p>
+</div>
+<!-- Feature 5 -->
+<div class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors group relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></div>
+<div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">location_city</span>
+</div>
+<h3 class="font-headline-lg text-body-md font-bold text-white mb-3 uppercase tracking-wide">Custom Structures</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">1:1 scale reconstructions of real-world academic facilities, including the intricate LSPU Library layout.</p>
+</div>
+<!-- Feature 6 -->
+<div class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors group relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></div>
+<div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<h3 class="font-headline-lg text-body-md font-bold text-white mb-3 uppercase tracking-wide">Educational Focus</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Integrated evaluation systems mapping player actions against established institutional safety protocols.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- How It Works Timeline -->
+<section class="py-24 bg-surface-base border-y border-border-stone relative overflow-hidden">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
+<div class="text-center mb-16">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-white mb-4">Deployment Sequence</h2>
+</div>
+<div class="relative">
+<!-- Timeline Line -->
+<div class="hidden md:block absolute top-1/2 left-0 w-full h-[2px] bg-border-stone -translate-y-1/2"></div>
+<div class="grid md:grid-cols-4 gap-8 relative">
+<!-- Step 1 -->
+<div class="relative pt-8 md:pt-0">
+<div class="hidden md:flex absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-surface-base border-2 border-primary rotate-45 z-10"></div>
+<div class="bg-surface-elevated stone-border p-6 text-center md:-mt-24 md:mb-8 hover:-translate-y-2 transition-transform">
+<div class="font-label-mono text-label-mono text-primary mb-2">Phase 01</div>
+<h4 class="font-headline-lg text-body-md text-white mb-2">Connect</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Join via NeoForge client.</p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="relative pt-8 md:pt-0">
+<div class="hidden md:flex absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-surface-base border-2 border-primary rotate-45 z-10"></div>
+<div class="bg-surface-elevated stone-border p-6 text-center md:mt-24 md:-mb-8 hover:-translate-y-2 transition-transform">
+<div class="font-label-mono text-label-mono text-primary mb-2">Phase 02</div>
+<h4 class="font-headline-lg text-body-md text-white mb-2">Staging</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Enter Lobby. Receive briefing.</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="relative pt-8 md:pt-0">
+<div class="hidden md:flex absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-surface-base border-2 border-primary rotate-45 z-10"></div>
+<div class="bg-surface-elevated stone-border p-6 text-center md:-mt-24 md:mb-8 hover:-translate-y-2 transition-transform">
+<div class="font-label-mono text-label-mono text-primary mb-2">Phase 03</div>
+<h4 class="font-headline-lg text-body-md text-white mb-2">Simulate</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Execute disaster protocols.</p>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="relative pt-8 md:pt-0">
+<div class="hidden md:flex absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-surface-base border-2 border-primary rotate-45 z-10"></div>
+<div class="bg-surface-elevated stone-border p-6 text-center md:mt-24 md:-mb-8 hover:-translate-y-2 transition-transform">
+<div class="font-label-mono text-label-mono text-primary mb-2">Phase 04</div>
+<h4 class="font-headline-lg text-body-md text-white mb-2">Review</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Analyze HUD metrics.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Gallery Section -->
+<section class="py-24 relative" id="gallery">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="flex justify-between items-end mb-12 border-b border-border-stone pb-4">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-white">Visual Logs</h2>
+<a class="font-label-mono text-label-mono text-primary hover:underline flex items-center gap-1" href="#">View Archive <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Large Image -->
+<div class="md:col-span-8 stone-border bg-surface-container p-2 group relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-surface-deep via-transparent to-transparent z-10 opacity-60"></div>
+<img alt="BERONG SMP Staging Lobby Interface" class="w-full h-full object-cover min-h-[300px] md:min-h-[500px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDyDD3YHPF7v0tCmLx09-l192ZUR0BiRCa43WlLK2BEHjJYpKdzzZzNrvYz5fWjE48yig-bIKm6ehg5xHubiGxxm4zF4r_ZWOVjQ9KQoCh-Xxw9czew4lMPs8v44-AOfT8TOmLD5sX0XYPaubI43VtTWohljL4GK7gt_sht--iNdSith4HFEhaWI1xnxJhYNJDgPoX5LKM_STztFh_GnS9Obnq9Ap3jWzZuls_uaRiNQEoVwZOCZ8yTxIo5_z87bkHsFQiWkdLtCI"/>
+<div class="absolute bottom-6 left-6 z-20">
+<span class="px-2 py-1 bg-black/80 font-label-mono text-label-mono text-primary border border-primary/30 text-[10px] uppercase mb-2 inline-block">SEC-01</span>
+<h4 class="font-headline-lg text-body-md text-white m-0">Central Staging Area</h4>
+</div>
+</div>
+<!-- Stacked Images -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<div class="stone-border bg-surface-container p-2 flex-1 group relative overflow-hidden">
+<img alt="Structural Destruction Simulation Event" class="w-full h-full object-cover min-h-[200px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAefaT7Z4w1HGegM0KrBWxfhLig_y8tM4vOumdR98xfgskNsRWmgTkJxMtLi-d1HBOmoNAv-bIWIhdvW3nCMJUbcoUULebgf61WCsEX9QJyeIu25HMliexghhUQUz8g4w08w1Fa4RJkWsH_yRBH6gKaxF3vgq8hPRltsz3EAJFc2ua-EmeUnweRcGoRTU-smO6KGF5vFlB0WC92EaSWliMyOLPNgrkW0FOsVr4VehZjzglXzJhP8gDcavcOJVJ_V-JG-16BBvOL09w"/>
+<div class="absolute bottom-4 left-4 z-20">
+<span class="px-2 py-1 bg-black/80 font-label-mono text-label-mono text-error border border-error/30 text-[10px] uppercase">Seismic Event</span>
+</div>
+</div>
+<div class="stone-border bg-surface-container p-2 flex-1 group relative overflow-hidden">
+<img alt="Extinguisher Mechanics Test Environment" class="w-full h-full object-cover min-h-[200px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDe3SjsnnBys-YWRaXiNRr7vI6r9JEy2xtNeWO-qkQP9iXmohjVVOpsLzluFP4KTtlwx4qUxbzbA186S_VkcTAqaDEuNaKrthiTbHRdqgcW2-5S3Nk5awLPk4plp3dUALHiovBtWeolzZQRvyHjqz0gk-rzVcIsGylVuhKHc5iOf7TRduajCdJRS7nxk9whr6mTZcHf4qeODSk2WPf8T79-Puz9EaSJqUKkII--LIDBx1qDG6y0S7flqnMJfPgGEbz90aSumOaQHYM"/>
+<div class="absolute bottom-4 left-4 z-20">
+<span class="px-2 py-1 bg-black/80 font-label-mono text-label-mono text-secondary border border-secondary/30 text-[10px] uppercase">Thermal Protocol</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-surface-deep dark:bg-surface-deep w-full py-12 border-t border-border-stone mt-auto">
+<div class="flex flex-col items-center gap-6 px-margin-desktop text-center max-w-container-max mx-auto">
+<div class="font-label-mono text-label-mono text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+                SYS.TERMINAL.OFFLINE
+            </div>
+<div class="flex items-center bg-surface-elevated stone-border p-1 rounded-sm w-full max-w-md mx-auto mb-6">
+<div class="px-4 py-2 font-label-mono text-label-mono text-on-surface border-r border-border-stone select-all flex-1 text-center bg-surface-container-low">
+                    berongsmpdev.mcsh.io
+                </div>
+<button aria-label="Copy server address" class="px-4 py-2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center bg-surface-container-low" onclick="navigator.clipboard.writeText('berongsmpdev.mcsh.io')">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+</div>
+<div class="flex gap-6 font-label-mono text-label-mono">
+<a class="text-primary underline" href="#">Terms of Service</a>
+<a class="text-text-obsidian hover:text-on-surface transition-colors hover:text-primary" href="#">Privacy Policy</a>
+<a class="text-text-obsidian hover:text-on-surface transition-colors hover:text-primary" href="#">Contact Support</a>
+</div>
+<p class="font-body-sm text-body-sm text-text-obsidian mt-8">
+                © 2024 BERONG SMP. A thesis project — not affiliated with Mojang Studios.
+            </p>
+</div>
+</footer>
+</body></html>

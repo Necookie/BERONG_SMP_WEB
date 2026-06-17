@@ -1,0 +1,100 @@
+---
+// Gallery.astro – Asymmetric image grid "Visual Logs" matching Stitch 8/4 column layout
+import { Image } from 'astro:assets';
+import lobbyImg from '../../assets/images/gallery-staging-lobby.jpg';
+import seismicImg from '../../assets/images/gallery-seismic-event.jpg';
+import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
+---
+
+<section
+  class="py-24 relative"
+  id="gallery"
+  aria-labelledby="gallery-heading"
+>
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+    <!-- Section header row -->
+    <div class="flex justify-between items-end mb-12 border-b border-border-stone pb-4">
+      <h2
+        id="gallery-heading"
+        class="font-headline text-2xl md:text-3xl font-semibold text-white"
+      >
+        Visual Logs
+      </h2>
+      <a
+        href="#"
+        class="font-mono text-xs font-medium text-primary hover:underline flex items-center gap-1"
+        aria-label="View full image archive (coming soon)"
+      >
+        View Archive
+        <span class="material-symbols-outlined" style="font-size:16px;" aria-hidden="true">
+          arrow_forward
+        </span>
+      </a>
+    </div>
+
+    <!-- Asymmetric grid: 8 cols large / 4 cols stacked -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+      <!-- Large featured image (8/12 columns) -->
+      <figure class="md:col-span-8 stone-border bg-surface-container p-2 relative overflow-hidden group">
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-surface-deep via-transparent to-transparent z-10 opacity-60"
+          aria-hidden="true"
+        ></div>
+        <Image
+          src={lobbyImg}
+          alt="BERONG SMP central staging lobby interface — players spawning and receiving mission briefings"
+          class="w-full h-full object-cover min-h-[300px] md:min-h-[500px]"
+          width={960}
+          height={500}
+          loading="lazy"
+        />
+        <figcaption class="absolute bottom-6 left-6 z-20">
+          <span
+            class="px-2 py-1 bg-black/80 font-mono text-[10px] font-medium text-primary border border-primary/30 uppercase mb-2 inline-block"
+          >SEC-01</span>
+          <p class="font-headline text-sm font-semibold text-white m-0">Central Staging Area</p>
+        </figcaption>
+      </figure>
+
+      <!-- Stacked right column (4/12 columns) -->
+      <div class="md:col-span-4 flex flex-col gap-6">
+
+        <!-- Seismic event -->
+        <figure class="stone-border bg-surface-container p-2 flex-1 relative overflow-hidden group">
+          <Image
+            src={seismicImg}
+            alt="Structural destruction during a simulated seismic event — collapsing voxel buildings and debris"
+            class="w-full h-full object-cover min-h-[200px]"
+            width={480}
+            height={250}
+            loading="lazy"
+          />
+          <figcaption class="absolute bottom-4 left-4 z-20">
+            <span
+              class="px-2 py-1 bg-black/80 font-mono text-[10px] font-medium text-error border border-error/30 uppercase"
+            >Seismic Event</span>
+          </figcaption>
+        </figure>
+
+        <!-- Thermal protocol -->
+        <figure class="stone-border bg-surface-container p-2 flex-1 relative overflow-hidden group">
+          <Image
+            src={thermalImg}
+            alt="Fire extinguisher mechanics test environment — thermal protocol training in a burning Minecraft room"
+            class="w-full h-full object-cover min-h-[200px]"
+            width={480}
+            height={250}
+            loading="lazy"
+          />
+          <figcaption class="absolute bottom-4 left-4 z-20">
+            <span
+              class="px-2 py-1 bg-black/80 font-mono text-[10px] font-medium text-secondary border border-secondary/30 uppercase"
+            >Thermal Protocol</span>
+          </figcaption>
+        </figure>
+
+      </div>
+    </div>
+  </div>
+</section>

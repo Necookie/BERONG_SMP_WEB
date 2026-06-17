@@ -1,0 +1,76 @@
+---
+// Rules.astro – Placeholder Rules section (linked from Navbar #rules anchor)
+// Full content will be populated once server rules are finalized.
+
+const rules = [
+  {
+    code: 'R-01',
+    title: 'No Griefing',
+    body: 'Deliberately destroying participant structures outside sanctioned simulation zones is prohibited.',
+  },
+  {
+    code: 'R-02',
+    title: 'Follow Protocol',
+    body: 'During active scenarios, all participants must follow the emergency protocol as briefed in the Lobby.',
+  },
+  {
+    code: 'R-03',
+    title: 'Academic Integrity',
+    body: 'This is a thesis research environment. Data is recorded. Interference with simulation metrics constitutes academic misconduct.',
+  },
+  {
+    code: 'R-04',
+    title: 'Respectful Conduct',
+    body: 'All participants must maintain respectful conduct toward researchers, moderators, and fellow participants at all times.',
+  },
+];
+---
+
+<section
+  class="py-24 bg-surface-base border-y border-border-stone relative"
+  id="rules"
+  aria-labelledby="rules-heading"
+>
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+    <!-- Section header -->
+    <div class="text-center mb-16">
+      <div class="section-label mx-auto mb-6">
+        <span class="material-symbols-outlined" style="font-size:16px;" aria-hidden="true"
+          >gavel</span
+        >
+        Server Regulations
+      </div>
+      <h2
+        id="rules-heading"
+        class="font-headline text-2xl md:text-3xl font-semibold text-white mb-4"
+      >
+        Operational Rules
+      </h2>
+      <p class="font-body text-body-md text-on-surface-variant max-w-2xl mx-auto">
+        Compliance with all regulations is mandatory. Violations may result in removal from the
+        research cohort.
+      </p>
+    </div>
+
+    <!-- Rules list -->
+    <ol class="space-y-4 max-w-3xl mx-auto list-none">
+      {
+        rules.map((rule) => (
+          <li class="flex gap-6 bg-surface-elevated stone-border p-6 group hover:border-primary/40 transition-colors duration-200">
+            <div class="shrink-0">
+              <span class="font-mono text-xs font-medium text-primary tracking-widest block pt-1">
+                {rule.code}
+              </span>
+            </div>
+            <div>
+              <h3 class="font-headline text-sm font-bold text-white mb-1 uppercase tracking-wide">
+                {rule.title}
+              </h3>
+              <p class="font-body text-body-sm text-on-surface-variant">{rule.body}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>

@@ -1,0 +1,34 @@
+---
+// EnrollSection.astro – wraps the EnrollForm React island in the page section
+import EnrollForm from '../react/EnrollForm';
+---
+
+<section
+  class="py-24 bg-surface-base border-y border-border-stone relative"
+  id="enroll"
+  aria-labelledby="enroll-heading"
+>
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+    <div class="text-center mb-12">
+      <div class="section-label mx-auto mb-6">
+        <span class="material-symbols-outlined" style="font-size:16px;" aria-hidden="true">
+          login
+        </span>
+        Request Access
+      </div>
+      <h2
+        id="enroll-heading"
+        class="font-headline text-2xl md:text-3xl font-semibold text-white mb-4"
+      >
+        Join the Research Cohort
+      </h2>
+      <p class="font-body text-body-md text-on-surface-variant max-w-xl mx-auto">
+        Submit your enrollment request to participate in the BERONG SMP disaster simulation study.
+        A researcher will follow up via email.
+      </p>
+    </div>
+
+    <!-- React island — loads only when scrolled into view -->
+    <EnrollForm client:visible />
+  </div>
+</section>

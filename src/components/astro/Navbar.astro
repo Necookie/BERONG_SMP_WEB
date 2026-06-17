@@ -1,0 +1,65 @@
+---
+// Navbar.astro – Fixed top nav; imports MobileMenu React island for the hamburger toggle
+import { Image } from 'astro:assets';
+import MobileMenu from '../react/MobileMenu';
+import logo from '../../assets/images/berong-smp-logo.png';
+
+const navLinks = [
+  { href: '#',        label: 'Home'     },
+  { href: '#about',   label: 'About'    },
+  { href: '#features',label: 'Features' },
+  { href: '#gallery', label: 'Gallery'  },
+  { href: '#rules',   label: 'Rules'    },
+];
+---
+
+<nav
+  class="bg-surface-deep fixed top-0 w-full z-50 glass-panel"
+  aria-label="Primary navigation"
+>
+  <div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+    <!-- Logo -->
+    <a href="/" aria-label="BERONG SMP home" class="flex items-center gap-3">
+      <Image
+        src={logo}
+        alt="BERONG SMP logo"
+        class="h-8 w-auto object-contain"
+        width={120}
+        height={32}
+        loading="eager"
+      />
+    </a>
+
+    <!-- Desktop links -->
+    <ul class="hidden md:flex items-center gap-8 list-none" role="list">
+      {navLinks.map(({ href, label }, i) => (
+        <li>
+          <a
+            href={href}
+            class={[
+              'font-mono text-xs font-medium tracking-widest uppercase transition-colors',
+              i === 0
+                ? 'text-primary border-b-2 border-primary pb-1'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-bright/10 px-2 py-1',
+            ].join(' ')}
+          >
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <!-- Desktop CTA -->
+    <div class="flex items-center gap-4">
+      <a
+        href="#enroll"
+        class="mc-button px-6 py-2 font-mono text-xs font-medium uppercase tracking-wider hidden md:block"
+      >
+        Join Server
+      </a>
+
+      <!-- Mobile menu island — only loads JS when scrolled into view -->
+      <MobileMenu links={navLinks} client:visible />
+    </div>
+  </div>
+</nav>
