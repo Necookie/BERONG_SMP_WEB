@@ -1,30 +1,19 @@
 {
-  "name": "berong-smp-landing",
-  "type": "module",
+  "name": "berong-smp-web",
+  "private": true,
   "version": "0.0.1",
-  "engines": {
-    "node": ">=22.12.0"
-  },
+  "description": "BERONG SMP monorepo — landing site + authenticated dashboard",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro",
-    "check": "astro check",
-    "typecheck": "tsc --noEmit"
+    "dev:landing":   "pnpm --filter landing dev",
+    "dev:dashboard": "pnpm --filter dashboard dev",
+    "build:landing":   "pnpm --filter landing build",
+    "build:dashboard": "pnpm --filter dashboard build",
+    "build":  "pnpm --filter landing build && pnpm --filter dashboard build",
+    "check":  "pnpm --filter landing check && pnpm --filter dashboard check",
+    "typecheck": "pnpm --filter landing typecheck && pnpm --filter dashboard typecheck"
   },
-  "dependencies": {
-    "@astrojs/react": "^4.4.2",
-    "@astrojs/sitemap": "^3.7.3",
-    "@astrojs/tailwind": "^6.0.2",
-    "astro": "^6.4.7",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwindcss": "^3.4.19"
-  },
-  "devDependencies": {
-    "@types/react": "^18.3.31",
-    "@types/react-dom": "^18.3.7",
-    "typescript": "^6.0.3"
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=9"
   }
 }
