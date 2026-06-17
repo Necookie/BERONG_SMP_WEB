@@ -1,9 +1,32 @@
 ---
 // Timeline.astro – 4-phase "Deployment Sequence" horizontal timeline
+const phases = [
+  {
+    phase: 'Phase 01',
+    title: 'Connect',
+    description: 'Join via NeoForge client.',
+  },
+  {
+    phase: 'Phase 02',
+    title: 'Staging',
+    description: 'Enter Lobby. Receive briefing.',
+  },
+  {
+    phase: 'Phase 03',
+    title: 'Simulate',
+    description: 'Execute disaster protocols.',
+  },
+  {
+    phase: 'Phase 04',
+    title: 'Review',
+    description: 'Analyze HUD metrics.',
+  },
+];
 ---
 
 <section
   class="py-24 bg-surface-base border-y border-border-stone relative overflow-hidden"
+  id="timeline"
   aria-labelledby="timeline-heading"
 >
   <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
@@ -20,80 +43,107 @@
       </p>
     </div>
 
-    <div class="relative">
-      <!-- Horizontal connector line (desktop only) -->
+    <!-- Mobile Timeline Layout (vertical stack) -->
+    <div class="md:hidden">
+      <ol class="space-y-6 list-none pl-0">
+        {
+          phases.map((item) => (
+            <li class="bg-surface-elevated stone-border p-6 text-center hover:border-primary/40 transition-colors duration-200">
+              <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
+                {item.phase}
+              </div>
+              <h3 class="font-headline text-sm font-semibold text-white mb-2">{item.title}</h3>
+              <p class="font-body text-body-sm text-on-surface-variant">
+                {item.description}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <!-- Desktop Timeline Layout (3-row grid) -->
+    <div class="hidden md:block relative">
+      <!-- Horizontal connector line -->
       <div
-        class="hidden md:block absolute top-1/2 left-0 w-full h-[2px] bg-border-stone -translate-y-1/2"
+        class="absolute left-0 right-0 h-[2px] bg-border-stone"
+        style="top: calc(50% - 1px);"
         aria-hidden="true"
       ></div>
 
-      <ol class="grid md:grid-cols-4 gap-8 relative list-none">
-
-        <!-- Phase 01 — above the line -->
-        <li class="relative pt-8 md:pt-0">
-          <div class="timeline-node" aria-hidden="true"></div>
-          <div
-            class="bg-surface-elevated stone-border p-6 text-center md:-mt-24 md:mb-8 hover:-translate-y-2 transition-transform duration-200"
-          >
+      <div class="grid grid-cols-4 grid-rows-[1fr_auto_1fr] relative">
+        <!-- Row 1: Top Cards (Phases 1 & 3) -->
+        <div class="row-start-1 col-start-1 pb-10 flex flex-col justify-end">
+          <div class="bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200">
             <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
-              Phase 01
+              {phases[0].phase}
             </div>
-            <h3 class="font-headline text-sm font-semibold text-white mb-2">Connect</h3>
+            <h3 class="font-headline text-sm font-semibold text-white mb-2">{phases[0].title}</h3>
             <p class="font-body text-body-sm text-on-surface-variant">
-              Join via NeoForge client.
+              {phases[0].description}
             </p>
           </div>
-        </li>
+        </div>
 
-        <!-- Phase 02 — below the line -->
-        <li class="relative pt-8 md:pt-0">
-          <div class="timeline-node" aria-hidden="true"></div>
-          <div
-            class="bg-surface-elevated stone-border p-6 text-center md:mt-24 md:-mb-8 hover:-translate-y-2 transition-transform duration-200"
-          >
+        <div class="row-start-1 col-start-2"></div>
+
+        <div class="row-start-1 col-start-3 pb-10 flex flex-col justify-end">
+          <div class="bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200">
             <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
-              Phase 02
+              {phases[2].phase}
             </div>
-            <h3 class="font-headline text-sm font-semibold text-white mb-2">Staging</h3>
+            <h3 class="font-headline text-sm font-semibold text-white mb-2">{phases[2].title}</h3>
             <p class="font-body text-body-sm text-on-surface-variant">
-              Enter Lobby. Receive briefing.
+              {phases[2].description}
             </p>
           </div>
-        </li>
+        </div>
 
-        <!-- Phase 03 — above the line -->
-        <li class="relative pt-8 md:pt-0">
-          <div class="timeline-node" aria-hidden="true"></div>
-          <div
-            class="bg-surface-elevated stone-border p-6 text-center md:-mt-24 md:mb-8 hover:-translate-y-2 transition-transform duration-200"
-          >
+        <div class="row-start-1 col-start-4"></div>
+
+        <!-- Row 2: Nodes (Phases 1-4) -->
+        <div class="row-start-2 col-start-1 flex justify-center py-4 relative z-10">
+          <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45"></div>
+        </div>
+        <div class="row-start-2 col-start-2 flex justify-center py-4 relative z-10">
+          <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45"></div>
+        </div>
+        <div class="row-start-2 col-start-3 flex justify-center py-4 relative z-10">
+          <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45"></div>
+        </div>
+        <div class="row-start-2 col-start-4 flex justify-center py-4 relative z-10">
+          <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45"></div>
+        </div>
+
+        <!-- Row 3: Bottom Cards (Phases 2 & 4) -->
+        <div class="row-start-3 col-start-1"></div>
+
+        <div class="row-start-3 col-start-2 pt-10 flex flex-col justify-start">
+          <div class="bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200">
             <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
-              Phase 03
+              {phases[1].phase}
             </div>
-            <h3 class="font-headline text-sm font-semibold text-white mb-2">Simulate</h3>
+            <h3 class="font-headline text-sm font-semibold text-white mb-2">{phases[1].title}</h3>
             <p class="font-body text-body-sm text-on-surface-variant">
-              Execute disaster protocols.
+              {phases[1].description}
             </p>
           </div>
-        </li>
+        </div>
 
-        <!-- Phase 04 — below the line -->
-        <li class="relative pt-8 md:pt-0">
-          <div class="timeline-node" aria-hidden="true"></div>
-          <div
-            class="bg-surface-elevated stone-border p-6 text-center md:mt-24 md:-mb-8 hover:-translate-y-2 transition-transform duration-200"
-          >
+        <div class="row-start-3 col-start-3"></div>
+
+        <div class="row-start-3 col-start-4 pt-10 flex flex-col justify-start">
+          <div class="bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200">
             <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
-              Phase 04
+              {phases[3].phase}
             </div>
-            <h3 class="font-headline text-sm font-semibold text-white mb-2">Review</h3>
+            <h3 class="font-headline text-sm font-semibold text-white mb-2">{phases[3].title}</h3>
             <p class="font-body text-body-sm text-on-surface-variant">
-              Analyze HUD metrics.
+              {phases[3].description}
             </p>
           </div>
-        </li>
-
-      </ol>
+        </div>
+      </div>
     </div>
   </div>
 </section>
