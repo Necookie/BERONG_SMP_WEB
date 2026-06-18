@@ -1,0 +1,91 @@
+---
+// ThemeToggle.astro — Plain HTML button + vanilla JS for dark/light toggle
+// Zero React, zero hydration delay — works immediately on paint
+---
+
+<button
+  id="theme-toggle-btn"
+  aria-label="Toggle theme"
+  title="Toggle dark/light mode"
+  style="
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: inherit;
+    flex-shrink: 0;
+  "
+>
+  <!-- Sun icon: shown when in dark mode -->
+  <span
+    id="icon-sun"
+    class="material-symbols-outlined"
+    aria-hidden="true"
+    style="font-size:20px; position:absolute; transition: opacity 0.25s ease, transform 0.25s ease;"
+  >
+    light_mode
+  </span>
+
+  <!-- Moon icon: shown when in light mode -->
+  <span
+    id="icon-moon"
+    class="material-symbols-outlined"
+    aria-hidden="true"
+    style="font-size:20px; position:absolute; transition: opacity 0.25s ease, transform 0.25s ease;"
+  >
+    dark_mode
+  </span>
+</button>
+
+<script is:inline>
+  (function () {
+    var btn = document.getElementById('theme-toggle-btn');
+    var sunIcon = document.getElementById('icon-sun');
+    var moonIcon = document.getElementById('icon-moon');
+    var html = document.documentElement;
+
+    function updateIcons(isDark) {
+      if (isDark) {
+        // Dark mode: show sun (to switch to light)
+        sunIcon.style.opacity = '1';
+        sunIcon.style.transform = 'rotate(0deg) scale(1)';
+        sunIcon.style.color = '#bfcaba';
+        moonIcon.style.opacity = '0';
+        moonIcon.style.transform = 'rotate(-90deg) scale(0.5)';
+      } else {
+        // Light mode: show moon (to switch to dark)
+        moonIcon.style.opacity = '1';
+        moonIcon.style.transform = 'rotate(0deg) scale(1)';
+        moonIcon.style.color = '#4a5240';
+        sunIcon.style.opacity = '0';
+        sunIcon.style.transform = 'rotate(90deg) scale(0.5)';
+      }
+    }
+
+    function applyTheme(isDark) {
+      if (isDark) {
+        html.classList.add('dark');
+        html.classList.remove('light');
+      } else {
+        html.classList.add('light');
+        html.classList.remove('dark');
+      }
+      try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch(e) {}
+      updateIcons(isDark);
+    }
+
+    // Sync icon state to whatever the inline script already set
+    var currentlyDark = html.classList.contains('dark');
+    updateIcons(currentlyDark);
+
+    btn.addEventListener('click', function () {
+      var nowDark = html.classList.contains('dark');
+      applyTheme(!nowDark);
+    });
+  })();
+</script>
