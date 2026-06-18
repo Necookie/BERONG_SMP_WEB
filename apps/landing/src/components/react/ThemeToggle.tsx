@@ -4,16 +4,14 @@
 import { useState, useEffect } from 'react';
 
 export default function ThemeToggle() {
+  // Default to true (dark) so SSR matches the inline script default
   const [isDark, setIsDark] = useState(true);
 
-  // On mount, read stored or system preference
+  // On mount, sync React state to whatever the inline script already applied
   useEffect(() => {
-    const stored = localStorage.getItem('theme');
-    const prefersDark =
-      stored === 'dark' ||
-      (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    setIsDark(prefersDark);
-    applyTheme(prefersDark);
+    const html = document.documentElement;
+    const currentlyDark = html.classList.contains('dark');
+    setIsDark(currentlyDark);
   }, []);
 
   function applyTheme(dark: boolean) {
@@ -25,7 +23,9 @@ export default function ThemeToggle() {
       html.classList.add('light');
       html.classList.remove('dark');
     }
-    localStorage.setItem('theme', dark ? 'dark' : 'light');
+    try {
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+    } catch {}
   }
 
   function toggle() {
@@ -40,39 +40,51 @@ export default function ThemeToggle() {
       onClick={toggle}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      className="
-        relative flex items-center justify-center
-        w-9 h-9 p-2
-        text-on-surface-variant hover:text-primary
-        transition-all duration-200
-        hover:bg-surface-bright/10
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
-      "
+      style={{
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '36px',
+        height: '36px',
+        padding: '6px',
+        cursor: 'pointer',
+        background: 'transparent',
+        border: 'none',
+        color: 'inherit',
+        transition: 'color 0.2s ease',
+      }}
     >
-      {/* Sun icon (shown in dark mode → click to go light) */}
+      {/* Sun icon — visible in dark mode, click → switch to light */}
       <span
-        className={[
-          'material-symbols-outlined absolute transition-all duration-300',
-          isDark
-            ? 'opacity-100 rotate-0 scale-100'
-            : 'opacity-0 rotate-90 scale-50 pointer-events-none',
-        ].join(' ')}
+        className="material-symbols-outlined"
         aria-hidden="true"
-        style={{ fontSize: '20px' }}
+        style={{
+          fontSize: '20px',
+          position: 'absolute',
+          opacity: isDark ? 1 : 0,
+          transform: isDark ? 'rotate(0deg) scale(1)' : 'rotate(90deg) scale(0.5)',
+          transition: 'opacity 0.25s ease, transform 0.25s ease',
+          pointerEvents: 'none',
+          color: isDark ? '#bfcaba' : 'transparent',
+        }}
       >
         light_mode
       </span>
 
-      {/* Moon icon (shown in light mode → click to go dark) */}
+      {/* Moon icon — visible in light mode, click → switch to dark */}
       <span
-        className={[
-          'material-symbols-outlined absolute transition-all duration-300',
-          !isDark
-            ? 'opacity-100 rotate-0 scale-100'
-            : 'opacity-0 -rotate-90 scale-50 pointer-events-none',
-        ].join(' ')}
+        className="material-symbols-outlined"
         aria-hidden="true"
-        style={{ fontSize: '20px' }}
+        style={{
+          fontSize: '20px',
+          position: 'absolute',
+          opacity: isDark ? 0 : 1,
+          transform: isDark ? 'rotate(-90deg) scale(0.5)' : 'rotate(0deg) scale(1)',
+          transition: 'opacity 0.25s ease, transform 0.25s ease',
+          pointerEvents: 'none',
+          color: isDark ? 'transparent' : '#4a5240',
+        }}
       >
         dark_mode
       </span>

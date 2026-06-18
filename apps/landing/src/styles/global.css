@@ -201,124 +201,162 @@ html.light {
 
 /* ── Light Mode Overrides ───────────────────────────────────── */
 
-/* Body text & headings */
-html.light .text-on-surface-variant,
-html.light [class*="text-on-surface-variant"] {
-  color: var(--text-muted) !important;
+/* ── All surface/container backgrounds ── */
+html.light .bg-surface-deep,
+html.light .bg-background {
+  background-color: #e8e4e0 !important;
 }
-html.light .text-text-obsidian,
-html.light [class*="text-text-obsidian"] {
-  color: var(--text-obsidian) !important;
-}
-
-/* White heading text → near-black in light */
-html.light h1.text-white,
-html.light .text-white {
-  color: var(--text-heading) !important;
-}
-
-/* Navbar logo text */
-html.light nav span.text-white {
-  color: var(--text-heading) !important;
-}
-
-/* Surface backgrounds */
-html.light .bg-surface-deep {
-  background-color: var(--footer-bg) !important;
-}
-html.light .bg-surface-elevated {
-  background-color: var(--surface-elevated) !important;
-}
-html.light .bg-surface-container {
-  background-color: var(--surface-container) !important;
-}
-html.light .bg-surface-container-low {
-  background-color: var(--surface-container-low) !important;
+html.light .bg-surface,
+html.light .bg-surface-dim {
+  background-color: #ede9e5 !important;
 }
 html.light .bg-surface-base {
-  background-color: var(--surface-elevated) !important;
+  background-color: #f0ece8 !important;
 }
-
-/* Borders */
-html.light .border-border-stone {
-  border-color: var(--border-stone-solid) !important;
+html.light .bg-surface-elevated {
+  background-color: #ffffff !important;
 }
-html.light .border-t.border-border-stone {
-  border-color: var(--border-stone-solid) !important;
+html.light .bg-surface-container {
+  background-color: #e2ddd9 !important;
 }
-
-/* On-surface text */
-html.light .text-on-surface {
-  color: var(--text-primary-body) !important;
+html.light .bg-surface-container-low {
+  background-color: #e8e4e0 !important;
 }
-
-/* Mobile menu backdrop */
-html.light .bg-surface-deep\/60 {
-  background-color: var(--backdrop-bg) !important;
-}
-
-/* Hero gradient overlay */
-html.light .bg-gradient-to-b.from-surface-deep\/80 {
-  background-image: linear-gradient(
-    to bottom,
-    var(--hero-gradient-from),
-    var(--hero-gradient-via),
-    var(--hero-gradient-to)
-  ) !important;
-}
-
-/* Hero image opacity boost in light mode */
-html.light header .opacity-40 {
-  opacity: 0.25 !important;
-}
-
-/* Section label bg in light */
-html.light .section-label {
-  background-color: var(--surface-container) !important;
-  border-color: var(--border-stone-solid) !important;
-}
-
-/* Stone border in light mode */
-html.light .stone-border {
-  border-color: var(--border-stone-solid) !important;
-}
-
-/* XP bar track */
 html.light .bg-surface-container-high {
   background-color: #d0cbc6 !important;
 }
-
-/* Timeline line */
-html.light .bg-border-stone {
-  background-color: var(--border-stone-solid) !important;
+html.light .bg-surface-container-highest {
+  background-color: #c8c2bc !important;
+}
+html.light .bg-surface-container-lowest {
+  background-color: #f4f1ee !important;
+}
+html.light .bg-surface-variant {
+  background-color: #dedad6 !important;
+}
+html.light .bg-surface-bright {
+  background-color: #ffffff !important;
 }
 
-/* Footer text */
+/* ── All text-on-surface variants ── */
+html.light .text-on-surface {
+  color: #1a1a1a !important;
+}
+html.light .text-on-surface-variant {
+  color: #4a5240 !important;
+}
+html.light .text-on-background {
+  color: #1a1a1a !important;
+}
+html.light .text-white {
+  color: #0d1a0d !important;
+}
+html.light .text-text-obsidian {
+  color: #6b7466 !important;
+}
+html.light .text-outline {
+  color: #5a6355 !important;
+}
+html.light .text-outline-variant {
+  color: #7a8475 !important;
+}
+
+/* ── Border colors ── */
+html.light .border-border-stone,
+html.light .border-b,
+html.light [class*="border-border-stone"] {
+  border-color: #b4afaa !important;
+}
+
+/* ── Stone border component ── */
+html.light .stone-border {
+  border-color: #b4afaa !important;
+  box-shadow:
+    inset 1px 1px 0px 0px rgba(255, 255, 255, 0.7),
+    inset -1px -1px 0px 0px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ── Glass panel (navbar) ── */
+html.light .glass-panel {
+  background: rgba(244, 241, 238, 0.92) !important;
+  border-bottom-color: rgba(180, 175, 170, 0.6) !important;
+}
+
+/* ── Section label ── */
+html.light .section-label {
+  background-color: #e2ddd9 !important;
+  border-color: #b4afaa !important;
+}
+
+/* ── Hero gradient overlay ── */
+html.light .bg-gradient-to-b {
+  background-image: linear-gradient(
+    to bottom,
+    rgba(244, 241, 238, 0.75),
+    rgba(244, 241, 238, 0.50),
+    #f4f1ee
+  ) !important;
+}
+
+/* ── Hero background image ── */
+html.light header .opacity-40 {
+  opacity: 0.2 !important;
+  mix-blend-mode: multiply !important;
+}
+
+/* ── XP bar ── */
+html.light .xp-bar {
+  background-color: #d0cbc6 !important;
+}
+
+/* ── Timeline connector line ── */
+html.light .bg-border-stone {
+  background-color: #b4afaa !important;
+}
+
+/* ── Mobile nav overlay ── */
+html.light #mobile-nav {
+  background: rgba(244, 241, 238, 0.97) !important;
+  border-color: #b4afaa !important;
+}
+html.light .bg-surface-deep\/60 {
+  background-color: rgba(244, 241, 238, 0.6) !important;
+}
+
+/* ── Footer ── */
 html.light footer {
-  background-color: var(--footer-bg) !important;
-  border-color: var(--border-stone-solid) !important;
+  background-color: #e2ddd9 !important;
+  border-color: #b4afaa !important;
 }
 html.light footer span.text-white {
-  color: var(--text-heading) !important;
+  color: #0d1a0d !important;
 }
 
-/* Mobile nav overlay */
-html.light #mobile-nav {
-  background: var(--mobile-nav-bg) !important;
-  border-color: var(--border-stone-solid) !important;
-}
-
-/* Theme transition smoothing */
-*,
-*::before,
-*::after {
-  transition-property: background-color, border-color, color, box-shadow;
-  transition-duration: 0.25s;
-  transition-timing-function: ease;
-}
-/* But don't slow down animations/transforms */
-.animate-mascot-float,
+/* ── Theme transition smoothing ── */
+body,
+nav,
+footer,
+section,
+header,
+article,
+aside,
+div,
+span,
+p,
+h1, h2, h3, h4, h5, h6,
+a,
 button,
-a {
-  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+input,
+textarea,
+li {
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease !important;
+}
+/* Keep transform-based animations crisp */
+.animate-mascot-float {
+  transition: transform 6s ease-in-out, opacity 0.3s ease !important;
+  animation: float 6s ease-in-out infinite !important;
 }
