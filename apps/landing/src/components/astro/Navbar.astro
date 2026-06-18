@@ -2,6 +2,7 @@
 // Navbar.astro – Fixed top nav; imports MobileMenu React island for the hamburger toggle
 import { Image } from 'astro:assets';
 import MobileMenu from '../react/MobileMenu';
+import ThemeToggle from '../react/ThemeToggle';
 import logo from '../../assets/images/berong-elearning-logo.png';
 
 const navLinks = [
@@ -54,13 +55,16 @@ const navLinks = [
     </ul>
 
     <!-- Desktop CTA -->
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2">
       <a
         href="#enroll"
         class="mc-button px-6 py-2 font-mono text-xs font-medium uppercase tracking-wider hidden md:block"
       >
         Join Server
       </a>
+
+      <!-- Theme toggle -->
+      <ThemeToggle client:load />
 
       <!-- Mobile menu island — only loads JS when scrolled into view -->
       <MobileMenu links={navLinks} client:visible />
