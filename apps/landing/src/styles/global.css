@@ -5,6 +5,78 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── CSS Custom Properties ───────────────────────────────────── */
+/* Dark mode (default) */
+:root,
+html.dark {
+  --bg-base:            #0d0d0d;
+  --bg-dot:             #1a1a1a;
+  --bg-dot-size:        16px;
+
+  --surface-elevated:   #1a1a1a;
+  --surface-container:  #201f1f;
+  --surface-container-low: #1c1b1b;
+  --surface-deep:       #0d0d0d;
+
+  --text-primary-body:  #e5e2e1;
+  --text-muted:         #bfcaba;
+  --text-obsidian:      #888888;
+  --text-heading:       #ffffff;
+
+  --border-stone:       rgba(51, 51, 51, 0.8);
+  --border-stone-solid: #333333;
+
+  --glass-bg:           rgba(18, 18, 18, 0.85);
+  --glass-border:       rgba(51, 51, 51, 0.8);
+
+  --stone-shadow-inner-hi:  rgba(255, 255, 255, 0.05);
+  --stone-shadow-inner-lo:  rgba(0, 0, 0, 0.5);
+
+  --footer-bg:          #0d0d0d;
+
+  --mobile-nav-bg:      rgba(18, 18, 18, 0.85);
+  --backdrop-bg:        rgba(13, 13, 13, 0.6);
+
+  --hero-gradient-from: rgba(13, 13, 13, 0.80);
+  --hero-gradient-via:  rgba(13, 13, 13, 0.60);
+  --hero-gradient-to:   #0d0d0d;
+}
+
+/* Light mode overrides */
+html.light {
+  --bg-base:            #f4f1ee;
+  --bg-dot:             #dedad6;
+  --bg-dot-size:        16px;
+
+  --surface-elevated:   #ffffff;
+  --surface-container:  #e8e4e0;
+  --surface-container-low: #ede9e5;
+  --surface-deep:       #f4f1ee;
+
+  --text-primary-body:  #1a1a1a;
+  --text-muted:         #4a5240;
+  --text-obsidian:      #6b7466;
+  --text-heading:       #0d1a0d;
+
+  --border-stone:       rgba(180, 175, 170, 0.8);
+  --border-stone-solid: #b4afaa;
+
+  --glass-bg:           rgba(244, 241, 238, 0.92);
+  --glass-border:       rgba(180, 175, 170, 0.6);
+
+  --stone-shadow-inner-hi:  rgba(255, 255, 255, 0.7);
+  --stone-shadow-inner-lo:  rgba(0, 0, 0, 0.12);
+
+  --footer-bg:          #e8e4e0;
+
+  --mobile-nav-bg:      rgba(244, 241, 238, 0.95);
+  --backdrop-bg:        rgba(244, 241, 238, 0.6);
+
+  --hero-gradient-from: rgba(244, 241, 238, 0.75);
+  --hero-gradient-via:  rgba(244, 241, 238, 0.50);
+  --hero-gradient-to:   #f4f1ee;
+}
+
 /* ── Base ───────────────────────────────────────────────────── */
 @layer base {
   html {
@@ -12,12 +84,13 @@
   }
 
   body {
-    background-color: #0d0d0d;
-    background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
-    background-size: 16px 16px;
-    color: #e5e2e1;
+    background-color: var(--bg-base);
+    background-image: radial-gradient(var(--bg-dot) 1px, transparent 1px);
+    background-size: var(--bg-dot-size) var(--bg-dot-size);
+    color: var(--text-primary-body);
     font-family: 'Inter', sans-serif;
     @apply antialiased min-h-screen flex flex-col;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   *,
@@ -32,10 +105,10 @@
 
   /* Stone border — bevel effect mimicking Minecraft block depth */
   .stone-border {
-    border: 1px solid #333333;
+    border: 1px solid var(--border-stone-solid);
     box-shadow:
-      inset 1px 1px 0px 0px rgba(255, 255, 255, 0.05),
-      inset -1px -1px 0px 0px rgba(0, 0, 0, 0.5);
+      inset 1px 1px 0px 0px var(--stone-shadow-inner-hi),
+      inset -1px -1px 0px 0px var(--stone-shadow-inner-lo);
   }
 
   /* Primary CTA button — Forest Green with inner bevel */
@@ -64,12 +137,13 @@
       inset -1px -1px 0px 0px #88d982;
   }
 
-  /* Glass panel — frosted dark overlay for navbar */
+  /* Glass panel — frosted overlay for navbar (adapts to theme) */
   .glass-panel {
-    background: rgba(18, 18, 18, 0.85);
+    background: var(--glass-bg);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(51, 51, 51, 0.8);
+    border-bottom: 1px solid var(--glass-border);
+    transition: background 0.3s ease, border-color 0.3s ease;
   }
 
   /* Section heading label (JetBrains Mono badge) */
@@ -123,4 +197,166 @@
   .text-shadow-mc {
     text-shadow: 4px 4px 0 rgba(0, 0, 0, 1);
   }
+}
+
+/* ── Light Mode Overrides ───────────────────────────────────── */
+
+/* ── All surface/container backgrounds ── */
+html.light .bg-surface-deep,
+html.light .bg-background {
+  background-color: #e8e4e0 !important;
+}
+html.light .bg-surface,
+html.light .bg-surface-dim {
+  background-color: #ede9e5 !important;
+}
+html.light .bg-surface-base {
+  background-color: #f0ece8 !important;
+}
+html.light .bg-surface-elevated {
+  background-color: #ffffff !important;
+}
+html.light .bg-surface-container {
+  background-color: #e2ddd9 !important;
+}
+html.light .bg-surface-container-low {
+  background-color: #e8e4e0 !important;
+}
+html.light .bg-surface-container-high {
+  background-color: #d0cbc6 !important;
+}
+html.light .bg-surface-container-highest {
+  background-color: #c8c2bc !important;
+}
+html.light .bg-surface-container-lowest {
+  background-color: #f4f1ee !important;
+}
+html.light .bg-surface-variant {
+  background-color: #dedad6 !important;
+}
+html.light .bg-surface-bright {
+  background-color: #ffffff !important;
+}
+
+/* ── All text-on-surface variants ── */
+html.light .text-on-surface {
+  color: #1a1a1a !important;
+}
+html.light .text-on-surface-variant {
+  color: #4a5240 !important;
+}
+html.light .text-on-background {
+  color: #1a1a1a !important;
+}
+html.light .text-white {
+  color: #0d1a0d !important;
+}
+html.light .text-text-obsidian {
+  color: #6b7466 !important;
+}
+html.light .text-outline {
+  color: #5a6355 !important;
+}
+html.light .text-outline-variant {
+  color: #7a8475 !important;
+}
+
+/* ── Border colors ── */
+html.light .border-border-stone,
+html.light .border-b,
+html.light [class*="border-border-stone"] {
+  border-color: #b4afaa !important;
+}
+
+/* ── Stone border component ── */
+html.light .stone-border {
+  border-color: #b4afaa !important;
+  box-shadow:
+    inset 1px 1px 0px 0px rgba(255, 255, 255, 0.7),
+    inset -1px -1px 0px 0px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ── Glass panel (navbar) ── */
+html.light .glass-panel {
+  background: rgba(244, 241, 238, 0.92) !important;
+  border-bottom-color: rgba(180, 175, 170, 0.6) !important;
+}
+
+/* ── Section label ── */
+html.light .section-label {
+  background-color: #e2ddd9 !important;
+  border-color: #b4afaa !important;
+}
+
+/* ── Hero gradient overlay ── */
+html.light .bg-gradient-to-b {
+  background-image: linear-gradient(
+    to bottom,
+    rgba(244, 241, 238, 0.75),
+    rgba(244, 241, 238, 0.50),
+    #f4f1ee
+  ) !important;
+}
+
+/* ── Hero background image ── */
+html.light header .opacity-40 {
+  opacity: 0.2 !important;
+  mix-blend-mode: multiply !important;
+}
+
+/* ── XP bar ── */
+html.light .xp-bar {
+  background-color: #d0cbc6 !important;
+}
+
+/* ── Timeline connector line ── */
+html.light .bg-border-stone {
+  background-color: #b4afaa !important;
+}
+
+/* ── Mobile nav overlay ── */
+html.light #mobile-nav {
+  background: rgba(244, 241, 238, 0.97) !important;
+  border-color: #b4afaa !important;
+}
+html.light .bg-surface-deep\/60 {
+  background-color: rgba(244, 241, 238, 0.6) !important;
+}
+
+/* ── Footer ── */
+html.light footer {
+  background-color: #e2ddd9 !important;
+  border-color: #b4afaa !important;
+}
+html.light footer span.text-white {
+  color: #0d1a0d !important;
+}
+
+/* ── Theme transition smoothing ── */
+body,
+nav,
+footer,
+section,
+header,
+article,
+aside,
+div,
+span,
+p,
+h1, h2, h3, h4, h5, h6,
+a,
+button,
+input,
+textarea,
+li {
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease !important;
+}
+/* Keep transform-based animations crisp */
+.animate-mascot-float {
+  transition: transform 6s ease-in-out, opacity 0.3s ease !important;
+  animation: float 6s ease-in-out infinite !important;
 }

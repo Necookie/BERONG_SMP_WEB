@@ -18,8 +18,18 @@ const {
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
+    <!-- Inline theme script: runs before paint to prevent flash of wrong theme -->
+    <script is:inline>
+      (function () {
+        const stored = localStorage.getItem('theme');
+        const prefersDark =
+          stored === 'dark' ||
+          (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
+      })();
+    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
