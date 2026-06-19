@@ -435,3 +435,38 @@ export function formatDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
 }
+
+// ── Roster helpers ────────────────────────────────────────────────────────
+
+export interface ParticipantStats {
+  participant: Participant;
+  sessionCount: number;
+  avgScore: number;
+  bestLevel: PrepLevel;
+  latestLevel: PrepLevel | null;
+  latestDate: string | null;
+  sessions: Session[];
+  tierCounts: { high: number; moderate: number; low: number };
+}
+
+export function getParticipantStats(): ParticipantStats[] {
+  return participants.map(p => {
+    const pSessions = sessions.filter(s => s.participantId === p.id);
+    const sorted = [...pSessions].sort(
+      (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+    );
+    const avgScore = pSessions.length
+      ? Math.round(pSessions.reduce((acc, s) => acc + s.prepScore, 0) / pSessions.length)
+      : 0;
+    const levels: PrepLevel[] = ['HIGH', 'MODERATE', 'LOW'];
+    const bestLevel = levels.find(l => pSessions.some(s => s.prepLevel === l)) ?? 'LOW';
+    const latestLevel = sorted[0]?.prepLevel ?? null;
+    const latestDate  = sorted[0]?.startTime ?? null;
+    const tierCounts = {
+      high:     pSessions.filter(s => s.prepLevel === 'HIGH').length,
+      moderate: pSessions.filter(s => s.prepLevel === 'MODERATE').length,
+      low:      pSessions.filter(s => s.prepLevel === 'LOW').length,
+    };
+    return { participant: p, sessionCount: pSessions.length, avgScore, bestLevel, latestLevel, latestDate, sessions: sorted, tierCounts };
+  });
+}

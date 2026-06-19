@@ -1,0 +1,137 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { sessions, formatDuration, formatDate } from '../../lib/mockData.ts';
+
+// Most recent first
+const sorted = [...sessions].sort(
+  (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+);
+---
+
+<DashboardLayout title="Sessions" currentPath="/sessions">
+
+  <div class="page-header">
+    <h1 class="page-title">Sessions</h1>
+    <p class="page-meta">All drill sessions · {sessions.length} records · data: mock</p>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <span class="filter-label">Scenario</span>
+      <div class="filter-pills" id="filter-type">
+        <button class="filter-pill active" data-value="ALL">All</button>
+        <button class="filter-pill" data-value="FIRE">Fire</button>
+        <button class="filter-pill" data-value="EARTHQUAKE">Earthquake</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Level</span>
+      <div class="filter-pills" id="filter-level">
+        <button class="filter-pill active" data-value="ALL">All</button>
+        <button class="filter-pill" data-value="HIGH">High</button>
+        <button class="filter-pill" data-value="MODERATE">Moderate</button>
+        <button class="filter-pill" data-value="LOW">Low</button>
+      </div>
+    </div>
+    <span class="filter-count" id="session-count">{sorted.length} sessions</span>
+  </div>
+
+  <!-- Full sessions table -->
+  <div class="sessions-section">
+    <table class="sessions-table" id="sessions-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Participant</th>
+          <th>Section</th>
+          <th>Scenario</th>
+          <th>Date</th>
+          <th>Duration</th>
+          <th>Score</th>
+          <th>Level</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {sorted.map(s => (
+          <tr
+            data-type={s.disasterType}
+            data-level={s.prepLevel}
+            onclick={`window.location='/sessions/${s.id}'`}
+          >
+            <td style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#444; letter-spacing:0.06em;">
+              {s.id}
+            </td>
+            <td class="name-cell">{s.participantName}</td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#555;">{s.section}</td>
+            <td>
+              <span style={`font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:${s.disasterType === 'FIRE' ? '#88d982' : '#bfcaba'};`}>
+                {s.disasterType}
+              </span>
+            </td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDate(s.startTime)}</td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDuration(s.durationSeconds)}</td>
+            <td style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:#888;">
+              {s.prepScore}
+            </td>
+            <td>
+              <span class={`tier-badge ${s.prepLevel.toLowerCase()}`}>
+                <span class="dot"></span>
+                {s.prepLevel}
+              </span>
+            </td>
+            <td class="link-cell">
+              <a href={`/sessions/${s.id}`} class="view-link" onclick="event.stopPropagation()">→</a>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <div id="empty-state" class="sessions-empty" style="display:none;">
+      <span class="sessions-empty-text">No sessions match the selected filters.</span>
+    </div>
+  </div>
+
+</DashboardLayout>
+
+<script>
+  const typeGroup  = document.getElementById('filter-type')!;
+  const levelGroup = document.getElementById('filter-level')!;
+  const table      = document.getElementById('sessions-table')!;
+  const countLabel = document.getElementById('session-count')!;
+  const emptyState = document.getElementById('empty-state')!;
+
+  let activeType  = 'ALL';
+  let activeLevel = 'ALL';
+
+  function applyFilters() {
+    const rows = table.querySelectorAll<HTMLTableRowElement>('tbody tr');
+    let visible = 0;
+    rows.forEach(row => {
+      const typeMatch  = activeType  === 'ALL' || row.dataset.type  === activeType;
+      const levelMatch = activeLevel === 'ALL' || row.dataset.level === activeLevel;
+      const show = typeMatch && levelMatch;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    countLabel.textContent = `${visible} session${visible !== 1 ? 's' : ''}`;
+    emptyState.style.display = visible === 0 ? '' : 'none';
+    table.style.display = visible === 0 ? 'none' : '';
+  }
+
+  function bindPills(group: HTMLElement, onChange: (v: string) => void) {
+    group.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        group.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        onChange(pill.dataset.value!);
+        applyFilters();
+      });
+    });
+  }
+
+  bindPills(typeGroup,  v => { activeType  = v; });
+  bindPills(levelGroup, v => { activeLevel = v; });
+</script>

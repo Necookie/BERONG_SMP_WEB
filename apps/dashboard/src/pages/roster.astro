@@ -1,0 +1,158 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import { getParticipantStats, formatDate } from '../lib/mockData.ts';
+
+const stats = getParticipantStats();
+
+const totalSessions = stats.reduce((a, s) => a + s.sessionCount, 0);
+const cohortAvg = Math.round(
+  stats.filter(s => s.sessionCount > 0).reduce((a, s) => a + s.avgScore, 0) /
+  stats.filter(s => s.sessionCount > 0).length
+);
+---
+
+<DashboardLayout title="Roster" currentPath="/roster">
+
+  <div class="page-header">
+    <h1 class="page-title">Roster</h1>
+    <p class="page-meta">
+      June 2026 cohort · {stats.length} participants · {totalSessions} sessions · cohort avg {cohortAvg}% · data: mock
+    </p>
+  </div>
+
+  <!-- Cohort KPI strip -->
+  <div class="kpi-strip">
+    {(['HIGH', 'MODERATE', 'LOW'] as const).map(level => {
+      const count = stats.filter(s => s.latestLevel === level).length;
+      const pct   = Math.round((count / stats.length) * 100);
+      return (
+        <div class="kpi-item">
+          <span class="kpi-label">Latest: {level}</span>
+          <span class={`kpi-value tier-num-${level.toLowerCase()}`}>{count}</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#383838;">{pct}% of cohort</span>
+        </div>
+      );
+    })}
+    <div class="kpi-item">
+      <span class="kpi-label">No sessions</span>
+      <span class="kpi-value" style="color:#333;">{stats.filter(s => s.sessionCount === 0).length}</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#383838;">pending</span>
+    </div>
+  </div>
+
+  <!-- Distribution bar by latest level -->
+  <div class="dist-section">
+    <div class="dist-head">
+      <span class="section-label">Cohort distribution (latest session)</span>
+      <span class="dist-cohort">{stats.length} participants</span>
+    </div>
+    <div class="dist-bar">
+      {(['HIGH', 'MODERATE', 'LOW'] as const).map(level => {
+        const count = stats.filter(s => s.latestLevel === level).length;
+        const pct   = Math.round((count / stats.length) * 100);
+        return <div class={`dist-seg ${level.toLowerCase()}`} style={`width: ${pct}%`}></div>;
+      })}
+    </div>
+    <div class="dist-legend">
+      {(['HIGH', 'MODERATE', 'LOW'] as const).map(level => {
+        const count = stats.filter(s => s.latestLevel === level).length;
+        const pct   = Math.round((count / stats.length) * 100);
+        return (
+          <div class="dist-leg-item">
+            <span class={`leg-dot ${level.toLowerCase()}`}></span>
+            <span class={`leg-tier ${level.toLowerCase()}`}>{level}</span>
+            <span class="leg-count">{count} participants · {pct}%</span>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+
+  <!-- Roster table -->
+  <div class="sessions-section">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px;">
+      <span class="section-label">Participants</span>
+    </div>
+    <table class="sessions-table roster-table">
+      <thead>
+        <tr>
+          <th>Participant</th>
+          <th>Section</th>
+          <th>Year</th>
+          <th>Sessions</th>
+          <th>Avg score</th>
+          <th>Tier breakdown</th>
+          <th>Latest level</th>
+          <th>Last active</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {stats.map(s => (
+          <tr
+            onclick={s.sessions[0] ? `window.location='/sessions/${s.sessions[0].id}'` : undefined}
+            style={s.sessions[0] ? 'cursor:pointer;' : ''}
+          >
+            <td class="name-cell">{s.participant.name}</td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#555;">{s.participant.section}</td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#555;">{s.participant.yearLevel}</td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#888;">{s.sessionCount}</td>
+            <td>
+              {s.sessionCount > 0 ? (
+                <span style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:#888;">
+                  {s.avgScore}
+                </span>
+              ) : (
+                <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#333;">—</span>
+              )}
+            </td>
+            <td>
+              <div class="tier-mini-bar">
+                {s.tierCounts.high > 0 && (
+                  <span class="tier-mini high" title={`${s.tierCounts.high} HIGH`}>{s.tierCounts.high}</span>
+                )}
+                {s.tierCounts.moderate > 0 && (
+                  <span class="tier-mini moderate" title={`${s.tierCounts.moderate} MODERATE`}>{s.tierCounts.moderate}</span>
+                )}
+                {s.tierCounts.low > 0 && (
+                  <span class="tier-mini low" title={`${s.tierCounts.low} LOW`}>{s.tierCounts.low}</span>
+                )}
+                {s.sessionCount === 0 && (
+                  <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#333;">—</span>
+                )}
+              </div>
+            </td>
+            <td>
+              {s.latestLevel ? (
+                <span class={`tier-badge ${s.latestLevel.toLowerCase()}`}>
+                  <span class="dot"></span>
+                  {s.latestLevel}
+                </span>
+              ) : (
+                <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#333;">—</span>
+              )}
+            </td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#444;">
+              {s.latestDate ? formatDate(s.latestDate) : '—'}
+            </td>
+            <td class="link-cell">
+              {s.sessions[0] && (
+                <a
+                  href={`/sessions/${s.sessions[0].id}`}
+                  class="view-link"
+                  onclick="event.stopPropagation()"
+                >→</a>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <p class="roster-note">
+      Clicking a row opens the participant's most recent session.
+      Tier breakdown shows count per preparedness level across all sessions.
+    </p>
+  </div>
+
+</DashboardLayout>

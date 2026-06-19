@@ -675,3 +675,102 @@
   padding: 4px 9px;
   margin-top: 12px;
 }
+
+/* ── Filter bar ──────────────────────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 14px 40px;
+  border-bottom: 1px solid #2a2a2a;
+  flex-shrink: 0;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #383838;
+  white-space: nowrap;
+}
+
+.filter-pills {
+  display: flex;
+  gap: 4px;
+}
+
+.filter-pill {
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  color: #555;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: color 0.1s, border-color 0.1s, background 0.1s;
+}
+
+.filter-pill:hover  { color: #bfcaba; border-color: #3a3a3a; }
+.filter-pill.active { color: #88d982; border-color: #88d982; background: rgba(136, 217, 130, 0.05); }
+
+.filter-count {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #383838;
+}
+
+/* ── Sessions empty state ────────────────────────────────────────────── */
+.sessions-empty {
+  padding: 40px 0;
+  text-align: center;
+}
+
+.sessions-empty-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #333;
+}
+
+/* ── Roster ──────────────────────────────────────────────────────────── */
+.tier-num-high     { color: #88d982; }
+.tier-num-moderate { color: #c9a84c; }
+.tier-num-low      { color: #c45c5c; }
+
+.tier-mini-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tier-mini {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+}
+
+.tier-mini.high     { background: rgba(136, 217, 130, 0.12); color: #88d982; }
+.tier-mini.moderate { background: rgba(201, 168,  76, 0.12); color: #c9a84c; }
+.tier-mini.low      { background: rgba(196,  92,  92, 0.12); color: #c45c5c; }
+
+.roster-note {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #2e2e2e;
+  margin-top: 20px;
+  line-height: 1.7;
+}

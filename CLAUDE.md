@@ -62,6 +62,27 @@ session-level data for BFP/teacher/admin oversight. Built with React islands
 inside Astro pages. Until real session data flows in, treat any dashboard
 work as building against a defined-but-currently-mocked data contract.
 
+### Dashboard pages (all built, all using mock data)
+Located in `apps/dashboard/src/`:
+
+- `pages/index.astro` — Overview: KPI strip, preparedness distribution bar,
+  recent sessions table (5 rows)
+- `pages/sessions/index.astro` — Sessions list: all 8 sessions in a table
+  with client-side filter pills (by scenario type and prep level)
+- `pages/sessions/[id].astro` — Session detail: fullscreen 60/40 split,
+  terminal event log left, stats/classifier signals/result right
+- `pages/roster.astro` — Roster: per-participant aggregated stats, cohort
+  KPI strip, distribution bar, tier breakdown mini-badges
+
+### Dashboard design tokens
+- `styles/global.css` — all custom CSS classes; avoid Tailwind utility sprawl
+- `lib/mockData.ts` — 8 fictional sessions + 8 participants; all types and
+  helper functions live here (`getParticipantStats`, `getTierCounts`, etc.)
+- `layouts/DashboardLayout.astro` — sidebar shell (220px), slot for main
+- `components/EventLog.tsx` — React island, terminal-style auto-scroll log
+- Color tokens: `#88d982` HIGH, `#c9a84c` MODERATE, `#c45c5c` LOW
+- Fonts: Space Grotesk (KPI/display), Inter (body), JetBrains Mono (labels/terminal)
+
 ## When making API or pipeline changes
 1. Check the mod repo's `SimulationSession` / `CLAUDE.md` for what fields
    actually exist before adding a route or feature that assumes more
