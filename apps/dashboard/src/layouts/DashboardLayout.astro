@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 
+import logo from '../assets/images/berong-elearning-logo.png';
+
 interface Props {
   title: string;
   currentPath: string;
@@ -30,9 +32,18 @@ const navItems = [
 
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-brand">
-        <span class="sidebar-brand-name">BERONG SMP</span>
-        <span class="sidebar-brand-sub">Drill Review · BFP / LSPU</span>
+      <div class="sidebar-brand flex items-center gap-3">
+        <img
+          src={logo.src}
+          alt="BERONG SMP logo"
+          class="w-9 h-9 object-contain"
+          width="36"
+          height="36"
+        />
+        <div>
+          <span class="sidebar-brand-name">BERONG SMP</span>
+          <span class="sidebar-brand-sub">Drill Review · BFP / LSPU</span>
+        </div>
       </div>
 
       <nav class="sidebar-nav">
