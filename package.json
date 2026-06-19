@@ -10,6 +10,7 @@
     "build:dashboard": "pnpm --filter dashboard build",
     "build":  "pnpm --filter landing build && pnpm --filter dashboard build",
     "deploy:landing": "pnpm --filter landing run deploy",
+    "deploy:dashboard": "pnpm --filter dashboard run deploy",
     "check":  "pnpm --filter landing check && pnpm --filter dashboard check",
     "typecheck": "pnpm --filter landing typecheck && pnpm --filter dashboard typecheck"
   },

@@ -2,13 +2,17 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
-import node from '@astrojs/node';
+import cloudflare from '@astrojs/cloudflare';
 
 // https://astro.build/config
 export default defineConfig({
   // Dashboard uses SSR — needed for auth sessions, protected routes, API proxying
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
+  adapter: cloudflare({
+    platformProxy: {
+      enabled: true,
+    },
+  }),
 
   // Dev server on a different port from landing (4321) so both can run in parallel
   server: { port: 4322 },

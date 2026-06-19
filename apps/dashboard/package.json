@@ -12,10 +12,11 @@
     "preview": "astro preview --port 4322",
     "astro": "astro",
     "check": "astro check",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@astrojs/node": "^10.1.4",
+    "@astrojs/cloudflare": "^13.0.0",
     "@astrojs/react": "^4.4.2",
     "@astrojs/tailwind": "^6.0.2",
     "astro": "^6.4.7",
@@ -27,6 +28,7 @@
     "@astrojs/check": "^0.9.9",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "wrangler": "^4.103.0"
   }
 }
