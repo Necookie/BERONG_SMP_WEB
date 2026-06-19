@@ -2,6 +2,7 @@
 import '../styles/global.css';
 
 import logo from '../assets/images/berong-elearning-logo.png';
+import ThemeToggle from '../components/ThemeToggle';
 
 interface Props {
   title: string;
@@ -21,6 +22,16 @@ const navItems = [
 <!doctype html>
 <html lang="en">
 <head>
+  <!-- Inline theme script: runs before paint to prevent flash of wrong theme -->
+  <script is:inline>
+    (function () {
+      const stored = localStorage.getItem('theme');
+      const prefersDark =
+        stored === 'dark' ||
+        (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
+    })();
+  </script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title} — BERONG SMP</title>
@@ -62,11 +73,12 @@ const navItems = [
         ))}
       </nav>
 
-      <div class="sidebar-footer">
+      <div class="sidebar-footer flex items-center justify-between">
         <div class="status-line">
           <span class="status-dot"></span>
           MOCK DATA · v0.1
         </div>
+        <ThemeToggle client:load />
       </div>
     </aside>
 
