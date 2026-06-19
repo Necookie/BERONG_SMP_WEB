@@ -1,26 +1,135 @@
 ---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import {
+  sessions,
+  getRecentSessions,
+  getTierCounts,
+  getAvgScore,
+  getScenarioSplit,
+  getSessionsThisWeek,
+  formatDuration,
+  formatDate,
+} from '../lib/mockData.ts';
+
+const tiers     = getTierCounts();
+const avgScore  = getAvgScore();
+const split     = getScenarioSplit();
+const thisWeek  = getSessionsThisWeek();
+const recent    = getRecentSessions(5);
+
+const highPct     = Math.round((tiers.high     / tiers.total) * 100);
+const moderatePct = Math.round((tiers.moderate / tiers.total) * 100);
+const lowPct      = 100 - highPct - moderatePct;
 ---
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Berong SMP Dashboard - Work In Progress</title>
-  </head>
-  <body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col items-center justify-center p-6 font-sans">
-    <div class="max-w-md w-full bg-zinc-900 border border-zinc-800 p-8 rounded-xl shadow-2xl text-center space-y-4">
-      <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-lg flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
-        </svg>
+
+<DashboardLayout title="Overview" currentPath="/">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <h1 class="page-title">Overview</h1>
+    <p class="page-meta">June 2026 cohort · LSPU DRR Training Programme · data: mock</p>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="kpi-strip">
+    <div class="kpi-item">
+      <span class="kpi-label">Total Sessions</span>
+      <span class="kpi-value">{tiers.total}</span>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-label">Avg. Preparedness</span>
+      <span class="kpi-value">{avgScore}<span class="kpi-unit">%</span></span>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-label">Scenario split</span>
+      <div class="kpi-split">
+        <span style="color: #88d982;">{split.fire}</span>
+        <span style="color: #2a2a2a;"> / </span>
+        <span style="color: #bfcaba;">{split.eq}</span>
       </div>
-      <h1 class="text-2xl font-bold tracking-tight text-white">Dashboard Portal</h1>
-      <p class="text-zinc-400 text-sm">
-        This is a placeholder for the Berong SMP Training Portal dashboard. Development of the dashboard features is ready to begin.
+      <p class="kpi-split-label">
+        <span style="color: #88d982;">FIRE</span>
+        &nbsp;/&nbsp;
+        <span style="color: #bfcaba;">EARTHQUAKE</span>
       </p>
-      <div class="pt-4 border-t border-zinc-800/60 text-xs text-zinc-500">
-        Standalone Astro SSR (Port 4322)
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-label">This week</span>
+      <span class="kpi-value">{thisWeek}</span>
+    </div>
+  </div>
+
+  <!-- Distribution bar -->
+  <div class="dist-section">
+    <div class="dist-head">
+      <span class="section-label">Preparedness distribution</span>
+      <span class="dist-cohort">{tiers.total} sessions</span>
+    </div>
+    <div class="dist-bar">
+      <div class="dist-seg high"     style={`width: ${highPct}%`}></div>
+      <div class="dist-seg moderate" style={`width: ${moderatePct}%`}></div>
+      <div class="dist-seg low"      style={`width: ${lowPct}%`}></div>
+    </div>
+    <div class="dist-legend">
+      <div class="dist-leg-item">
+        <span class="leg-dot high"></span>
+        <span class="leg-tier high">HIGH</span>
+        <span class="leg-count">{tiers.high} sessions · {highPct}%</span>
+      </div>
+      <div class="dist-leg-item">
+        <span class="leg-dot moderate"></span>
+        <span class="leg-tier moderate">MODERATE</span>
+        <span class="leg-count">{tiers.moderate} sessions · {moderatePct}%</span>
+      </div>
+      <div class="dist-leg-item">
+        <span class="leg-dot low"></span>
+        <span class="leg-tier low">LOW</span>
+        <span class="leg-count">{tiers.low} sessions · {lowPct}%</span>
       </div>
     </div>
-  </body>
-</html>
+  </div>
+
+  <!-- Recent sessions -->
+  <div class="sessions-section">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+      <span class="section-label">Recent sessions</span>
+      <a href="/sessions" class="view-link">View all →</a>
+    </div>
+    <table class="sessions-table">
+      <thead>
+        <tr>
+          <th>Participant</th>
+          <th>Scenario</th>
+          <th>Date</th>
+          <th>Duration</th>
+          <th>Level</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {recent.map(s => (
+          <tr onclick={`window.location='/sessions/${s.id}'`}>
+            <td class="name-cell">{s.participantName}</td>
+            <td>
+              <span style={`font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:${s.disasterType === 'FIRE' ? '#88d982' : '#bfcaba'};`}>
+                {s.disasterType}
+              </span>
+            </td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDate(s.startTime)}</td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDuration(s.durationSeconds)}</td>
+            <td>
+              <span class={`tier-badge ${s.prepLevel.toLowerCase()}`}>
+                <span class="dot"></span>
+                {s.prepLevel}
+              </span>
+            </td>
+            <td class="link-cell">
+              <a href={`/sessions/${s.id}`} class="view-link" onclick="event.stopPropagation()">→</a>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+</DashboardLayout>

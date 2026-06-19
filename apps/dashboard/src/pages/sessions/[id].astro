@@ -1,0 +1,156 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { EventLog } from '../../components/EventLog.tsx';
+import {
+  getSession,
+  formatDuration,
+  formatDate,
+} from '../../lib/mockData.ts';
+
+const { id } = Astro.params;
+const session = id ? getSession(id) : undefined;
+
+if (!session) {
+  return new Response(null, { status: 404, statusText: 'Session not found' });
+}
+
+const tierClass = session.prepLevel.toLowerCase();
+
+// Stat rows — two layouts: FIRE and EARTHQUAKE
+const isFireSession = session.disasterType === 'FIRE';
+
+// Max feature value used to size bars
+const maxFeat = Math.max(...session.featureImportance.map(f => f.value));
+---
+
+<DashboardLayout
+  title={`Session ${session.id}`}
+  currentPath="/sessions"
+  fullscreen={true}
+>
+
+  <!-- Session header bar -->
+  <div class={`session-header-bar ${tierClass}`}>
+    <a href="/" class="back-link">← Sessions</a>
+    <span class="header-sep">|</span>
+    <span class="session-id-tag">{session.id}</span>
+    <span class="header-sep">|</span>
+    <span class="session-participant-name">{session.participantName}</span>
+    <span class="header-sep">·</span>
+    <span class="scenario-tag">{session.disasterType}</span>
+    <span class={`tier-badge ${tierClass}`} style="margin-left: 4px;">
+      <span class="dot"></span>
+      {session.prepLevel}
+    </span>
+    <span class="header-date">{formatDate(session.startTime)}</span>
+  </div>
+
+  <!-- Content split: log + stats -->
+  <div class="detail-split">
+
+    <!-- LEFT: Event log terminal -->
+    <div class="log-panel">
+      <div class="panel-header">
+        <span class="section-label">Event log</span>
+        <span style="float:right; font-family:'JetBrains Mono',monospace; font-size:10px; color:#333;">
+          {session.log.length} events · fields marked [FUTURE] require mod instrumentation
+        </span>
+      </div>
+      <div class="event-log-wrap">
+        <EventLog client:load entries={session.log} />
+      </div>
+    </div>
+
+    <!-- RIGHT: Stats + feature importance + result -->
+    <div class="stats-panel">
+      <div class="stats-inner">
+
+        <!-- Session statistics -->
+        <div class="stat-section">
+          <span class="stat-section-label">Session statistics</span>
+          <div class="stat-grid">
+            <span class="stat-key">Scenario</span>
+            <span class="stat-val hi">{session.disasterType}</span>
+
+            <span class="stat-key">Duration</span>
+            <span class="stat-val hi">{formatDuration(session.durationSeconds)}</span>
+
+            {isFireSession ? (
+              <>
+                <span class="stat-key">Fires extinguished</span>
+                <span class="stat-val hi">{session.firesExtinguishedCount ?? '—'}</span>
+              </>
+            ) : (
+              <>
+                <span class="stat-key">Magnitude</span>
+                <span class="stat-val hi">M{session.magnitude?.toFixed(1)}</span>
+
+                <span class="stat-key">Aftershocks</span>
+                <span class="stat-val hi">{session.aftershockCount ?? 0}</span>
+
+                <span class="stat-key">Final phase</span>
+                <span class="stat-val hi" style="font-size:11px;">{session.finalEarthquakePhase?.replace('_', ' ')}</span>
+              </>
+            )}
+
+            <span class="stat-key">Participant</span>
+            <span class="stat-val">{session.participantName}</span>
+
+            <span class="stat-key">Section</span>
+            <span class="stat-val">{session.section}</span>
+
+            <span class="stat-key">Date</span>
+            <span class="stat-val">{formatDate(session.startTime)}</span>
+          </div>
+        </div>
+
+        <!-- Feature importance -->
+        <!-- All features below are [CLASSIFIER] outputs — pipeline not yet connected to real mod data -->
+        <div class="stat-section">
+          <span class="stat-section-label">Classifier signals</span>
+          <div class="feat-list">
+            {session.featureImportance.map(feat => (
+              <div class="feat-row">
+                <div class="feat-header">
+                  <span class="feat-name">{feat.name}</span>
+                  <span class="feat-score">{feat.value.toFixed(2)}</span>
+                </div>
+                <div class="feat-track">
+                  <div
+                    class="feat-fill"
+                    style={`width: ${Math.round((feat.value / maxFeat) * 100)}%`}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#333; margin-top:14px; line-height:1.6;">
+            Feature weights are [CLASSIFIER] output. Requires Random Forest pipeline + real session data.
+          </p>
+        </div>
+
+        <!-- Preparedness result -->
+        <div class="stat-section">
+          <div class={`result-block ${tierClass}`}>
+            <div class="result-top">
+              <span class="result-tier">{session.prepLevel}</span>
+              <span class="result-score">
+                {session.prepScore}<span class="result-score-unit"> / 100</span>
+              </span>
+            </div>
+            <span class="result-sublabel">Preparedness level</span>
+            <p class="result-text">{session.resultText}</p>
+            {session.prepLevel === 'LOW' && (
+              <div class="retake-flag">
+                ⚑ RETAKE REQUIRED
+              </div>
+            )}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</DashboardLayout>

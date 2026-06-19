@@ -1,0 +1,66 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  currentPath: string;
+  fullscreen?: boolean;
+}
+
+const { title, currentPath, fullscreen = false } = Astro.props;
+
+const navItems = [
+  { href: '/',         label: 'Overview',  badge: 'SUMMARY'  },
+  { href: '/sessions', label: 'Sessions',  badge: 'LOG'      },
+  { href: '/roster',   label: 'Roster',    badge: 'ROSTER'   },
+];
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} — BERONG SMP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+  <div class="dashboard-shell">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-brand-name">BERONG SMP</span>
+        <span class="sidebar-brand-sub">Drill Review · BFP / LSPU</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-group-label">Navigation</span>
+        {navItems.map(item => (
+          <a
+            href={item.href}
+            class={`nav-item${currentPath === item.href ? ' active' : ''}`}
+          >
+            <span class="nav-label">{item.label}</span>
+            <span class="nav-badge">{item.badge}</span>
+          </a>
+        ))}
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-line">
+          <span class="status-dot"></span>
+          MOCK DATA · v0.1
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class={`main-area${fullscreen ? ' fullscreen' : ''}`}>
+      <slot />
+    </main>
+
+  </div>
+</body>
+</html>
