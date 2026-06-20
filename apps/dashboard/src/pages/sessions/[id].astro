@@ -4,10 +4,11 @@ import { EventLog } from '../../components/EventLog.tsx';
 import { getSessionById, formatDuration, formatDate, derivePrepLevel, parseEventLog } from '../../lib/queries';
 
 const { id } = Astro.params;
-const env = Astro.locals.runtime?.env;
-const hasDb = env?.TURSO_URL && env?.TURSO_TOKEN;
+let env: { TURSO_URL: string; TURSO_TOKEN: string } | undefined;
+try { env = (Astro.locals as App.Locals).runtime?.env; } catch { env = undefined; }
+const hasDb = !!(env?.TURSO_URL && env?.TURSO_TOKEN);
 
-const session = (hasDb && id) ? await getSessionById(env, Number(id)) : null;
+const session = (hasDb && id) ? await getSessionById(env!, Number(id)) : null;
 
 if (!session) {
   return new Response(null, { status: 404, statusText: 'Session not found' });

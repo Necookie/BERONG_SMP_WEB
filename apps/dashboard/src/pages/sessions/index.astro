@@ -2,10 +2,11 @@
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import { getAllSessions, formatDuration, formatDate, derivePrepLevel } from '../../lib/queries';
 
-const env = Astro.locals.runtime?.env;
-const hasDb = env?.TURSO_URL && env?.TURSO_TOKEN;
+let env: { TURSO_URL: string; TURSO_TOKEN: string } | undefined;
+try { env = (Astro.locals as App.Locals).runtime?.env; } catch { env = undefined; }
+const hasDb = !!(env?.TURSO_URL && env?.TURSO_TOKEN);
 
-const sessions = hasDb ? await getAllSessions(env) : [];
+const sessions = hasDb ? await getAllSessions(env!) : [];
 ---
 
 <DashboardLayout title="Sessions" currentPath="/sessions">
