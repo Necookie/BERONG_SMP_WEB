@@ -59,7 +59,7 @@ const logEntries = parseEventLog(session.event_log);
       </div>
       <div class="event-log-wrap">
         {logEntries.length > 0 ? (
-          <EventLog client:load entries={logEntries} />
+          <EventLog client:only="react" entries={logEntries} />
         ) : (
           <div class="event-log" style="padding:16px;">
             <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#333;">
