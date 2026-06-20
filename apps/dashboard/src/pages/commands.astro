@@ -1,0 +1,1105 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+
+// Command list data
+const commands = [
+  {
+    name: '/sim_fire',
+    category: 'simulation',
+    permission: 'Any Player',
+    permissionLevel: 'player',
+    syntax: '/sim_fire',
+    description: 'Starts a Fire simulation for you immediately, bypassing the lobby button.',
+    whenToUse: [
+      'Testing the fire simulation without walking to the lobby button.',
+      'Admin/instructor wants to drop a specific student directly into a fire drill.'
+    ],
+    whatHappens: [
+      'Structures are placed (LSPU Library + SSC Building).',
+      'Player is teleported to the arena entrance.',
+      'Fire extinguisher is given in slot 1 with the pin not yet pulled (PASS protocol: Pull, Aim, Squeeze, Sweep).',
+      'Fire blocks begin spawning every fireSpawnInterval ticks.',
+      'Timer counts down from simDurationTicks.',
+      'HUD displays "SIMULATION STATUS: FIRE" and time remaining.'
+    ],
+    notes: [
+      'Fails silently if you already have a simulation running (displays "You already have a simulation in progress!" message).',
+      'Cannot be run from the server console.'
+    ]
+  },
+  {
+    name: '/sim_earthquake',
+    category: 'simulation',
+    permission: 'Any Player',
+    permissionLevel: 'player',
+    syntax: '/sim_earthquake [magnitude]',
+    arguments: [
+      { name: 'magnitude', type: 'double', range: '0.1 – 10.0', required: 'No', description: 'Intensity of the quake. If omitted, uses quakeMagnitude from config (default 5.0).' }
+    ],
+    description: 'Starts an Earthquake simulation for you immediately, bypassing the lobby button.',
+    whenToUse: [
+      'Testing the earthquake simulation without the lobby button.',
+      'Running a controlled drill at a specific intensity (e.g. 3.0 for gentle shake, 9.5 for severe).',
+      'Instructors scripting a lesson where they want a predictable magnitude.'
+    ],
+    whatHappens: [
+      'Structures placed (LSPU Library + SSC Building).',
+      'A random epicenter is chosen within the arena.',
+      'Player teleported to arena entrance.',
+      'Earthquake message displayed: "⚠ Magnitude X.X Earthquake has begun! Brace for impact!"',
+      'Phase state machine begins: RUMBLE → PEAK → AFTERSHOCK → END.',
+      'RUMBLE: Low-intensity random block destruction within magnitude x 3 blocks. Camera begins slow oscillation.',
+      'PEAK: Maximum intensity. Unsupported blocks break gradually every tick (cascading collapse). Camera shake is strongest.',
+      'AFTERSHOCK: Half the break count, smaller radius. Camera shake fades.',
+      'END: No more destruction. Phase machine stops.',
+      'Fire that spreads naturally is cleared every second.',
+      'HUD shows "SIMULATION STATUS: EARTHQUAKE", time remaining, and camera shake intensity.'
+    ],
+    notes: [
+      'The lobby button starts this simulation with a random magnitude between 6.0 and 9.5 (strong range).',
+      'Fails if you already have an active simulation.'
+    ]
+  },
+  {
+    name: '/sim_stop',
+    category: 'simulation',
+    permission: 'Any Player',
+    permissionLevel: 'player',
+    syntax: '/sim_stop',
+    description: 'Ends your active simulation early. Behaves identically to the timer expiring naturally.',
+    whenToUse: [
+      'Ending a drill early (session went wrong, player is stuck, admin intervention).',
+      'Resetting the arena to a clean state before starting a new session.'
+    ],
+    whatHappens: [
+      'Active session is removed.',
+      'LSPU Library + SSC Building structures are restored to their original state.',
+      'HUD is cleared.',
+      'Player is teleported back to the lobby spawn.',
+      'If it was a FIRE session, score is printed: fires extinguished and score out of 100.'
+    ],
+    notes: [
+      'Safe to call even if no simulation is running (no-op).',
+      'Can be called from the server console to stop any running simulation by a specific player (resolves to the calling player).',
+      'If the player died during the simulation, the structure is still restored but the teleport is deferred to their next respawn.'
+    ]
+  },
+  {
+    name: '/sim_magnitude',
+    category: 'earthquake',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/sim_magnitude <value>',
+    arguments: [
+      { name: 'value', type: 'double', range: '0.1 – 10.0', required: 'Yes', description: 'New magnitude value.' }
+    ],
+    description: 'Changes the magnitude of your currently active earthquake session live, taking effect on the very next tick.',
+    whenToUse: [
+      'Instructor wants to dial up intensity mid-session to demonstrate a stronger quake.',
+      'Gradually increase magnitude as a teaching progression without stopping and restarting.',
+      'Dial back an accidental high-magnitude start so players aren\'t overwhelmed.'
+    ],
+    examples: [
+      { cmd: '/sim_earthquake 3.0', desc: 'Start mild for explanation' },
+      { cmd: '/sim_magnitude 6.0', desc: 'Escalate during PEAK phase for impact' },
+      { cmd: '/sim_magnitude 9.0', desc: 'Push to severe for demonstration' },
+      { cmd: '/sim_stop', desc: 'End simulation when done' }
+    ],
+    notes: [
+      'Fails with "No active earthquake simulation to adjust." if you have no running earthquake session.',
+      'Restricted to ops — regular players cannot use this.'
+    ]
+  },
+  {
+    name: '/bfp login',
+    category: 'bfp-admin',
+    permission: 'Any Player (PIN required)',
+    permissionLevel: 'admin',
+    syntax: '/bfp login <pin>',
+    arguments: [
+      { name: 'pin', type: 'string', range: 'N/A', required: 'Yes', description: 'Admin authentication PIN set in bfpAdminPin config (default "1234").' }
+    ],
+    description: 'Authenticates you as a BFP admin for this session using the configured PIN.',
+    whatHappens: [
+      'Authenticates the user as BFP admin for the current session.',
+      'All /bfp sub-commands become available until logout or server restart.'
+    ],
+    notes: [
+      'OPs always bypass the PIN check.',
+      'Ensure you change the default PIN in the config before going live.'
+    ]
+  },
+  {
+    name: '/bfp logout',
+    category: 'bfp-admin',
+    permission: 'Any Player (Authenticated)',
+    permissionLevel: 'admin',
+    syntax: '/bfp logout',
+    description: 'Revokes your PIN-based BFP admin access.',
+    whenToUse: [
+      'Step away from the station so others cannot run admin commands on your account.'
+    ]
+  },
+  {
+    name: '/bfp checkin',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp checkin <student_name> | /bfp checkin <player> <student_name>',
+    arguments: [
+      { name: 'student_name', type: 'string', range: 'N/A', required: 'Yes', description: 'Full name of the student checking in.' },
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player account if different from the caller.' }
+    ],
+    description: 'Starts a new session for a student sitting at the station.',
+    whatHappens: [
+      'Any existing session for that account is closed and saved.',
+      'Tutorial saved data for the account UUID is wiped (fresh start).',
+      'A new row is inserted into Turso with status="active".'
+    ],
+    examples: [
+      { cmd: '/bfp checkin Juan dela Cruz', desc: 'Starts session for caller as Juan dela Cruz' },
+      { cmd: '/bfp checkin station2 Maria Santos', desc: 'Starts session for player "station2" as Maria Santos' }
+    ]
+  },
+  {
+    name: '/bfp checkout',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp checkout',
+    description: 'Finalises the calling player\'s current session and writes results to the database.',
+    whatHappens: [
+      'Writes end_time and status="completed" to Turso.',
+      'Useful when a student finishes and leaves without triggering a simulation end.'
+    ]
+  },
+  {
+    name: '/bfp reset',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp reset [player]',
+    arguments: [
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player to reset. Defaults to caller if omitted.' }
+    ],
+    description: 'Wipes tutorial state and deletes the active DB row — no record is kept.',
+    whenToUse: [
+      'Use when a session was started by mistake or needs to be discarded.'
+    ]
+  },
+  {
+    name: '/bfp tutorial',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp tutorial [player]',
+    arguments: [
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player to reset. Defaults to caller if omitted.' }
+    ],
+    description: 'Resets a player\'s tutorial state and immediately teleports them to the tutorial lobby.',
+    whatHappens: [
+      'Wipes the tutorial save and any active session.',
+      'Tutorial NPCs are re-spawned at their correct positions (fixes any duplicates).',
+      'Target player is teleported to the tutorial spawn.'
+    ]
+  },
+  {
+    name: '/bfp session info',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp session info',
+    description: 'Prints the current session details to chat.',
+    details: [
+      'Student name & station account',
+      'Session start time',
+      'Whether the tutorial is complete',
+      'Simulation type, score, and pass/fail status'
+    ]
+  },
+  {
+    name: '/bfp sessions list',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp sessions list [page]',
+    arguments: [
+      { name: 'page', type: 'integer', range: '1+', required: 'No', description: 'Page number for pagination.' }
+    ],
+    description: 'Lists the 10 most recent sessions from Turso in chat, paginated.',
+    details: [
+      'Each entry shows student name, account, simulation type, score, pass status, and session status.'
+    ]
+  },
+  {
+    name: '/bfp sessions export',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp sessions export',
+    description: 'Queries all sessions from Turso and writes them to run/bfp_sessions_export.csv.',
+    details: [
+      'Columns exported: id, student_name, station_account, account_uuid, start_time, end_time, status, tutorial_completed, tutorial_duration_s, simulation_type, simulation_score, passed, notes'
+    ]
+  },
+  {
+    name: '/bfp student',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp student <name>',
+    arguments: [
+      { name: 'name', type: 'string', range: 'N/A', required: 'Yes', description: 'Name of the student to search.' }
+    ],
+    description: 'Looks up the last 10 sessions for a given student name and prints them to chat.',
+    whenToUse: [
+      'Checking a student\'s history across multiple attempts.'
+    ]
+  },
+  {
+    name: '/get_extinguisher',
+    category: 'utility',
+    permission: 'Any Player',
+    permissionLevel: 'player',
+    syntax: '/get_extinguisher',
+    description: 'Gives you a Fire Extinguisher item directly into your inventory.',
+    whenToUse: [
+      'You dropped or lost the extinguisher during a fire simulation and need a replacement.',
+      'Testing the extinguisher mechanics outside of a simulation.',
+      'Instructors demonstrating how the extinguisher works before a drill.'
+    ],
+    notes: [
+      'The extinguisher starts with the pin NOT pulled. Right-click once to pull the pin (the "P" in PASS), then right-click again to spray.',
+      'Can be used at any time, simulation or not.'
+    ]
+  },
+  {
+    name: '/spawn_lspu',
+    category: 'utility',
+    permission: 'Op Level 2+ only',
+    permissionLevel: 'admin',
+    syntax: '/spawn_lspu',
+    description: 'Spawns the LSPU CCS Building at your current position using the CCSBuildingConstructor.',
+    whenToUse: [
+      'Dev/admin use: placing the CCS building at an arbitrary location for inspection or world-building.',
+      'Testing structure generation without running a full simulation.'
+    ],
+    notes: [
+      'Places the building at your exact block position — origin matches where you stand.',
+      'This is a permanent world modification, not restored by /sim_stop.'
+    ]
+  }
+];
+
+// Config data
+const configs = [
+  { key: 'simDurationTicks', default: '2400', affects: 'How long any simulation runs (2 min)' },
+  { key: 'quakeMagnitude', default: '5.0', affects: 'Default magnitude for /sim_earthquake with no arg' },
+  { key: 'quakeRumbleDuration', default: '100 ticks', affects: 'Length of RUMBLE phase (5 s)' },
+  { key: 'quakePeakDuration', default: '200 ticks', affects: 'Length of PEAK phase (10 s)' },
+  { key: 'quakeAftershockDuration', default: '100 ticks', affects: 'Length of AFTERSHOCK phase (5 s)' },
+  { key: 'quakeBreakCount', default: '2', affects: 'Blocks destroyed per quake interval' },
+  { key: 'quakeInterval', default: '10 ticks', affects: 'How often earthquake effect fires' },
+  { key: 'fireSpawnCount', default: '3', affects: 'Fire blocks placed per spawn interval' },
+  { key: 'fireSpawnInterval', default: '20 ticks', affects: 'How often fire is placed (1 s)' },
+  { key: 'tursoUrl', default: '""', affects: 'Turso HTTPS database URL for session tracking' },
+  { key: 'tursoToken', default: '""', affects: 'Turso Bearer auth token' },
+  { key: 'passThresholdFire', default: '5', affects: 'Fires extinguished required to mark a session as passed' },
+  { key: 'bfpAdminPin', default: '"1234"', affects: 'PIN for /bfp login — change this before going live' }
+];
+---
+
+<DashboardLayout title="Commands Reference" currentPath="/commands">
+  <!-- Page Header -->
+  <div class="page-header flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="page-title">Commands Reference</h1>
+      <p class="page-meta">Registered by ModCommands.java · hot-reloadable server configuration</p>
+    </div>
+    <!-- Search Bar -->
+    <div class="search-container">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input
+        type="text"
+        id="command-search"
+        placeholder="Search commands, syntax, keywords..."
+        autocomplete="off"
+      />
+    </div>
+  </div>
+
+  <!-- Filter & Statistics Bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <span class="filter-label">Categories</span>
+      <div class="filter-pills" id="category-filters">
+        <button class="filter-pill active" data-category="all">ALL</button>
+        <button class="filter-pill" data-category="simulation">SIMULATION</button>
+        <button class="filter-pill" data-category="earthquake">EARTHQUAKE</button>
+        <button class="filter-pill" data-category="bfp-admin">BFP ADMIN</button>
+        <button class="filter-pill" data-category="utility">UTILITY</button>
+      </div>
+    </div>
+    <div class="filter-count">
+      Showing <span id="filtered-count" class="count-highlight">{commands.length}</span> of {commands.length} commands
+    </div>
+  </div>
+
+  <!-- Main Grid Content -->
+  <div class="commands-grid">
+    <!-- Left Column: Command Cards List -->
+    <div class="commands-list-pane">
+      <div id="no-results-message" class="no-results hidden">
+        <span class="material-symbols-outlined" style="font-size: 36px; margin-bottom: 8px;">search_off</span>
+        <p>No commands matched your search criteria.</p>
+      </div>
+
+      {commands.map((cmd) => (
+        <div
+          class="command-card stone-border"
+          data-name={cmd.name}
+          data-category={cmd.category}
+          data-keywords={`${cmd.name} ${cmd.description} ${cmd.syntax} ${cmd.permission} ${cmd.notes?.join(' ') || ''} ${cmd.whenToUse?.join(' ') || ''}`}
+        >
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <span class="command-name">{cmd.name}</span>
+              <span class={`perm-badge ${cmd.permissionLevel}`}>
+                {cmd.permission}
+              </span>
+            </div>
+            <div class="syntax-wrapper mt-3">
+              <code class="syntax-code">{cmd.syntax}</code>
+              <button class="copy-btn" data-syntax={cmd.syntax} title="Copy Syntax">
+                <span class="material-symbols-outlined icon">content_copy</span>
+                <span class="label">Copy</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card Body -->
+          <div class="card-body">
+            <p class="description">{cmd.description}</p>
+
+            {cmd.arguments && (
+              <div class="args-section mt-4">
+                <span class="sub-label">Arguments</span>
+                <div class="table-container mt-1">
+                  <table class="args-table">
+                    <thead>
+                      <tr>
+                        <th>Arg</th>
+                        <th>Type</th>
+                        <th>Range</th>
+                        <th>Req.</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cmd.arguments.map((arg) => (
+                        <tr>
+                          <td><code>{arg.name}</code></td>
+                          <td><code>{arg.type}</code></td>
+                          <td><span class="range-span">{arg.range}</span></td>
+                          <td><span class={`req-span ${arg.required.toLowerCase() === 'yes' ? 'req-yes' : 'req-no'}`}>{arg.required}</span></td>
+                          <td class="arg-desc">{arg.description}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <!-- Collapsible details toggle -->
+            <button class="details-toggle mt-4">
+              <span>View Details</span>
+              <span class="material-symbols-outlined toggle-icon">expand_more</span>
+            </button>
+
+            <!-- Collapsible details content -->
+            <div class="details-content hidden-height">
+              <div class="details-inner pt-3">
+                {cmd.whenToUse && (
+                  <div class="detail-block">
+                    <span class="sub-label">When to use:</span>
+                    <ul>
+                      {cmd.whenToUse.map((item) => (
+                        <li>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {cmd.whatHappens && (
+                  <div class="detail-block">
+                    <span class="sub-label">What happens:</span>
+                    <ol>
+                      {cmd.whatHappens.map((item) => (
+                        <li>{item}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
+                {cmd.details && (
+                  <div class="detail-block">
+                    <span class="sub-label">Information printed:</span>
+                    <ul>
+                      {cmd.details.map((item) => (
+                        <li>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {cmd.examples && (
+                  <div class="detail-block">
+                    <span class="sub-label">Example flow:</span>
+                    <div class="example-box">
+                      {cmd.examples.map((ex) => (
+                        <div class="example-item">
+                          <code class="example-cmd">{ex.cmd}</code>
+                          <span class="example-desc">← {ex.desc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {cmd.notes && (
+                  <div class="detail-block">
+                    <span class="sub-label">Notes:</span>
+                    <ul class="notes-list">
+                      {cmd.notes.map((item) => (
+                        <li>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Right Column: Config Defaults Panel -->
+    <div class="config-pane">
+      <div class="config-card stone-border">
+        <div class="config-header">
+          <span class="material-symbols-outlined flex-shrink-0" style="color: var(--text-brand)">settings</span>
+          <div>
+            <h2 class="config-title">Config Defaults</h2>
+            <p class="config-meta">Located in <code>run/config/berongsmp-common.toml</code></p>
+          </div>
+        </div>
+        <div class="config-body">
+          <p class="config-desc mb-4">
+            These parameters tune simulation logic, timing intervals, and database synchronization. Changes applied to the common.toml configuration are hot-reloaded automatically by the mod on the next tick.
+          </p>
+          <table class="config-table">
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Default</th>
+                <th>Description / Affects</th>
+              </tr>
+            </thead>
+            <tbody>
+              {configs.map((cfg) => (
+                <tr>
+                  <td><code class="cfg-key">{cfg.key}</code></td>
+                  <td><code class="cfg-val">{cfg.default}</code></td>
+                  <td class="cfg-affects">{cfg.affects}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<style>
+  /* Page Layout CSS Scoped to this component */
+  .search-container {
+    display: flex;
+    align-items: center;
+    background: var(--bg-log-panel);
+    border: 1px solid var(--border-card);
+    padding: 6px 14px;
+    border-radius: 2px;
+    width: 100%;
+    max-width: 320px;
+    transition: border-color 0.2s;
+  }
+  .search-container:focus-within {
+    border-color: var(--text-brand);
+  }
+  .search-icon {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-right: 8px;
+  }
+  #command-search {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  .commands-grid {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 32px;
+    padding: 24px 40px 40px;
+    align-items: start;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  @media (max-width: 1024px) {
+    .commands-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .commands-list-pane {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Command Card Styling */
+  .command-card {
+    background: var(--bg-sidebar);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .command-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border-table);
+    background: rgba(255, 255, 255, 0.01);
+  }
+
+  .command-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-heading);
+  }
+
+  .perm-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+
+  .perm-badge.player {
+    background: rgba(136, 217, 130, 0.08);
+    color: var(--text-brand);
+    border: 1px solid rgba(136, 217, 130, 0.2);
+  }
+
+  .perm-badge.admin {
+    background: rgba(201, 168, 76, 0.08);
+    color: #c9a84c;
+    border: 1px solid rgba(201, 168, 76, 0.2);
+  }
+
+  .syntax-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--bg-log-panel);
+    border: 1px solid var(--border-card);
+    padding: 4px 6px 4px 12px;
+    border-radius: 2px;
+    justify-content: space-between;
+  }
+
+  .syntax-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-log-code);
+  }
+
+  .copy-btn {
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-card);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover {
+    color: var(--text-brand);
+    border-color: var(--text-brand);
+    background: rgba(136, 217, 130, 0.05);
+  }
+
+  .copy-btn .icon {
+    font-size: 13px;
+  }
+
+  .card-body {
+    padding: 18px 24px 22px;
+  }
+
+  .description {
+    font-size: 13.5px;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .sub-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-brand-sub);
+    display: block;
+    font-weight: 500;
+  }
+
+  /* Args Table */
+  .table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border-table);
+    border-radius: 2px;
+  }
+
+  .args-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .args-table th {
+    background: var(--bg-log-panel);
+    color: var(--text-muted);
+    font-weight: 500;
+    text-align: left;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    border-bottom: 1px solid var(--border-table);
+  }
+
+  .args-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-table);
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+
+  .args-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .args-table code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-log-code);
+  }
+
+  .range-span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+
+  .req-span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+
+  .req-span.yes {
+    background: rgba(196, 92, 92, 0.08);
+    color: #c45c5c;
+    border: 1px solid rgba(196, 92, 92, 0.2);
+  }
+
+  .req-span.no {
+    background: rgba(136, 217, 130, 0.08);
+    color: var(--text-brand);
+    border: 1px solid rgba(136, 217, 130, 0.2);
+  }
+
+  .arg-desc {
+    color: var(--text-muted);
+    font-size: 11.5px;
+  }
+
+  /* Details toggle */
+  .details-toggle {
+    background: transparent;
+    border: none;
+    color: var(--text-brand-sub);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+  }
+
+  .details-toggle:hover {
+    color: var(--text-brand);
+  }
+
+  .toggle-icon {
+    font-size: 16px;
+    transition: transform 0.25s ease;
+  }
+
+  .toggle-icon.active {
+    transform: rotate(180deg);
+  }
+
+  /* Details Collapsible Content */
+  .details-content {
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+  }
+
+  .hidden-height {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .detail-block {
+    margin-bottom: 14px;
+  }
+
+  .detail-block:last-child {
+    margin-bottom: 0;
+  }
+
+  .detail-block ul, .detail-block ol {
+    margin: 6px 0 0;
+    padding-left: 20px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .detail-block li {
+    margin-bottom: 4px;
+  }
+
+  .notes-list li {
+    position: relative;
+    list-style-type: none;
+  }
+
+  .notes-list li::before {
+    content: "·";
+    position: absolute;
+    left: -12px;
+    font-weight: bold;
+    color: var(--text-brand);
+  }
+
+  /* Example Flow Box */
+  .example-box {
+    background: var(--bg-log-panel);
+    border: 1px solid var(--border-table);
+    padding: 10px 14px;
+    border-radius: 2px;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .example-cmd {
+    color: var(--text-log-prompt);
+    font-weight: 500;
+  }
+
+  .example-desc {
+    color: var(--text-brand-sub);
+    margin-left: 8px;
+  }
+
+  /* Right Config defaults Card */
+  .config-pane {
+    position: sticky;
+    top: 24px;
+  }
+
+  .config-card {
+    background: var(--bg-sidebar);
+    border-radius: 2px;
+  }
+
+  .config-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-table);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .config-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-heading);
+    margin: 0;
+  }
+
+  .config-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-brand-sub);
+    margin: 2px 0 0;
+  }
+
+  .config-body {
+    padding: 20px 24px 24px;
+  }
+
+  .config-desc {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .config-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .config-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--text-brand-sub);
+    font-weight: 500;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-table);
+  }
+
+  .config-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-table);
+    vertical-align: top;
+    color: var(--text-primary);
+  }
+
+  .config-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .cfg-key {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-heading);
+    font-weight: 500;
+  }
+
+  .cfg-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-log-code);
+  }
+
+  .cfg-affects {
+    color: var(--text-muted);
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  /* Filter counts styling */
+  .count-highlight {
+    color: var(--text-brand);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    text-align: center;
+    background: var(--bg-sidebar);
+    border: 1px dashed var(--border-card);
+  }
+
+  .no-results.hidden {
+    display: none !important;
+  }
+</style>
+
+<script>
+  // Client-side interactions
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('command-search') as HTMLInputElement | null;
+    const categoryButtons = document.querySelectorAll('#category-filters .filter-pill');
+    const commandCards = document.querySelectorAll('.command-card') as NodeListOf<HTMLDivElement>;
+    const filteredCount = document.getElementById('filtered-count');
+    const noResultsMessage = document.getElementById('no-results-message');
+
+    let activeCategory = 'all';
+    let searchQuery = '';
+
+    // Handle searching and filtering cards
+    function filterCommands() {
+      let count = 0;
+
+      commandCards.forEach((card) => {
+        const category = card.dataset.category || '';
+        const keywords = (card.dataset.keywords || '').toLowerCase();
+        
+        const matchesCategory = activeCategory === 'all' || category === activeCategory;
+        const matchesSearch = keywords.includes(searchQuery.toLowerCase());
+
+        if (matchesCategory && matchesSearch) {
+          card.style.display = 'block';
+          count++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (filteredCount) {
+        filteredCount.textContent = count.toString();
+      }
+
+      if (noResultsMessage) {
+        if (count === 0) {
+          noResultsMessage.classList.remove('hidden');
+        } else {
+          noResultsMessage.classList.add('hidden');
+        }
+      }
+    }
+
+    // Search input listener
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = (e.target as HTMLInputElement).value.trim();
+        filterCommands();
+      });
+    }
+
+    // Category filter pills listener
+    categoryButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        categoryButtons.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeCategory = btn.getAttribute('data-category') || 'all';
+        filterCommands();
+      });
+    });
+
+    // Copy to clipboard listener
+    const copyButtons = document.querySelectorAll('.copy-btn');
+    copyButtons.forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const syntax = btn.getAttribute('data-syntax') || '';
+        if (!syntax) return;
+
+        try {
+          await navigator.clipboard.writeText(syntax);
+          
+          // Visual Feedback
+          const label = btn.querySelector('.label');
+          const icon = btn.querySelector('.icon');
+          
+          if (label && icon) {
+            const originalText = label.textContent;
+            const originalIcon = icon.textContent;
+
+            label.textContent = 'Copied!';
+            icon.textContent = 'done';
+            btn.classList.add('success-state');
+
+            setTimeout(() => {
+              label.textContent = originalText;
+              icon.textContent = originalIcon;
+              btn.classList.remove('success-state');
+            }, 1800);
+          }
+        } catch (err) {
+          console.error('Failed to copy to clipboard', err);
+        }
+      });
+    });
+
+    // Details Toggle (Accordion) listener
+    const toggleButtons = document.querySelectorAll('.details-toggle');
+    toggleButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.command-card');
+        if (!card) return;
+
+        const content = card.querySelector('.details-content') as HTMLDivElement | null;
+        const icon = btn.querySelector('.toggle-icon');
+        const textSpan = btn.querySelector('span:first-child');
+
+        if (content && icon && textSpan) {
+          const isCollapsed = content.classList.contains('hidden-height');
+          
+          if (isCollapsed) {
+            // Expand
+            content.classList.remove('hidden-height');
+            icon.classList.add('active');
+            textSpan.textContent = 'Hide Details';
+            
+            // Allow height calculation transitions
+            content.style.maxHeight = '1000px'; 
+            content.style.opacity = '1';
+            content.style.pointerEvents = 'auto';
+          } else {
+            // Collapse
+            content.classList.add('hidden-height');
+            icon.classList.remove('active');
+            textSpan.textContent = 'View Details';
+            
+            content.style.maxHeight = '0px';
+            content.style.opacity = '0';
+            content.style.pointerEvents = 'none';
+          }
+        }
+      });
+    });
+  });
+</script>

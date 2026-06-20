@@ -5,13 +5,16 @@ import MobileMenu from '../react/MobileMenu';
 import ThemeToggle from './ThemeToggle.astro';
 import logo from '../../assets/images/berong-elearning-logo.png';
 
+const isCommandsPage = Astro.url.pathname.startsWith('/commands');
+
 const navLinks = [
-  { href: '#',        label: 'Home'     },
-  { href: '#about',   label: 'About'    },
-  { href: '#features',label: 'Features' },
-  { href: '#gallery', label: 'Gallery'  },
-  { href: '#rules',   label: 'Rules'    },
-  { href: '#instructions', label: 'Instructions' },
+  { href: isCommandsPage ? '/' : '#',        label: 'Home'     },
+  { href: isCommandsPage ? '/#about' : '#about',   label: 'About'    },
+  { href: isCommandsPage ? '/#features' : '#features',label: 'Features' },
+  { href: isCommandsPage ? '/#gallery' : '#gallery', label: 'Gallery'  },
+  { href: isCommandsPage ? '/#rules' : '#rules',   label: 'Rules'    },
+  { href: isCommandsPage ? '/#instructions' : '#instructions', label: 'Instructions' },
+  { href: '/commands', label: 'Commands' },
 ];
 ---
 
@@ -37,13 +40,13 @@ const navLinks = [
 
     <!-- Desktop links -->
     <ul class="hidden md:flex items-center gap-8 list-none" role="list">
-      {navLinks.map(({ href, label }, i) => (
+      {navLinks.map(({ href, label }) => (
         <li>
           <a
             href={href}
             class={[
               'font-mono text-xs font-medium tracking-widest uppercase transition-colors',
-              i === 0
+              (isCommandsPage ? label === 'Commands' : label === 'Home')
                 ? 'text-primary border-b-2 border-primary pb-1'
                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-bright/10 px-2 py-1',
             ].join(' ')}

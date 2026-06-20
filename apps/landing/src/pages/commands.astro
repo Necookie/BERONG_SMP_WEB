@@ -1,0 +1,434 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/astro/Navbar.astro';
+import Footer from '../components/astro/Footer.astro';
+
+// Command list for public view
+const commands = [
+  {
+    name: '/sim_fire',
+    syntax: '/sim_fire',
+    permission: 'Any Player',
+    isAdmin: false,
+    description: 'Starts a Fire simulation immediately, bypassing the lobby button.',
+    flow: [
+      'Teleports you directly to the LSPU Library arena.',
+      'Gives a fire extinguisher in slot 1 (pin not yet pulled).',
+      'Starts spawning fire blocks and begins counting down.'
+    ],
+    tip: 'Remember PASS: Pull the pin, Aim at the base of the fire, Squeeze the lever, and Sweep side-to-side!'
+  },
+  {
+    name: '/sim_earthquake',
+    syntax: '/sim_earthquake [magnitude]',
+    permission: 'Any Player',
+    isAdmin: false,
+    description: 'Starts an Earthquake simulation at a specific magnitude (0.1 – 10.0).',
+    args: [
+      { name: 'magnitude', desc: 'Intensity (0.1–10.0). If omitted, uses default (5.0).' }
+    ],
+    flow: [
+      'Places LSPU Library and SSC structures.',
+      'Selects a random epicenter and starts camera oscillation.',
+      'RUMBLE → PEAK (block collapses) → AFTERSHOCK → END phases.'
+    ],
+    tip: 'Running the drill from the lobby button triggers a random magnitude between 6.0 and 9.5 (Strong).'
+  },
+  {
+    name: '/sim_stop',
+    syntax: '/sim_stop',
+    permission: 'Any Player / Console',
+    isAdmin: false,
+    description: 'Ends your active simulation early and fully restores structures.',
+    flow: [
+      'Resets all structures to their clean, original states.',
+      'Clears the HUD and teleports you back to the lobby spawn.',
+      'Prints your performance metrics and final score in chat.'
+    ]
+  },
+  {
+    name: '/get_extinguisher',
+    syntax: '/get_extinguisher',
+    permission: 'Any Player',
+    isAdmin: false,
+    description: 'Gives you a Fire Extinguisher item directly in your inventory.',
+    tip: 'Right-click once to pull the pin, then right-click and hold to spray extinguishing particles.'
+  },
+  {
+    name: '/bfp login',
+    syntax: '/bfp login <pin>',
+    permission: 'Any Player (PIN required)',
+    isAdmin: true,
+    description: 'Authenticates you as a BFP admin for this session using the config PIN.',
+    tip: 'Admin access remains active until you logout or the server restarts.'
+  },
+  {
+    name: '/bfp logout',
+    syntax: '/bfp logout',
+    permission: 'PIN Authenticated',
+    isAdmin: true,
+    description: 'Revokes your PIN-based BFP admin access for security.'
+  },
+  {
+    name: '/bfp checkin',
+    syntax: '/bfp checkin <student_name>',
+    permission: 'Op or PIN Admin',
+    isAdmin: true,
+    description: 'Starts a new tracked session for a student sitting at the station.',
+    flow: [
+      'Closes any existing session for the account.',
+      'Wipes saved tutorial data (starts a fresh run).',
+      'Inserts a new active record in the Turso database.'
+    ]
+  },
+  {
+    name: '/bfp checkout',
+    syntax: '/bfp checkout',
+    permission: 'Op or PIN Admin',
+    isAdmin: true,
+    description: 'Finalizes the current session, writing status="completed" to Turso.'
+  },
+  {
+    name: '/bfp reset',
+    syntax: '/bfp reset [player]',
+    permission: 'Op or PIN Admin',
+    isAdmin: true,
+    description: 'Wipes tutorial state and deletes the active database row (no record kept).'
+  },
+  {
+    name: '/bfp tutorial',
+    syntax: '/bfp tutorial [player]',
+    permission: 'Op or PIN Admin',
+    isAdmin: true,
+    description: 'Wipes session, resets tutorial, teleports player to spawn, and respawns NPCs.'
+  },
+  {
+    name: '/sim_magnitude',
+    syntax: '/sim_magnitude <value>',
+    permission: 'Op Level 2+ only',
+    isAdmin: true,
+    description: 'Changes the magnitude of the active earthquake session live on the next tick.'
+  },
+  {
+    name: '/spawn_lspu',
+    syntax: '/spawn_lspu',
+    permission: 'Op Level 2+ only',
+    isAdmin: true,
+    description: 'Spawns the permanent, procedurally constructed CCS building at your location.'
+  }
+];
+
+const magnitudes = [
+  { scale: '0.1 – 2.0', name: 'Micro', effect: 'Barely noticeable, minimal destruction. Recommended for basic test sweeps.' },
+  { scale: '3.0 – 4.9', name: 'Moderate', effect: 'Some blocks fall, light camera shake. Introduce basic evacuation procedures.' },
+  { scale: '5.0', name: 'Default', effect: 'Balanced gameplay standard. Normal structural damage cascades.' },
+  { scale: '6.0 – 7.9', name: 'Strong', effect: 'Significant collapse, pronounced camera shaking. High difficulty drill.' },
+  { scale: '8.0 – 10.0', name: 'Severe', effect: 'Rapid, widespread collapse. Immediate drop/cover/hold training required.' }
+];
+---
+
+<BaseLayout title="Commands Guide — BERONG SMP" description="Comprehensive Minecraft command reference sheet for BerongSMP Disaster Simulation: Fire and Earthquake Drills.">
+  <Navbar />
+
+  <main id="main-content" class="pt-28 pb-16 min-h-screen">
+    <!-- Hero Header -->
+    <section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop mb-12">
+      <div class="text-center md:text-left border-b border-border-stone pb-8">
+        <div class="section-label mb-4">
+          <span class="material-symbols-outlined" style="font-size:16px;">terminal</span>
+          Command Directory
+        </div>
+        <h1 class="font-headline text-3xl md:text-4xl font-bold text-white text-shadow-mc uppercase tracking-wider mb-3">
+          Simulator Commands
+        </h1>
+        <p class="font-body text-body-md text-on-surface-variant max-w-2xl">
+          Complete reference of server actions registered by <code class="bg-surface-elevated px-1.5 py-0.5 border border-border-stone text-xs text-white">ModCommands.java</code>. Use these commands to trigger drills, adjust disaster intensities, and manage student sessions.
+        </p>
+      </div>
+    </section>
+
+    <!-- Search & Grid Section -->
+    <section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+      <!-- Search Panel -->
+      <div class="bg-surface-elevated stone-border p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex-1 max-w-xl">
+          <div class="flex items-center bg-surface-deep border border-border-stone px-4 py-2 group focus-within:border-primary/60 transition-colors">
+            <span class="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary mr-2" style="font-size:20px;">search</span>
+            <input
+              type="text"
+              id="landing-search"
+              placeholder="Search by command name, description, or keyword..."
+              class="bg-transparent border-none outline-none font-mono text-xs md:text-sm text-white w-full placeholder-on-surface-variant select-all"
+            />
+          </div>
+        </div>
+        <!-- Pills for Quick Filtering -->
+        <div class="flex flex-wrap gap-2" id="landing-filter-pills">
+          <button class="px-3 py-1.5 border border-primary text-primary font-mono text-[10px] uppercase tracking-wider bg-surface-deep cursor-pointer active-pill" data-type="all">All</button>
+          <button class="px-3 py-1.5 border border-border-stone text-on-surface-variant font-mono text-[10px] uppercase tracking-wider bg-surface-deep cursor-pointer hover:border-primary/45 hover:text-white" data-type="player">Player</button>
+          <button class="px-3 py-1.5 border border-border-stone text-on-surface-variant font-mono text-[10px] uppercase tracking-wider bg-surface-deep cursor-pointer hover:border-primary/45 hover:text-white" data-type="admin">Admin</button>
+        </div>
+      </div>
+
+      <!-- Content Grid -->
+      <div class="grid lg:grid-cols-3 gap-8 items-start">
+        <!-- Commands list container -->
+        <div class="lg:col-span-2 space-y-6" id="landing-commands-list">
+          <div id="landing-no-results" class="bg-surface-elevated stone-border p-12 text-center text-on-surface-variant hidden">
+            <span class="material-symbols-outlined text-on-surface-variant mb-4" style="font-size: 32px;">search_off</span>
+            <p class="font-mono text-xs uppercase tracking-widest">No matching commands found.</p>
+          </div>
+
+          {commands.map((cmd) => (
+            <div
+              class="bg-surface-elevated stone-border p-6 command-item group hover:border-primary/30 transition-all duration-200"
+              data-isAdmin={cmd.isAdmin ? 'true' : 'false'}
+              data-search-keywords={`${cmd.name} ${cmd.syntax} ${cmd.description} ${cmd.permission}`}
+            >
+              <!-- Card Header -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-stone/40 pb-3 mb-4">
+                <div class="flex items-center gap-3">
+                  <span class="font-mono text-sm md:text-base font-bold text-white uppercase tracking-wider">{cmd.name}</span>
+                  <span class={`font-mono text-[8px] tracking-wider px-2 py-0.5 border rounded uppercase ${cmd.isAdmin ? 'border-primary/40 bg-primary/5 text-primary' : 'border-on-surface-variant/40 bg-surface-base text-on-surface-variant'}`}>
+                    {cmd.isAdmin ? 'Admin' : 'Player'}
+                  </span>
+                </div>
+                <div class="font-mono text-[9px] text-text-obsidian flex items-center gap-1">
+                  <span class="material-symbols-outlined" style="font-size:11px;">shield</span>
+                  <span>Permission: {cmd.permission}</span>
+                </div>
+              </div>
+
+              <!-- Syntax Box -->
+              <div class="flex items-center bg-surface-deep border border-border-stone p-1 mb-4">
+                <div class="px-3 py-1.5 font-mono text-[10px] text-on-surface flex-1 truncate select-all">{cmd.syntax}</div>
+                <button
+                  class="px-3 py-1.5 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center bg-surface-elevated hover:bg-surface-base cursor-pointer landing-copy-btn border border-border-stone"
+                  data-copy-text={cmd.syntax}
+                  aria-label="Copy syntax to clipboard"
+                >
+                  <span class="material-symbols-outlined" style="font-size:14px;">content_copy</span>
+                </button>
+              </div>
+
+              <!-- Description -->
+              <p class="font-body text-body-sm text-on-surface-variant leading-relaxed mb-4">
+                {cmd.description}
+              </p>
+
+              {cmd.args && (
+                <div class="mb-4">
+                  <span class="font-mono text-[9px] uppercase tracking-wider text-primary block mb-2">Arguments:</span>
+                  <div class="space-y-1">
+                    {cmd.args.map((arg) => (
+                      <div class="flex text-[11px] font-mono leading-relaxed bg-surface-deep/40 px-2 py-1 border-l-2 border-border-stone">
+                        <span class="text-white font-semibold mr-2">{arg.name}</span>
+                        <span class="text-on-surface-variant">{arg.desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {cmd.flow && (
+                <div class="mb-4">
+                  <span class="font-mono text-[9px] uppercase tracking-wider text-primary block mb-2">Execution Flow:</span>
+                  <ul class="list-none space-y-1.5 pl-0 font-body text-body-xs text-on-surface-variant">
+                    {cmd.flow.map((step, idx) => (
+                      <li class="flex items-start gap-2">
+                        <span class="font-mono text-[9px] text-primary font-bold mt-0.5">0{idx + 1}.</span>
+                        <span class="leading-relaxed">{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {cmd.tip && (
+                <div class="bg-surface-deep/60 border-l-2 border-l-primary p-3 flex items-start gap-2.5">
+                  <span class="material-symbols-outlined text-primary" style="font-size:16px;">lightbulb</span>
+                  <p class="font-body text-body-xs text-on-surface-variant italic leading-relaxed m-0">{cmd.tip}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <!-- Sidebar visual widgets -->
+        <div class="space-y-8 lg:sticky lg:top-28">
+          <!-- PASS Protocol Card -->
+          <div class="bg-surface-elevated stone-border p-6">
+            <div class="flex items-center gap-3 border-b border-border-stone pb-3 mb-4">
+              <span class="material-symbols-outlined text-primary" style="font-size:20px;">local_fire_department</span>
+              <h3 class="font-headline text-sm font-bold uppercase tracking-wider text-white">Fire Protocol (P.A.S.S.)</h3>
+            </div>
+            <p class="font-body text-body-xs text-on-surface-variant leading-relaxed mb-4">
+              When starting the fire simulation via <code class="bg-surface-deep px-1 py-0.5 border border-border-stone text-xs text-white">/sim_fire</code>, remember the BFP extinguishing standard:
+            </p>
+            <div class="space-y-3 font-mono text-[10px]">
+              <div class="bg-surface-deep p-2 border-l-2 border-primary">
+                <span class="text-white font-bold block mb-1">P — PULL THE PIN</span>
+                <span class="text-on-surface-variant block">Right-click the extinguisher once to pull the pin (required before spray activates).</span>
+              </div>
+              <div class="bg-surface-deep p-2 border-l-2 border-primary">
+                <span class="text-white font-bold block mb-1">A — AIM AT THE BASE</span>
+                <span class="text-on-surface-variant block">Aim your cursor crosshair directly at the base of the fire blocks.</span>
+              </div>
+              <div class="bg-surface-deep p-2 border-l-2 border-primary">
+                <span class="text-white font-bold block mb-1">S — SQUEEZE THE TRIGGER</span>
+                <span class="text-on-surface-variant block">Hold right-click down to discharge high-pressure CO2 particles.</span>
+              </div>
+              <div class="bg-surface-deep p-2 border-l-2 border-primary">
+                <span class="text-white font-bold block mb-1">S — SWEEP SIDE TO SIDE</span>
+                <span class="text-on-surface-variant block">Sweep the spray across the base of the flames to extinguish them completely.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Earthquake Magnitude Reference Table -->
+          <div class="bg-surface-elevated stone-border p-6">
+            <div class="flex items-center gap-3 border-b border-border-stone pb-3 mb-4">
+              <span class="material-symbols-outlined text-primary" style="font-size:20px;">quake</span>
+              <h3 class="font-headline text-sm font-bold uppercase tracking-wider text-white">Magnitude Reference</h3>
+            </div>
+            <p class="font-body text-body-xs text-on-surface-variant leading-relaxed mb-4">
+              Earthquake drills run via <code class="bg-surface-deep px-1 py-0.5 border border-border-stone text-xs text-white">/sim_earthquake</code> trigger structural collapses and camera shaking based on magnitude:
+            </p>
+            <div class="space-y-3">
+              {magnitudes.map((mag) => (
+                <div class="bg-surface-deep border border-border-stone/60 p-3 flex flex-col gap-1.5">
+                  <div class="flex justify-between items-center">
+                    <span class="font-mono text-xs font-bold text-white">Mag {mag.scale}</span>
+                    <span class="font-mono text-[8px] px-2 py-0.5 bg-surface-elevated border border-border-stone uppercase tracking-wide text-primary font-semibold">{mag.name}</span>
+                  </div>
+                  <p class="font-body text-body-xs text-on-surface-variant leading-relaxed m-0">{mag.effect}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  /* Local Styles */
+  .active-pill {
+    border-color: #2e7d32 !important;
+    background-color: rgba(46, 125, 50, 0.08) !important;
+    color: #88d982 !important;
+  }
+
+  .command-item {
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .command-item:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Light Theme overrides for command guide */
+  html.light .bg-surface-deep {
+    background-color: #ede9e5 !important;
+  }
+
+  html.light .bg-surface-elevated {
+    background-color: #ffffff !important;
+  }
+
+  html.light .text-white {
+    color: #0d1a0d !important;
+  }
+
+  html.light .text-shadow-mc {
+    text-shadow: none !important;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('landing-search') as HTMLInputElement | null;
+    const filterPills = document.querySelectorAll('#landing-filter-pills button');
+    const commandItems = document.querySelectorAll('.command-item') as NodeListOf<HTMLDivElement>;
+    const noResults = document.getElementById('landing-no-results');
+
+    let activeFilter = 'all'; // 'all', 'player', 'admin'
+    let searchQuery = '';
+
+    function filterList() {
+      let visibleCount = 0;
+
+      commandItems.forEach((item) => {
+        const isAdmin = item.getAttribute('data-isAdmin') === 'true';
+        const keywords = (item.getAttribute('data-search-keywords') || '').toLowerCase();
+
+        const matchesFilter =
+          activeFilter === 'all' ||
+          (activeFilter === 'player' && !isAdmin) ||
+          (activeFilter === 'admin' && isAdmin);
+
+        const matchesSearch = keywords.includes(searchQuery.toLowerCase());
+
+        if (matchesFilter && matchesSearch) {
+          item.style.display = 'block';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      if (noResults) {
+        if (visibleCount === 0) {
+          noResults.classList.remove('hidden');
+        } else {
+          noResults.classList.add('hidden');
+        }
+      }
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = (e.target as HTMLInputElement).value.trim();
+        filterList();
+      });
+    }
+
+    filterPills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        filterPills.forEach((p) => p.classList.remove('active-pill'));
+        pill.classList.add('active-pill');
+        activeFilter = pill.getAttribute('data-type') || 'all';
+        filterList();
+      });
+    });
+
+    // Copy to clipboard listener for landing
+    const copyButtons = document.querySelectorAll('.landing-copy-btn');
+    copyButtons.forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const copyText = btn.getAttribute('data-copy-text') || '';
+        if (!copyText) return;
+
+        try {
+          await navigator.clipboard.writeText(copyText);
+          const icon = btn.querySelector('span');
+          if (icon) {
+            const originalIcon = icon.textContent;
+            icon.textContent = 'check';
+            icon.classList.add('text-primary');
+            setTimeout(() => {
+              icon.textContent = originalIcon;
+              icon.classList.remove('text-primary');
+            }, 1800);
+          }
+        } catch (err) {
+          console.error('Failed to copy to clipboard', err);
+        }
+      });
+    });
+  });
+</script>
