@@ -19,6 +19,7 @@
     "@astrojs/cloudflare": "^13.0.0",
     "@astrojs/react": "^4.4.2",
     "@astrojs/tailwind": "^6.0.2",
+    "@libsql/client": "^0.17.4",
     "astro": "^6.4.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

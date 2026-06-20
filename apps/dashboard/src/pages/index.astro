@@ -1,51 +1,56 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 import {
-  sessions,
+  getOverviewStats,
   getRecentSessions,
-  getTierCounts,
-  getAvgScore,
-  getScenarioSplit,
-  getSessionsThisWeek,
-  formatDuration,
   formatDate,
-} from '../lib/mockData.ts';
+  formatDuration,
+  derivePrepLevel,
+} from '../lib/queries';
 
-const tiers     = getTierCounts();
-const avgScore  = getAvgScore();
-const split     = getScenarioSplit();
-const thisWeek  = getSessionsThisWeek();
-const recent    = getRecentSessions(5);
+const env = Astro.locals.runtime?.env;
+const hasDb = env?.TURSO_URL && env?.TURSO_TOKEN;
 
-const highPct     = Math.round((tiers.high     / tiers.total) * 100);
-const moderatePct = Math.round((tiers.moderate / tiers.total) * 100);
+let stats = { total: 0, avg_score: 0, fire_count: 0, quake_count: 0, this_week: 0, high_count: 0, mod_count: 0, low_count: 0 };
+let recent: Awaited<ReturnType<typeof getRecentSessions>> = [];
+
+if (hasDb) {
+  [stats, recent] = await Promise.all([
+    getOverviewStats(env),
+    getRecentSessions(env, 5),
+  ]);
+}
+
+const totalWithLevel = stats.high_count + stats.mod_count + stats.low_count;
+const highPct     = totalWithLevel ? Math.round((stats.high_count / totalWithLevel) * 100) : 0;
+const moderatePct = totalWithLevel ? Math.round((stats.mod_count  / totalWithLevel) * 100) : 0;
 const lowPct      = 100 - highPct - moderatePct;
 ---
 
 <DashboardLayout title="Overview" currentPath="/">
 
-  <!-- Page header -->
   <div class="page-header">
     <h1 class="page-title">Overview</h1>
-    <p class="page-meta">June 2026 cohort · LSPU DRR Training Programme · data: mock</p>
+    <p class="page-meta">
+      LSPU DRR Training Programme · {hasDb ? 'live data' : '⚠ no DB configured'}
+    </p>
   </div>
 
-  <!-- KPI strip -->
   <div class="kpi-strip">
     <div class="kpi-item">
       <span class="kpi-label">Total Sessions</span>
-      <span class="kpi-value">{tiers.total}</span>
+      <span class="kpi-value">{stats.total}</span>
     </div>
     <div class="kpi-item">
-      <span class="kpi-label">Avg. Preparedness</span>
-      <span class="kpi-value">{avgScore}<span class="kpi-unit">%</span></span>
+      <span class="kpi-label">Avg. Score</span>
+      <span class="kpi-value">{stats.avg_score}<span class="kpi-unit">%</span></span>
     </div>
     <div class="kpi-item">
       <span class="kpi-label">Scenario split</span>
       <div class="kpi-split">
-        <span style="color: #88d982;">{split.fire}</span>
+        <span style="color: #88d982;">{stats.fire_count}</span>
         <span style="color: #2a2a2a;"> / </span>
-        <span style="color: #bfcaba;">{split.eq}</span>
+        <span style="color: #bfcaba;">{stats.quake_count}</span>
       </div>
       <p class="kpi-split-label">
         <span style="color: #88d982;">FIRE</span>
@@ -55,15 +60,14 @@ const lowPct      = 100 - highPct - moderatePct;
     </div>
     <div class="kpi-item">
       <span class="kpi-label">This week</span>
-      <span class="kpi-value">{thisWeek}</span>
+      <span class="kpi-value">{stats.this_week}</span>
     </div>
   </div>
 
-  <!-- Distribution bar -->
   <div class="dist-section">
     <div class="dist-head">
       <span class="section-label">Preparedness distribution</span>
-      <span class="dist-cohort">{tiers.total} sessions</span>
+      <span class="dist-cohort">{totalWithLevel} classified sessions</span>
     </div>
     <div class="dist-bar">
       <div class="dist-seg high"     style={`width: ${highPct}%`}></div>
@@ -74,62 +78,79 @@ const lowPct      = 100 - highPct - moderatePct;
       <div class="dist-leg-item">
         <span class="leg-dot high"></span>
         <span class="leg-tier high">HIGH</span>
-        <span class="leg-count">{tiers.high} sessions · {highPct}%</span>
+        <span class="leg-count">{stats.high_count} sessions · {highPct}%</span>
       </div>
       <div class="dist-leg-item">
         <span class="leg-dot moderate"></span>
         <span class="leg-tier moderate">MODERATE</span>
-        <span class="leg-count">{tiers.moderate} sessions · {moderatePct}%</span>
+        <span class="leg-count">{stats.mod_count} sessions · {moderatePct}%</span>
       </div>
       <div class="dist-leg-item">
         <span class="leg-dot low"></span>
         <span class="leg-tier low">LOW</span>
-        <span class="leg-count">{tiers.low} sessions · {lowPct}%</span>
+        <span class="leg-count">{stats.low_count} sessions · {lowPct}%</span>
       </div>
     </div>
   </div>
 
-  <!-- Recent sessions -->
   <div class="sessions-section">
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
       <span class="section-label">Recent sessions</span>
       <a href="/sessions" class="view-link">View all →</a>
     </div>
-    <table class="sessions-table">
-      <thead>
-        <tr>
-          <th>Participant</th>
-          <th>Scenario</th>
-          <th>Date</th>
-          <th>Duration</th>
-          <th>Level</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {recent.map(s => (
-          <tr onclick={`window.location='/sessions/${s.id}'`}>
-            <td class="name-cell">{s.participantName}</td>
-            <td>
-              <span style={`font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:${s.disasterType === 'FIRE' ? '#88d982' : '#bfcaba'};`}>
-                {s.disasterType}
-              </span>
-            </td>
-            <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDate(s.startTime)}</td>
-            <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDuration(s.durationSeconds)}</td>
-            <td>
-              <span class={`tier-badge ${s.prepLevel.toLowerCase()}`}>
-                <span class="dot"></span>
-                {s.prepLevel}
-              </span>
-            </td>
-            <td class="link-cell">
-              <a href={`/sessions/${s.id}`} class="view-link" onclick="event.stopPropagation()">→</a>
-            </td>
+
+    {recent.length === 0 ? (
+      <p style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#555; padding:24px 0;">
+        {hasDb ? 'No completed sessions yet.' : 'Configure TURSO_URL and TURSO_TOKEN in .dev.vars to see live data.'}
+      </p>
+    ) : (
+      <table class="sessions-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Section</th>
+            <th>Scenario</th>
+            <th>Date</th>
+            <th>Duration</th>
+            <th>Score</th>
+            <th>Level</th>
+            <th></th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {recent.map(s => {
+            const level = derivePrepLevel(s.simulation_score, s.prep_level);
+            return (
+              <tr onclick={`window.location='/sessions/${s.id}'`}>
+                <td class="name-cell">{s.student_name}</td>
+                <td style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#555;">{s.section ?? '—'}</td>
+                <td>
+                  <span style={`font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:${s.simulation_type === 'FIRE' ? '#88d982' : '#bfcaba'};`}>
+                    {s.simulation_type ?? '—'}
+                  </span>
+                </td>
+                <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDate(s.start_time)}</td>
+                <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDuration(s.start_time, s.end_time)}</td>
+                <td style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:#888;">{s.simulation_score}</td>
+                <td>
+                  {level !== 'PENDING' ? (
+                    <span class={`tier-badge ${level.toLowerCase()}`}>
+                      <span class="dot"></span>
+                      {level}
+                    </span>
+                  ) : (
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#555;">PENDING</span>
+                  )}
+                </td>
+                <td class="link-cell">
+                  <a href={`/sessions/${s.id}`} class="view-link" onclick="event.stopPropagation()">→</a>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    )}
   </div>
 
 </DashboardLayout>
