@@ -116,6 +116,14 @@ export async function getRosterStats(env: Env): Promise<RosterRow[]> {
   return res.rows as unknown as RosterRow[];
 }
 
+export async function getDistinctSections(env: Env): Promise<string[]> {
+  const db = getDb(env);
+  const res = await db.execute(
+    `SELECT DISTINCT section FROM sessions WHERE section IS NOT NULL ORDER BY section`
+  );
+  return res.rows.map(r => String((r as Record<string, unknown>).section));
+}
+
 // ---- Helpers ----
 
 export function formatDuration(startTime: string, endTime: string | null): string {

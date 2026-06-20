@@ -112,21 +112,24 @@ const logEntries = parseEventLog(session.event_log);
 
         <div class="stat-section">
           <span class="stat-section-label">Classifier signals</span>
-          {session.confidence != null ? (
-            <div class="feat-list">
+          {session.prep_level ? (
+            <div class="feat-list" style="margin-top:8px;">
               <div class="feat-row">
                 <div class="feat-header">
-                  <span class="feat-name">Confidence</span>
-                  <span class="feat-score">{(session.confidence * 100).toFixed(0)}%</span>
+                  <span class="feat-name">RF Confidence</span>
+                  <span class="feat-score">{Math.round((session.confidence ?? 0) * 100)}%</span>
                 </div>
                 <div class="feat-track">
-                  <div class="feat-fill" style={`width: ${Math.round(session.confidence * 100)}%`}></div>
+                  <div class="feat-fill" style={`width: ${Math.round((session.confidence ?? 0) * 100)}%`}></div>
                 </div>
               </div>
+              <p style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#444; margin-top:8px;">
+                Prep level assigned by Random Forest classifier.
+              </p>
             </div>
           ) : (
             <p style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#333; margin-top:8px; line-height:1.6;">
-              RF classifier not yet run. Run the Python scoring script to populate prep_level and confidence.
+              Pending RF classification — run the Python scoring script to populate prep_level and confidence.
             </p>
           )}
         </div>
@@ -155,6 +158,18 @@ const logEntries = parseEventLog(session.event_log);
               </div>
             )}
           </div>
+        </div>
+
+        <div class="stat-section">
+          <span class="stat-section-label">BFP Officer Notes</span>
+          <form method="POST" action={`/api/sessions/${session.id}/notes`} style="margin-top:8px;">
+            <textarea
+              name="notes"
+              placeholder="Validation notes, observations, remarks..."
+              class="notes-input"
+            >{session.bfp_notes ?? ''}</textarea>
+            <button type="submit" class="notes-save-btn">Save Notes</button>
+          </form>
         </div>
 
       </div>

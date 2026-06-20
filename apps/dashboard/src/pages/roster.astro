@@ -1,11 +1,13 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
-import { getRosterStats, formatDate, derivePrepLevel } from '../lib/queries';
+import { getRosterStats, getDistinctSections, formatDate, derivePrepLevel } from '../lib/queries';
 
 const env = Astro.locals.runtime?.env;
 const hasDb = env?.TURSO_URL && env?.TURSO_TOKEN;
 
-const stats = hasDb ? await getRosterStats(env) : [];
+const [stats, sections] = hasDb
+  ? await Promise.all([getRosterStats(env), getDistinctSections(env)])
+  : [[], []];
 
 const totalSessions = stats.reduce((a, s) => a + Number(s.session_count), 0);
 const withSessions  = stats.filter(s => Number(s.session_count) > 0);
@@ -71,6 +73,21 @@ const total = stats.length || 1;
     </div>
   </div>
 
+  {sections.length > 0 && (
+    <div class="filter-bar">
+      <div class="filter-group">
+        <span class="filter-label">Section</span>
+        <div class="filter-pills" id="filter-section">
+          <button class="filter-pill active" data-value="ALL">All</button>
+          {sections.map(sec => (
+            <button class="filter-pill" data-value={sec}>{sec}</button>
+          ))}
+        </div>
+      </div>
+      <span class="filter-count" id="roster-count">{stats.length} students</span>
+    </div>
+  )}
+
   <div class="sessions-section">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px;">
       <span class="section-label">Students</span>
@@ -103,6 +120,7 @@ const total = stats.length || 1;
               : 'PENDING';
             return (
               <tr
+                data-section={s.section ?? ''}
                 onclick={s.latest_session_id ? `window.location='/sessions/${s.latest_session_id}'` : undefined}
                 style={s.latest_session_id ? 'cursor:pointer;' : ''}
               >
@@ -156,3 +174,33 @@ const total = stats.length || 1;
   </div>
 
 </DashboardLayout>
+
+<script>
+  const secGroup   = document.getElementById('filter-section');
+  const countLabel = document.getElementById('roster-count');
+  const tbody      = document.querySelector('.roster-table tbody');
+
+  if (secGroup && tbody) {
+    let activeSection = 'ALL';
+
+    function applyFilter() {
+      const rows = tbody!.querySelectorAll<HTMLTableRowElement>('tr');
+      let visible = 0;
+      rows.forEach(row => {
+        const match = activeSection === 'ALL' || row.dataset.section === activeSection;
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+      if (countLabel) countLabel.textContent = `${visible} student${visible !== 1 ? 's' : ''}`;
+    }
+
+    secGroup.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        secGroup!.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeSection = pill.dataset.value!;
+        applyFilter();
+      });
+    });
+  }
+</script>
