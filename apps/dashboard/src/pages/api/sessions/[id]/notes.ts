@@ -1,10 +1,9 @@
 import type { APIRoute } from 'astro';
-import { getDb } from '../../../../lib/db';
+import { getDb, getEnv } from '../../../../lib/db';
 
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  let env: { TURSO_URL: string; TURSO_TOKEN: string } | undefined;
-  try { env = (locals as App.Locals).runtime?.env; } catch { env = undefined; }
-  if (!env?.TURSO_URL || !env?.TURSO_TOKEN) {
+  const env = getEnv(locals);
+  if (!env) {
     return new Response('DB not configured', { status: 503 });
   }
 

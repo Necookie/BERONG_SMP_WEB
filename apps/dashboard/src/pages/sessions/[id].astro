@@ -2,13 +2,12 @@
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import { EventLog } from '../../components/EventLog.tsx';
 import { getSessionById, formatDuration, formatDate, derivePrepLevel, parseEventLog } from '../../lib/queries';
+import { getEnv } from '../../lib/db';
 
 const { id } = Astro.params;
-let env: { TURSO_URL: string; TURSO_TOKEN: string } | undefined;
-try { env = (Astro.locals as App.Locals).runtime?.env; } catch { env = undefined; }
-const hasDb = !!(env?.TURSO_URL && env?.TURSO_TOKEN);
+const env = getEnv(Astro.locals);
 
-const session = (hasDb && id) ? await getSessionById(env!, Number(id)) : null;
+const session = (env && id) ? await getSessionById(env, Number(id)) : null;
 
 if (!session) {
   return new Response(null, { status: 404, statusText: 'Session not found' });

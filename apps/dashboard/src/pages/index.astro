@@ -7,18 +7,18 @@ import {
   formatDuration,
   derivePrepLevel,
 } from '../lib/queries';
+import { getEnv } from '../lib/db';
 
-let env: { TURSO_URL: string; TURSO_TOKEN: string } | undefined;
-try { env = (Astro.locals as App.Locals).runtime?.env; } catch { env = undefined; }
-const hasDb = !!(env?.TURSO_URL && env?.TURSO_TOKEN);
+const env = getEnv(Astro.locals);
+const hasDb = !!env;
 
 let stats = { total: 0, avg_score: 0, fire_count: 0, quake_count: 0, this_week: 0, high_count: 0, mod_count: 0, low_count: 0 };
 let recent: Awaited<ReturnType<typeof getRecentSessions>> = [];
 
-if (hasDb) {
+if (env) {
   [stats, recent] = await Promise.all([
-    getOverviewStats(env!),
-    getRecentSessions(env!, 5),
+    getOverviewStats(env),
+    getRecentSessions(env, 5),
   ]);
 }
 

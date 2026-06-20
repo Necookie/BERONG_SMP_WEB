@@ -1,13 +1,13 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 import { getRosterStats, getDistinctSections, formatDate, derivePrepLevel } from '../lib/queries';
+import { getEnv } from '../lib/db';
 
-let env: { TURSO_URL: string; TURSO_TOKEN: string } | undefined;
-try { env = (Astro.locals as App.Locals).runtime?.env; } catch { env = undefined; }
-const hasDb = !!(env?.TURSO_URL && env?.TURSO_TOKEN);
+const env = getEnv(Astro.locals);
+const hasDb = !!env;
 
-const [stats, sections] = hasDb
-  ? await Promise.all([getRosterStats(env!), getDistinctSections(env!)])
+const [stats, sections] = env
+  ? await Promise.all([getRosterStats(env), getDistinctSections(env)])
   : [[], []];
 
 const totalSessions = stats.reduce((a, s) => a + Number(s.session_count), 0);
