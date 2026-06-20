@@ -485,8 +485,62 @@ const configs = [
       ))}
     </div>
 
-    <!-- Right Column: Config Defaults Panel -->
-    <div class="config-pane">
+    <!-- Right Column: Config Defaults & Items -->
+    <div class="config-pane flex flex-col gap-6">
+      <!-- Items Card -->
+      <div class="config-card stone-border">
+        <div class="config-header">
+          <span class="material-symbols-outlined flex-shrink-0" style="color: var(--text-brand)">inventory_2</span>
+          <div>
+            <h2 class="config-title">Vanilla Items & Blocks</h2>
+            <p class="config-meta">Obtain items via <code>/give</code></p>
+          </div>
+        </div>
+        <div class="config-body">
+          <p class="config-desc mb-4">
+            All BerongSMP items and blocks are obtainable via the vanilla <code>/give</code> command using namespaced IDs.
+          </p>
+          <table class="config-table">
+            <thead>
+              <tr>
+                <th>Item / Block</th>
+                <th>Namespaced ID</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Fire Extinguisher</strong></td>
+                <td><code class="cfg-key">berongsmp:fire_extinguisher</code></td>
+                <td class="cfg-affects">Class A/B extinguisher. Right-click once to pull pin, then hold to spray.</td>
+              </tr>
+              <tr>
+                <td><strong>CO2 Extinguisher</strong></td>
+                <td><code class="cfg-key">berongsmp:co2_extinguisher</code></td>
+                <td class="cfg-affects">Class C extinguisher. Targets <code>BURNING</code> computer blocks.</td>
+              </tr>
+              <tr>
+                <td><strong>Computer Block</strong></td>
+                <td><code class="cfg-key">berongsmp:computer_block</code></td>
+                <td class="cfg-affects">Placeable; right-click to power ON/OFF; use flint & steel to ignite.</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="example-box mt-4">
+            <div class="example-item">
+              <code class="example-cmd">/give @s berongsmp:co2_extinguisher</code>
+            </div>
+            <div class="example-item">
+              <code class="example-cmd">/give @s berongsmp:computer_block</code>
+            </div>
+          </div>
+          <p class="font-mono text-[9px] mt-3" style="color: var(--text-muted)">
+            Note: <code>berongsmp:example_block</code> and <code>berongsmp:example_item</code> are leftover template placeholders — ignore them.
+          </p>
+        </div>
+      </div>
+
+      <!-- Config Defaults Panel -->
       <div class="config-card stone-border">
         <div class="config-header">
           <span class="material-symbols-outlined flex-shrink-0" style="color: var(--text-brand)">settings</span>
