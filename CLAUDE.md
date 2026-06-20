@@ -127,6 +127,43 @@ Smooth transitions are applied to all structural elements via a universal transi
 
 ---
 
+## Master Plan
+
+Full phased implementation plan lives in the **mod repo** at:
+`C:\Users\dheyn\Documents\02_Dev\berongsmp-template-26.1.2\docs\major_plan.md`
+
+Read that before starting any feature work. Dashboard work is Phase 2 in that plan.
+
+---
+
+## Data Flow (target after Phase 1+2)
+
+```
+Mod (Java) ──HTTP──► Turso (libSQL cloud)
+                          │
+Dashboard (CF Workers) ◄──┘  @libsql/client/web reads directly
+```
+
+**Turso sessions table columns (after Phase 1):**
+```
+id, student_name, student_id, section, station_account, account_uuid,
+start_time, end_time, status, tutorial_completed, tutorial_duration_s,
+simulation_type (FIRE|EARTHQUAKE), simulation_score, passed,
+event_log (JSON array of SimEvent),
+prep_level (HIGH|MODERATE|LOW — written by groupmate's RF script),
+confidence (0.0–1.0), bfp_notes, notes
+```
+
+**Env vars needed in `.dev.vars` and Cloudflare dashboard:**
+```
+TURSO_URL=https://yourdb-yourorg.turso.io
+TURSO_TOKEN=your-bearer-token
+```
+
+Access in SSR pages via `Astro.locals.runtime.env.TURSO_URL`.
+
+---
+
 ## Current state of the integration (read before assuming anything exists)
 
 **The mod does not currently send this repo anything.** Per the mod's own
