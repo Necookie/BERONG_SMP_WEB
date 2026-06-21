@@ -1,0 +1,619 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Guide" currentPath="/guide">
+
+  <div class="page-header">
+    <h1 class="page-title">System Guide</h1>
+    <p class="page-meta">Step-by-step walkthrough — setup, simulation, and dashboard usage</p>
+  </div>
+
+  <div class="guide-wrap">
+
+    <!-- ── Table of Contents ── -->
+    <div class="guide-toc">
+      <span class="toc-label">ON THIS PAGE</span>
+      <a href="#overview" class="toc-link">1. Overview</a>
+      <a href="#setup" class="toc-link">2. Server Setup</a>
+      <a href="#student-flow" class="toc-link">3. Student Flow</a>
+      <a href="#admin-flow" class="toc-link">4. Admin / BFP Flow</a>
+      <a href="#dashboard" class="toc-link">5. Reading the Dashboard</a>
+      <a href="#rf" class="toc-link">6. RF Classification</a>
+      <a href="#troubleshooting" class="toc-link">7. Troubleshooting</a>
+    </div>
+
+    <!-- ── 1. Overview ── -->
+    <section id="overview" class="guide-section">
+      <h2 class="guide-h2"><span class="step-num">01</span> Overview</h2>
+      <p class="guide-p">
+        BerongSMP is a NeoForge Minecraft mod that runs disaster-preparedness simulations (fire and earthquake) inside a replica of the LSPU Library. Players complete a safety tutorial, run a timed drill, and are scored on their response. All behavioral data is streamed to a Turso cloud database and surfaced here in this dashboard. A Random Forest classifier then labels each student's preparedness level (HIGH / MODERATE / LOW) based on six extracted features.
+      </p>
+      <div class="guide-arch">
+        <span class="arch-node">Student<br/><span class="arch-sub">Minecraft Client</span></span>
+        <span class="arch-arrow">→</span>
+        <span class="arch-node">NeoForge Mod<br/><span class="arch-sub">Event Logger</span></span>
+        <span class="arch-arrow">→</span>
+        <span class="arch-node">Turso DB<br/><span class="arch-sub">libSQL Cloud</span></span>
+        <span class="arch-arrow">→</span>
+        <span class="arch-node">This Dashboard<br/><span class="arch-sub">Cloudflare Workers</span></span>
+        <span class="arch-arrow">+</span>
+        <span class="arch-node">RF Script<br/><span class="arch-sub">Python groupmate</span></span>
+      </div>
+    </section>
+
+    <!-- ── 2. Server Setup ── -->
+    <section id="setup" class="guide-section">
+      <h2 class="guide-h2"><span class="step-num">02</span> Server Setup</h2>
+
+      <h3 class="guide-h3">Requirements</h3>
+      <ul class="guide-list">
+        <li>Java 25 or later</li>
+        <li>NeoForge 26.1.2.36-beta mod installed in <code>mods/</code></li>
+        <li>Turso database URL + token added to <code>run/config/berongsmp-common.toml</code></li>
+      </ul>
+
+      <h3 class="guide-h3">Starting the server</h3>
+      <div class="guide-steps">
+        <div class="guide-step">
+          <span class="step-badge">1</span>
+          <div>
+            <div class="step-title">Build and run the dev server</div>
+            <code class="step-code">.\gradlew runServer</code>
+            <p class="step-note">The lobby structure auto-places at <code>(0, -33, 0)</code> on first boot. Wait for <code>[Server] Done</code> in the log.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">2</span>
+          <div>
+            <div class="step-title">Connect a client</div>
+            <code class="step-code">.\gradlew runClient</code>
+            <p class="step-note">Join <code>localhost</code>. You will be teleported to the lobby automatically on login.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">3</span>
+          <div>
+            <div class="step-title">Confirm Turso connection</div>
+            <p class="step-note">Check server log for <code>[TursoClient] Schema ready</code>. If missing, verify <code>tursoUrl</code> and <code>tursoToken</code> in <code>run/config/berongsmp-common.toml</code>.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">4</span>
+          <div>
+            <div class="step-title">Op yourself</div>
+            <code class="step-code">/op YourUsername</code>
+            <p class="step-note">Required for all <code>/bfp</code> and <code>/sim_*</code> admin commands.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 3. Student Flow ── -->
+    <section id="student-flow" class="guide-section">
+      <h2 class="guide-h2"><span class="step-num">03</span> Student Flow</h2>
+      <p class="guide-p">Each student follows this exact sequence during a drill session:</p>
+
+      <div class="guide-steps">
+        <div class="guide-step">
+          <span class="step-badge">1</span>
+          <div>
+            <div class="step-title">Register</div>
+            <code class="step-code">/register &lt;student_id&gt; &lt;section&gt; &lt;full_name&gt;</code>
+            <p class="step-note">Example: <code>/register 2021-00123 BSIT-3A Juan dela Cruz</code>. Must be done before interacting with simulation buttons. Name appears on the dashboard roster immediately.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">2</span>
+          <div>
+            <div class="step-title">Complete the Safety Tutorial</div>
+            <p class="step-note">Talk to the three NPCs in the lobby in order:</p>
+            <ul class="guide-list" style="margin-top:6px;">
+              <li><strong>Sgt. Reyes (TRAINER)</strong> — hands out a fire extinguisher; teaches PASS technique. Practice on 5 campfires (spray 3 times to advance).</li>
+              <li><strong>Officer Cruz (EXT_EXPERT)</strong> — talks through extinguisher classes A, B, C. Right-click to advance each dialogue.</li>
+              <li><strong>Capt. Santos (SAFETY_OFFICER)</strong> — earthquake drill: DROP (crouch), COVER (move under solid block), HOLD ON (stay crouched 5 seconds until shaking stops).</li>
+            </ul>
+            <p class="step-note" style="margin-top:6px;">Tutorial progress is saved; students can reconnect and resume.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">3</span>
+          <div>
+            <div class="step-title">Start a Simulation</div>
+            <p class="step-note">Once tutorial is complete, two buttons appear active in the lobby:</p>
+            <ul class="guide-list" style="margin-top:6px;">
+              <li><strong>Left button (lower Z)</strong> — Fire Simulation. A fire extinguisher is placed in slot 0. Right-click fires to spray. Extinguish as many as possible before time runs out (2 minutes default).</li>
+              <li><strong>Right button (higher Z)</strong> — Earthquake Simulation. Magnitude 6.0–9.5 is randomly assigned. Apply DROP → COVER → HOLD ON when prompted by the HUD shaking.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">4</span>
+          <div>
+            <div class="step-title">Simulation Ends</div>
+            <p class="step-note">Timer runs out or an admin uses <code>/sim_stop</code>. The student is teleported back to the lobby, receives a score message and adaptive feedback tips, and the session is saved to Turso automatically.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-callout info">
+        <span class="callout-icon">ℹ</span>
+        <p>If a student dies during simulation, they are redirected to the lobby on respawn. Their session is still recorded.</p>
+      </div>
+    </section>
+
+    <!-- ── 4. Admin / BFP Flow ── -->
+    <section id="admin-flow" class="guide-section">
+      <h2 class="guide-h2"><span class="step-num">04</span> Admin / BFP Flow</h2>
+      <p class="guide-p">BFP evaluators use shared station accounts. The <code>/bfp</code> command tree manages which student is currently using each station.</p>
+
+      <div class="guide-steps">
+        <div class="guide-step">
+          <span class="step-badge">1</span>
+          <div>
+            <div class="step-title">Check in a student</div>
+            <code class="step-code">/bfp checkin &lt;student_name&gt;</code>
+            <p class="step-note">Opens a session for the student currently at that station. Also resets their tutorial progress to <code>NOT_STARTED</code> so they go through the full flow fresh. To assign to a different player: <code>/bfp checkin &lt;player&gt; &lt;student_name&gt;</code>.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">2</span>
+          <div>
+            <div class="step-title">Student completes tutorial + simulation</div>
+            <p class="step-note">Follow the Student Flow above (steps 1–4). The admin can also manually trigger simulations if needed:</p>
+            <ul class="guide-list" style="margin-top:6px;">
+              <li><code>/sim_fire</code> — start fire sim for yourself</li>
+              <li><code>/sim_earthquake [magnitude]</code> — start earthquake sim (optional magnitude 0.1–10.0)</li>
+              <li><code>/sim_stop</code> — end the current simulation early</li>
+            </ul>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">3</span>
+          <div>
+            <div class="step-title">Check out the student</div>
+            <code class="step-code">/bfp checkout</code>
+            <p class="step-note">Finalises the session and writes it to the database. The dashboard will show the new record immediately after refresh.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">4</span>
+          <div>
+            <div class="step-title">Review or export</div>
+            <ul class="guide-list">
+              <li><code>/bfp session info</code> — print current session details in chat</li>
+              <li><code>/bfp sessions list [page]</code> — list 10 most recent sessions</li>
+              <li><code>/bfp sessions export</code> — write all sessions to <code>run/bfp_sessions_export.csv</code></li>
+              <li><code>/bfp student &lt;name&gt;</code> — look up all sessions for a student</li>
+            </ul>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">5</span>
+          <div>
+            <div class="step-title">Reset a student (no record kept)</div>
+            <code class="step-code">/bfp reset [player]</code>
+            <p class="step-note">Wipes tutorial state and deletes the DB row entirely. Use when a student needs to restart from scratch.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-callout warn">
+        <span class="callout-icon">⚠</span>
+        <p><code>/bfp reset</code> permanently deletes the database row. There is no undo. Use <code>/bfp checkout</code> first if you want to keep the record.</p>
+      </div>
+    </section>
+
+    <!-- ── 5. Dashboard ── -->
+    <section id="dashboard" class="guide-section">
+      <h2 class="guide-h2"><span class="step-num">05</span> Reading the Dashboard</h2>
+
+      <h3 class="guide-h3">Overview page</h3>
+      <ul class="guide-list">
+        <li><strong>Total Sessions</strong> — all rows in the <code>sessions</code> table with <code>status = 'completed'</code></li>
+        <li><strong>Avg Score</strong> — mean <code>simulation_score</code> across completed sessions</li>
+        <li><strong>Fire / Quake split</strong> — count by <code>simulation_type</code></li>
+        <li><strong>This Week</strong> — sessions with <code>start_time</code> in the last 7 days</li>
+        <li><strong>Preparedness bar</strong> — distribution of HIGH / MODERATE / LOW labels from the RF classifier</li>
+      </ul>
+
+      <h3 class="guide-h3">Sessions page</h3>
+      <ul class="guide-list">
+        <li>Filter by scenario (Fire / Earthquake) and preparedness level using the pill buttons</li>
+        <li>Click any row to open the full session detail</li>
+        <li><strong>Level column</strong> — shows RF-assigned label, or PENDING if classifier has not run yet</li>
+      </ul>
+
+      <h3 class="guide-h3">Session detail page</h3>
+      <ul class="guide-list">
+        <li><strong>Event log panel (left)</strong> — timestamped list of every buffered event: <code>SIM_START</code>, <code>EXT_PIN_PULL</code>, <code>EXT_SPRAY</code>, <code>PLAYER_TICK</code>, <code>FIRE_SPREAD</code>, <code>SIM_END</code></li>
+        <li><strong>Stats panel (right)</strong> — score, pass/fail, duration, tutorial duration</li>
+        <li><strong>RF Confidence bar</strong> — shows the classifier's confidence % once <code>prep_level</code> and <code>confidence</code> are written back by the RF script. Shows "Pending classification" until then.</li>
+        <li><strong>BFP Notes</strong> — free-text evaluator notes saved directly to the <code>bfp_notes</code> column via <code>POST /api/sessions/[id]/notes</code></li>
+      </ul>
+
+      <h3 class="guide-h3">Roster page</h3>
+      <ul class="guide-list">
+        <li>Aggregate view per student — best score, pass rate, section</li>
+        <li>Filter by section using the pill buttons at the top</li>
+      </ul>
+    </section>
+
+    <!-- ── 6. RF Classification ── -->
+    <section id="rf" class="guide-section">
+      <h2 class="guide-h2"><span class="step-num">06</span> RF Classification (Groupmate Task)</h2>
+      <p class="guide-p">The Random Forest script reads <code>event_log</code> JSON from each session row, extracts 6 features, and writes <code>prep_level</code> + <code>confidence</code> back to Turso. 60 synthetic sessions are pre-loaded as training data.</p>
+
+      <h3 class="guide-h3">Feature extraction</h3>
+      <div class="feature-table-wrap">
+        <table class="guide-table">
+          <thead>
+            <tr><th>Feature</th><th>Source events</th><th>Formula</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>decision_delay_s</code></td><td>SIM_START → EXT_PIN_PULL</td><td>time delta in seconds</td></tr>
+            <tr><td><code>spray_accuracy</code></td><td>EXT_SPRAY</td><td>hit / total sprays</td></tr>
+            <tr><td><code>path_efficiency</code></td><td>PLAYER_TICK</td><td>straight_dist / cumulative_dist</td></tr>
+            <tr><td><code>hazard_proximity_ratio</code></td><td>PLAYER_TICK</td><td>ticks with nearest_fire_dist &lt; 3 / total ticks</td></tr>
+            <tr><td><code>interaction_frequency</code></td><td>EXT_SPRAY</td><td>spray count / duration_s</td></tr>
+            <tr><td><code>panic_proxy</code></td><td>PLAYER_TICK</td><td>variance of dx²+dz² between ticks</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="guide-h3">Steps</h3>
+      <div class="guide-steps">
+        <div class="guide-step">
+          <span class="step-badge">1</span>
+          <div>
+            <div class="step-title">Run the synthetic data generator (once, already done)</div>
+            <code class="step-code">cd scripts && python generate_synthetic_data.py</code>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">2</span>
+          <div>
+            <div class="step-title">Query sessions from Turso</div>
+            <p class="step-note">Use the libSQL Python SDK or the REST API. Select <code>id, event_log, prep_level</code> from the <code>sessions</code> table. Rows with <code>prep_level IS NOT NULL</code> are training data; the rest are real sessions to classify.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">3</span>
+          <div>
+            <div class="step-title">Extract features + train</div>
+            <p class="step-note">Parse the <code>event_log</code> JSON array. Each element is <code>{"{"}type, tOffsetMs, data{"}"}</code>. Extract the 6 features above. Train <code>RandomForestClassifier</code> on the 60 synthetic rows with <code>prep_level</code> as the label.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-badge">4</span>
+          <div>
+            <div class="step-title">Predict + write back</div>
+            <p class="step-note">For each real session (where <code>prep_level IS NULL</code>), predict the label and confidence, then write back:</p>
+            <code class="step-code">UPDATE sessions SET prep_level=?, confidence=? WHERE id=?</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-callout info">
+        <span class="callout-icon">ℹ</span>
+        <p>The dashboard confidence bar on each session detail page auto-populates once <code>prep_level</code> and <code>confidence</code> are written. No dashboard redeployment needed.</p>
+      </div>
+    </section>
+
+    <!-- ── 7. Troubleshooting ── -->
+    <section id="troubleshooting" class="guide-section">
+      <h2 class="guide-h2"><span class="step-num">07</span> Troubleshooting</h2>
+      <div class="trouble-table-wrap">
+        <table class="guide-table">
+          <thead>
+            <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Dashboard shows "⚠ no DB"</td>
+              <td><code>TURSO_URL</code> / <code>TURSO_TOKEN</code> not set in Cloudflare</td>
+              <td>Add them as Variables in the Worker dashboard, then redeploy with <code>npx wrangler deploy</code></td>
+            </tr>
+            <tr>
+              <td>Name appears on roster but event log is empty</td>
+              <td><code>SessionManager.onSimulationEnd</code> removed the session before the log flush</td>
+              <td>Fixed in mod v1 — rebuild with <code>.\gradlew build</code></td>
+            </tr>
+            <tr>
+              <td>Simulation buttons say "Complete the safety tutorial first!"</td>
+              <td>Tutorial not finished or <code>/register</code> not called</td>
+              <td>Run <code>/register</code> then complete all three NPC dialogue chains</td>
+            </tr>
+            <tr>
+              <td><code>[TursoClient] Schema ready</code> missing from server log</td>
+              <td>Wrong URL/token in config</td>
+              <td>Edit <code>run/config/berongsmp-common.toml</code>, set <code>tursoUrl</code> and <code>tursoToken</code>, then restart server</td>
+            </tr>
+            <tr>
+              <td>Lobby not placing on startup</td>
+              <td><code>lobby_structure.nbt</code> missing from <code>data/berongsmp/structure/</code></td>
+              <td>Run <code>.\gradlew runData</code> to regenerate, or verify the file exists in resources</td>
+            </tr>
+            <tr>
+              <td>RF confidence bar stuck at "Pending"</td>
+              <td>Groupmate's RF script hasn't run yet</td>
+              <td>Run the classification script and write <code>prep_level</code> + <code>confidence</code> back to Turso</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+</DashboardLayout>
+
+<style>
+  .guide-wrap {
+    max-width: 860px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .guide-toc {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 16px;
+    padding: 12px 0 24px;
+    border-bottom: 1px solid var(--border-card);
+    margin-bottom: 40px;
+  }
+  .toc-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-right: 4px;
+  }
+  .toc-link {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .toc-link:hover { color: var(--text-brand); }
+
+  .guide-section {
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--border-card);
+    margin-bottom: 48px;
+  }
+  .guide-section:last-child { border-bottom: none; }
+
+  .guide-h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin: 0 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-brand);
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+  }
+
+  .guide-h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 24px 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .guide-p {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin: 0 0 16px;
+  }
+
+  .guide-list {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    padding-left: 20px;
+    margin: 0 0 12px;
+  }
+  .guide-list li { margin-bottom: 4px; }
+  .guide-list code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--bg-log-panel, rgba(0,0,0,0.2));
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* Architecture diagram */
+  .guide-arch {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+    background: var(--bg-log-panel, rgba(0,0,0,0.12));
+    border: 1px solid var(--border-card);
+    border-radius: 6px;
+    margin-top: 16px;
+  }
+  .arch-node {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-heading);
+    text-align: center;
+    padding: 8px 14px;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-card);
+    border-radius: 4px;
+    line-height: 1.4;
+  }
+  .arch-sub {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+  }
+  .arch-arrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  /* Steps */
+  .guide-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .guide-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px;
+    border: 1px solid var(--border-card);
+    border-radius: 6px;
+    background: var(--bg-log-panel, rgba(0,0,0,0.06));
+  }
+  .step-badge {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--text-brand);
+    color: #0a0a0a;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-heading);
+    margin-bottom: 6px;
+  }
+  .step-code {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-brand);
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-card);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 6px 0;
+    word-break: break-all;
+  }
+  .step-note {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 4px 0 0;
+  }
+  .step-note code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: var(--bg-log-panel, rgba(0,0,0,0.2));
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  /* Callouts */
+  .guide-callout {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border-radius: 6px;
+    margin-top: 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .guide-callout.info {
+    background: rgba(136,217,130,0.08);
+    border: 1px solid rgba(136,217,130,0.25);
+    color: var(--text-primary);
+  }
+  .guide-callout.warn {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--text-primary);
+  }
+  .callout-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .guide-callout p { margin: 0; }
+  .guide-callout code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: var(--bg-log-panel, rgba(0,0,0,0.2));
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  /* Tables */
+  .feature-table-wrap,
+  .trouble-table-wrap {
+    overflow-x: auto;
+    margin-top: 12px;
+  }
+  .guide-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+  }
+  .guide-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-table, var(--border-card));
+    text-align: left;
+  }
+  .guide-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border-table, var(--border-card));
+    color: var(--text-primary);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .guide-table tr:last-child td { border-bottom: none; }
+  .guide-table code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: var(--bg-log-panel, rgba(0,0,0,0.2));
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+</style>
