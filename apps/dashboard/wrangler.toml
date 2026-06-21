@@ -10,6 +10,3 @@ binding = "ASSETS"
 [observability]
 enabled = true
 
-[vars]
-TURSO_URL = ""
-TURSO_TOKEN = ""
