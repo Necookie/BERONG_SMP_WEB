@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getDb, getEnv } from '../../../../lib/db';
 
-export const POST: APIRoute = async ({ params, request, locals }) => {
-  const env = getEnv(locals);
+export const POST: APIRoute = async ({ params, request }) => {
+  const env = await getEnv();
   if (!env) {
     return new Response('DB not configured', { status: 503 });
   }

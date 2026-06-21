@@ -9,7 +9,7 @@ import {
 } from '../lib/queries';
 import { getEnv } from '../lib/db';
 
-const env = getEnv(Astro.locals);
+const env = await getEnv();
 const hasDb = !!env;
 
 let stats = { total: 0, avg_score: 0, fire_count: 0, quake_count: 0, this_week: 0, high_count: 0, mod_count: 0, low_count: 0 };

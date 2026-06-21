@@ -5,7 +5,7 @@ import { getSessionById, formatDuration, formatDate, derivePrepLevel, parseEvent
 import { getEnv } from '../../lib/db';
 
 const { id } = Astro.params;
-const env = getEnv(Astro.locals);
+const env = await getEnv();
 
 const session = (env && id) ? await getSessionById(env, Number(id)) : null;
 
