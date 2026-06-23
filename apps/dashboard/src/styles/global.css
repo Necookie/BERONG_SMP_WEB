@@ -1137,9 +1137,11 @@ td {
   resize: vertical;
   outline: none;
   box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .notes-input:focus {
   border-color: var(--text-brand);
+  box-shadow: 0 0 0 1px var(--text-brand);
 }
 .notes-save-btn {
   margin-top: 8px;
