@@ -39,7 +39,7 @@ const sessions = env ? await getAllSessions(env) : [];
 
   <div class="sessions-section">
     {sessions.length === 0 ? (
-      <p style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#555; padding:24px 0;">
+      <p class="td-no-data" style="padding:24px 0; text-align:center;">
         {hasDb ? 'No sessions yet.' : 'Configure TURSO_URL and TURSO_TOKEN to see live data.'}
       </p>
     ) : (
@@ -67,19 +67,19 @@ const sessions = env ? await getAllSessions(env) : [];
                   data-level={level}
                   onclick={`window.location='/sessions/${s.id}'`}
                 >
-                  <td style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#444; letter-spacing:0.06em;">
+                  <td class="td-mono-id">
                     {s.id}
                   </td>
                   <td class="name-cell">{s.student_name}</td>
-                  <td style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#555;">{s.section ?? '—'}</td>
+                  <td class="td-mono-muted">{s.section ?? '—'}</td>
                   <td>
-                    <span style={`font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:${s.simulation_type === 'FIRE' ? '#88d982' : '#bfcaba'};`}>
+                    <span class={s.simulation_type === 'FIRE' ? 'td-type-fire' : 'td-type-quake'}>
                       {s.simulation_type ?? '—'}
                     </span>
                   </td>
-                  <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDate(s.start_time)}</td>
-                  <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDuration(s.start_time, s.end_time)}</td>
-                  <td style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:#888;">
+                  <td class="td-mono-muted">{formatDate(s.start_time)}</td>
+                  <td class="td-mono-muted">{formatDuration(s.start_time, s.end_time)}</td>
+                  <td class="td-score">
                     {s.simulation_score}
                   </td>
                   <td>
@@ -89,7 +89,7 @@ const sessions = env ? await getAllSessions(env) : [];
                         {level}
                       </span>
                     ) : (
-                      <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#555;">PENDING</span>
+                      <span class="td-pending">PENDING</span>
                     )}
                   </td>
                   <td class="link-cell">
