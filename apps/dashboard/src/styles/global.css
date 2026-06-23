@@ -725,6 +725,23 @@ td {
   flex-shrink: 0;
 }
 
+@media (max-width: 768px) {
+  .session-header-bar {
+    height: auto;
+    padding: 12px 20px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .session-header-bar .header-sep {
+    display: none;
+  }
+  .session-header-bar .header-date {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 2px;
+  }
+}
+
 .session-header-bar.high     { border-left-color: #88d982; }
 .session-header-bar.moderate { border-left-color: #c9a84c; }
 .session-header-bar.low      { border-left-color: #c45c5c; }
@@ -783,6 +800,24 @@ td {
   grid-template-columns: 3fr 2fr;
   overflow: hidden;
   min-height: 0;
+}
+
+@media (max-width: 768px) {
+  .detail-split {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .log-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--border-card);
+    height: 400px;
+    min-height: 350px;
+    flex-shrink: 0;
+  }
+  .stats-panel {
+    overflow-y: visible;
+  }
 }
 
 .log-panel {
