@@ -555,12 +555,12 @@ def make_timestamps(total: int, n_days: int = 10) -> list:
 
 # ─── Main ────────────────────────────────────────────────────────────────────
 def main():
-    TOTAL   = 500
-    N_FIRE  = 300
-    N_QUAKE = 200
+    TOTAL   = 250
+    N_FIRE  = 150
+    N_QUAKE = 100
     N_DAYS  = 10
 
-    out = os.path.join(os.path.dirname(__file__), "synthetic_output")
+    out = os.path.join(os.path.dirname(__file__), "apps", "dashboard", "public", "synthetic")
     os.makedirs(out, exist_ok=True)
 
     students = make_students(60)
