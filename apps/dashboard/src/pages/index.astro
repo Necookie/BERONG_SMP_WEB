@@ -49,14 +49,14 @@ const lowPct      = 100 - highPct - moderatePct;
     <div class="kpi-item">
       <span class="kpi-label">Scenario split</span>
       <div class="kpi-split">
-        <span style="color: #88d982;">{stats.fire_count}</span>
-        <span style="color: #2a2a2a;"> / </span>
-        <span style="color: #bfcaba;">{stats.quake_count}</span>
+        <span style="color: var(--color-fire);">{stats.fire_count}</span>
+        <span style="color: var(--color-separator);"> / </span>
+        <span style="color: var(--color-earthquake);">{stats.quake_count}</span>
       </div>
       <p class="kpi-split-label">
-        <span style="color: #88d982;">FIRE</span>
+        <span style="color: var(--color-fire);">FIRE</span>
         &nbsp;/&nbsp;
-        <span style="color: #bfcaba;">EARTHQUAKE</span>
+        <span style="color: var(--color-earthquake);">EARTHQUAKE</span>
       </p>
     </div>
     <div class="kpi-item">
