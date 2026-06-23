@@ -13,19 +13,27 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   <div class="data-section">
     <div class="data-section-header">
       <span class="data-section-label">Synthetic Dataset</span>
-      <span class="data-badge">120 sessions · 144,624 rows</span>
+      <span class="data-badge">500 sessions · 602,611 rows</span>
     </div>
     <p class="data-desc">
-      Machine-generated data matching telemetry contract v1.1 exactly. Covers 70 FIRE and 50
-      EARTHQUAKE sessions across 25 student profiles with HIGH / MODERATE / LOW preparedness
-      archetypes. Use for initial ML model training before real cohort data is available.
+      Machine-generated data matching telemetry contract v1.1 exactly. 500 sessions (300 FIRE + 200
+      EARTHQUAKE) across 60 student profiles with individual personality traits — reaction time,
+      panic tendency, procedure adherence, and movement speed — distributed across HIGH / MODERATE /
+      LOW preparedness archetypes over 10 simulated data-collection days. Sessions CSV includes
+      <code>prep_level</code>, <code>simulation_score</code>, and <code>passed</code> labels for direct supervised training.
     </p>
+    <div class="data-note" style="margin-bottom: 14px;">
+      <strong style="color: var(--text-primary);">Archetype breakdown:</strong>
+      HIGH ≈35% (196) · MODERATE ≈44% (219) · LOW ≈17% (85) &nbsp;|&nbsp;
+      Pass rate 51.4% · Avg score 53.6 &nbsp;|&nbsp;
+      Each student appears in 4–12 sessions with consistent personality traits.
+    </div>
     <div class="download-grid">
       <a href="/synthetic/gameplay_logs_synthetic_20260601.csv" download class="download-card">
         <div class="dl-icon">CSV</div>
         <div class="dl-info">
           <span class="dl-name">gameplay_logs_synthetic_20260601.csv</span>
-          <span class="dl-meta">144,624 rows · move + events · ~9.9 MB</span>
+          <span class="dl-meta">602,611 rows · 10 Hz move + events · ~40 MB</span>
         </div>
         <span class="dl-arrow">↓</span>
       </a>
@@ -33,7 +41,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         <div class="dl-icon">CSV</div>
         <div class="dl-info">
           <span class="dl-name">sessions_synthetic_20260601.csv</span>
-          <span class="dl-meta">120 rows · session metadata · ~14 KB</span>
+          <span class="dl-meta">500 rows · session metadata + labels · ~67 KB</span>
         </div>
         <span class="dl-arrow">↓</span>
       </a>
@@ -41,6 +49,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     <div class="data-note">
       Columns match <code>RAW_LOG_SCHEMA</code> and <code>sessions</code> schema from the telemetry contract.
       Feed directly into <code>build_feature_table()</code> grouped by <code>player_id × scenario_type</code>.
+      Labels (<code>prep_level</code>) are pre-attached for supervised training — no separate labeling step needed for synthetic data.
     </div>
   </div>
 
@@ -74,8 +83,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
 <style>
   .data-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
     border-radius: 6px;
     padding: 20px 24px;
     margin-bottom: 16px;
@@ -102,15 +111,21 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     font-size: 10px;
     padding: 2px 7px;
     border-radius: 3px;
-    background: #1e2a1e;
-    color: #88d982;
-    border: 1px solid #2a3d2a;
+    background: var(--bg-filter-pill-active);
+    color: var(--text-brand);
+    border: 1px solid var(--text-brand);
   }
 
   .data-badge.live {
-    background: #1a1e2a;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+  
+  html.dark .data-badge.live {
+    background: rgba(130, 170, 255, 0.08);
     color: #82aaff;
-    border-color: #2a2f3d;
+    border-color: rgba(130, 170, 255, 0.3);
   }
 
   .data-desc {
@@ -122,9 +137,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   }
 
   .download-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
     margin-bottom: 12px;
   }
 
@@ -133,16 +148,16 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     align-items: center;
     gap: 14px;
     padding: 12px 16px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-card);
     border-radius: 5px;
     text-decoration: none;
     transition: border-color 0.15s, background 0.15s;
-    background: var(--bg);
+    background: var(--bg-base);
   }
 
   .download-card:hover {
-    border-color: #888;
-    background: var(--surface-hover, #1a1a1a);
+    border-color: var(--text-brand);
+    background: var(--bg-table-hover);
   }
 
   .dl-icon {
@@ -151,16 +166,22 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     font-weight: 700;
     padding: 4px 6px;
     border-radius: 3px;
-    background: #2a2a1e;
-    color: #d4c97a;
-    border: 1px solid #3a3a2a;
+    background: rgba(201, 168, 76, 0.1);
+    color: #c9a84c;
+    border: 1px solid rgba(201, 168, 76, 0.3);
     flex-shrink: 0;
   }
 
   .dl-icon.live {
-    background: #1a1e2a;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  html.dark .dl-icon.live {
+    background: rgba(130, 170, 255, 0.08);
     color: #82aaff;
-    border-color: #2a2f3d;
+    border-color: rgba(130, 170, 255, 0.3);
   }
 
   .dl-info {
@@ -190,13 +211,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   .data-note {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
-    color: #555;
+    color: var(--text-muted);
     line-height: 1.5;
     padding: 8px 12px;
-    border-left: 2px solid var(--border);
+    border-left: 2px solid var(--border-card);
   }
 
   .data-note code {
-    color: #888;
+    color: var(--text-secondary);
   }
 </style>
