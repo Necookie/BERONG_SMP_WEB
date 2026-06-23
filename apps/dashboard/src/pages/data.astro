@@ -1,0 +1,202 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Data Export" currentPath="/data">
+
+  <div class="page-header">
+    <h1 class="page-title">Data Export</h1>
+    <p class="page-meta">Download telemetry datasets for ML training and analysis</p>
+  </div>
+
+  <!-- Synthetic Dataset -->
+  <div class="data-section">
+    <div class="data-section-header">
+      <span class="data-section-label">Synthetic Dataset</span>
+      <span class="data-badge">120 sessions · 144,624 rows</span>
+    </div>
+    <p class="data-desc">
+      Machine-generated data matching telemetry contract v1.1 exactly. Covers 70 FIRE and 50
+      EARTHQUAKE sessions across 25 student profiles with HIGH / MODERATE / LOW preparedness
+      archetypes. Use for initial ML model training before real cohort data is available.
+    </p>
+    <div class="download-grid">
+      <a href="/synthetic/gameplay_logs_synthetic_20260601.csv" download class="download-card">
+        <div class="dl-icon">CSV</div>
+        <div class="dl-info">
+          <span class="dl-name">gameplay_logs_synthetic_20260601.csv</span>
+          <span class="dl-meta">144,624 rows · move + events · ~9.9 MB</span>
+        </div>
+        <span class="dl-arrow">↓</span>
+      </a>
+      <a href="/synthetic/sessions_synthetic_20260601.csv" download class="download-card">
+        <div class="dl-icon">CSV</div>
+        <div class="dl-info">
+          <span class="dl-name">sessions_synthetic_20260601.csv</span>
+          <span class="dl-meta">120 rows · session metadata · ~14 KB</span>
+        </div>
+        <span class="dl-arrow">↓</span>
+      </a>
+    </div>
+    <div class="data-note">
+      Columns match <code>RAW_LOG_SCHEMA</code> and <code>sessions</code> schema from the telemetry contract.
+      Feed directly into <code>build_feature_table()</code> grouped by <code>player_id × scenario_type</code>.
+    </div>
+  </div>
+
+  <!-- Live Data Export -->
+  <div class="data-section">
+    <div class="data-section-header">
+      <span class="data-section-label">Live Session Data</span>
+      <span class="data-badge live">from Turso</span>
+    </div>
+    <p class="data-desc">
+      Export all completed sessions from the live database. Includes student names, scores,
+      scenario types, timestamps, and full event logs.
+    </p>
+    <div class="download-grid">
+      <a href="/api/export/sessions" download="sessions_live.csv" class="download-card">
+        <div class="dl-icon live">CSV</div>
+        <div class="dl-info">
+          <span class="dl-name">sessions_live.csv</span>
+          <span class="dl-meta">All completed sessions · live query</span>
+        </div>
+        <span class="dl-arrow">↓</span>
+      </a>
+    </div>
+    <div class="data-note">
+      Gameplay log CSVs (move rows) are stored locally on the Minecraft server under
+      <code>run/telemetry/gameplay_logs_&lt;date&gt;.csv</code> — retrieve them directly from that machine.
+    </div>
+  </div>
+
+</DashboardLayout>
+
+<style>
+  .data-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+
+  .data-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .data-section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+  }
+
+  .data-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: #1e2a1e;
+    color: #88d982;
+    border: 1px solid #2a3d2a;
+  }
+
+  .data-badge.live {
+    background: #1a1e2a;
+    color: #82aaff;
+    border-color: #2a2f3d;
+  }
+
+  .data-desc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .download-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .download-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+    background: var(--bg);
+  }
+
+  .download-card:hover {
+    border-color: #888;
+    background: var(--surface-hover, #1a1a1a);
+  }
+
+  .dl-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 6px;
+    border-radius: 3px;
+    background: #2a2a1e;
+    color: #d4c97a;
+    border: 1px solid #3a3a2a;
+    flex-shrink: 0;
+  }
+
+  .dl-icon.live {
+    background: #1a1e2a;
+    color: #82aaff;
+    border-color: #2a2f3d;
+  }
+
+  .dl-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+  }
+
+  .dl-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-primary);
+  }
+
+  .dl-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-secondary);
+  }
+
+  .dl-arrow {
+    font-size: 16px;
+    color: var(--text-secondary);
+  }
+
+  .data-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #555;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-left: 2px solid var(--border);
+  }
+
+  .data-note code {
+    color: #888;
+  }
+</style>
