@@ -12,9 +12,11 @@ html.dark {
   --border-sidebar:     #2a2a2a;
   --bg-sidebar:         #0d0d0d;
   --bg-log-panel:       #090909;
+  --bg-card:            #111111;
   --text-brand:         #88d982;
   --text-brand-sub:     #383838;
   --text-primary:       #e5e2e1;
+  --text-secondary:     #8a8682;
   --text-muted:         #666;
   --text-heading:       #ffffff;
   --text-kpi-unit:      #555;
@@ -33,6 +35,16 @@ html.dark {
   --text-filter-label:  #383838;
   --text-filter-pill:   #555;
   --bg-filter-pill-active: rgba(136, 217, 130, 0.05);
+  --color-earthquake:   #bfcaba;
+  --color-fire:         #88d982;
+  --color-separator:    #444;
+  --bg-notes-block:     #1a1a1a;
+  --text-notes-label:   #555;
+  --text-notes-body:    #888;
+  --text-id-cell:       #444;
+  --text-section-cell:  #555;
+  --text-pending:       #555;
+  --text-no-data:       #555;
 }
 
 /* Light mode overrides */
@@ -41,9 +53,11 @@ html.light {
   --border-sidebar:     #d8d4d0;
   --bg-sidebar:         #e8e4e0;
   --bg-log-panel:       #ede9e5;
+  --bg-card:            #eae6e2;
   --text-brand:         #2e7d32;
   --text-brand-sub:     #8a847e;
   --text-primary:       #1a1a1a;
+  --text-secondary:     #5a6252;
   --text-muted:         #6b7466;
   --text-heading:       #0d1a0d;
   --text-kpi-unit:      #8a847e;
@@ -62,6 +76,16 @@ html.light {
   --text-filter-label:  #6b7466;
   --text-filter-pill:   #4a5240;
   --bg-filter-pill-active: rgba(46, 125, 50, 0.08);
+  --color-earthquake:   #4a5240;
+  --color-fire:         #2e7d32;
+  --color-separator:    #b0aa9e;
+  --bg-notes-block:     #dedad6;
+  --text-notes-label:   #8a847e;
+  --text-notes-body:    #4a5240;
+  --text-id-cell:       #6b7466;
+  --text-section-cell:  #6b7466;
+  --text-pending:       #8a847e;
+  --text-no-data:       #8a847e;
 }
 
 /* Theme transitions */

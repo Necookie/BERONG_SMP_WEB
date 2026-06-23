@@ -234,3 +234,30 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 3. The `ThemeToggle.tsx` component requires the Material Symbols Outlined font to be loaded in `DashboardLayout.astro`
 4. New React islands must be added to `apps/dashboard/src/components/` and imported into the relevant `.astro` page
 5. After any change, run `pnpm build:dashboard` to verify the Cloudflare SSR build compiles cleanly before pushing
+
+---
+
+## Dashboard Responsiveness & Theme Fix Log
+
+> Micro-commit audit trail — each entry corresponds to one atomic git commit.
+
+| # | Commit scope | What was fixed |
+|---|---|---|
+| 1 | `global.css` — CSS variables | Added missing `--bg-card`, `--text-secondary`, `--color-earthquake`, `--color-fire`, `--color-separator`, `--bg-notes-block`, `--text-notes-label`, `--text-notes-body`, `--text-id-cell`, `--text-section-cell`, `--text-pending`, `--text-no-data` to both dark and light themes |
+| 2 | `global.css` — responsive shell | Added mobile/tablet breakpoints for `.dashboard-shell` grid and `.sidebar` collapse |
+| 3 | `global.css` — KPI strip | Wrap KPI strip to grid on mobile; fix kpi-item min-width |
+| 4 | `global.css` — filter bar | Add `flex-wrap: wrap` and tighten gaps on narrow viewports |
+| 5 | `global.css` — page header | Reduce padding at tablet/mobile breakpoints |
+| 6 | `global.css` — sessions table | Add horizontal scroll wrapper token and table overflow handling |
+| 7 | `global.css` — dist-legend | Wrap legend items on mobile |
+| 8 | `global.css` — hamburger/mobile sidebar toggle | Mobile sidebar slide-in overlay and hamburger button |
+| 9 | `index.astro` — KPI scenario split | Replace hardcoded `#2a2a2a` separator and `#bfcaba` earthquake color with CSS variables |
+| 10 | `index.astro` — sessions table inline styles | Replace hardcoded `#555`, `#888`, `#bfcaba`, `#333` inline styles with CSS variable classes |
+| 11 | `sessions/index.astro` — table inline styles | Replace hardcoded hex colors in all td inline styles with CSS variable-backed classes |
+| 12 | `sessions/[id].astro` — header/log inline styles | Replace `#555`, `#333`, `#444`, `#888` inline styles in session detail |
+| 13 | `sessions/[id].astro` — BFP notes block | Replace hardcoded `#1a1a1a` block bg + text colors with CSS variables |
+| 14 | `roster.astro` — KPI strip inline styles | Replace hardcoded `#383838`, `#333` with CSS variables |
+| 15 | `roster.astro` — table inline styles | Replace hardcoded hex table cell colors with CSS variable classes |
+| 16 | `global.css` — notes-input/save-btn | Fix `.notes-input` using undefined `--bg-card`, `.notes-save-btn` using undefined `--text-secondary` |
+| 17 | `DashboardLayout.astro` — mobile overlay markup | Add hamburger toggle button and mobile sidebar overlay structure |
+| 18 | `ThemeToggle.tsx` — icon color | Replace hardcoded `#bfcaba`/`#4a5240` icon colors with CSS currentColor via class |
