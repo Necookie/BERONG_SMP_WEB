@@ -101,7 +101,7 @@ const lowPct      = 100 - highPct - moderatePct;
     </div>
 
     {recent.length === 0 ? (
-      <p style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#555; padding:24px 0;">
+      <p class="td-no-data" style="padding:24px 0; text-align:center;">
         {hasDb ? 'No completed sessions yet.' : 'Configure TURSO_URL and TURSO_TOKEN in .dev.vars to see live data.'}
       </p>
     ) : (
@@ -124,15 +124,15 @@ const lowPct      = 100 - highPct - moderatePct;
             return (
               <tr onclick={`window.location='/sessions/${s.id}'`}>
                 <td class="name-cell">{s.student_name}</td>
-                <td style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#555;">{s.section ?? '—'}</td>
+                <td class="td-mono-muted">{s.section ?? '—'}</td>
                 <td>
-                  <span style={`font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:${s.simulation_type === 'FIRE' ? '#88d982' : '#bfcaba'};`}>
+                  <span class={s.simulation_type === 'FIRE' ? 'td-type-fire' : 'td-type-quake'}>
                     {s.simulation_type ?? '—'}
                   </span>
                 </td>
-                <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDate(s.start_time)}</td>
-                <td style="font-family:'JetBrains Mono',monospace; font-size:11px;">{formatDuration(s.start_time, s.end_time)}</td>
-                <td style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:#888;">{s.simulation_score}</td>
+                <td class="td-mono-muted">{formatDate(s.start_time)}</td>
+                <td class="td-mono-muted">{formatDuration(s.start_time, s.end_time)}</td>
+                <td class="td-score">{s.simulation_score}</td>
                 <td>
                   {level !== 'PENDING' ? (
                     <span class={`tier-badge ${level.toLowerCase()}`}>
@@ -140,7 +140,7 @@ const lowPct      = 100 - highPct - moderatePct;
                       {level}
                     </span>
                   ) : (
-                    <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#555;">PENDING</span>
+                    <span class="td-pending">PENDING</span>
                   )}
                 </td>
                 <td class="link-cell">
