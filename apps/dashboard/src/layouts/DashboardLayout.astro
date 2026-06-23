@@ -50,10 +50,23 @@ const navItems = [
   />
 </head>
 <body>
+
+  <!-- Mobile top bar (hamburger) — hidden on desktop via CSS -->
+  <div class="mobile-topbar" id="mobile-topbar">
+    <button class="hamburger-btn" id="hamburger-btn" aria-label="Open navigation menu" aria-expanded="false">
+      <span class="hamburger-icon">☰</span>
+    </button>
+    <span class="mobile-topbar-title">BERONG SMP</span>
+    <ThemeToggle client:only="react" />
+  </div>
+
+  <!-- Sidebar overlay backdrop -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
   <div class="dashboard-shell">
 
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand flex items-center gap-3">
         <img
           src={logo.src}
@@ -98,3 +111,45 @@ const navItems = [
   </div>
 </body>
 </html>
+
+<script is:inline>
+  (function () {
+    const hamburger = document.getElementById('hamburger-btn');
+    const sidebar   = document.getElementById('sidebar');
+    const overlay   = document.getElementById('sidebar-overlay');
+
+    function openSidebar() {
+      sidebar.classList.add('open');
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      hamburger.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+      hamburger.setAttribute('aria-expanded', 'false');
+    }
+
+    if (hamburger && sidebar && overlay) {
+      hamburger.addEventListener('click', function () {
+        if (sidebar.classList.contains('open')) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
+      });
+
+      overlay.addEventListener('click', closeSidebar);
+
+      // Close on nav item click on mobile
+      sidebar.querySelectorAll('.nav-item').forEach(function (link) {
+        link.addEventListener('click', function () {
+          if (window.innerWidth <= 768) closeSidebar();
+        });
+      });
+    }
+  })();
+</script>
+
