@@ -36,6 +36,7 @@ html.dark {
   --text-filter-pill:   #555;
   --bg-filter-pill-active: rgba(136, 217, 130, 0.05);
   --color-earthquake:   #bfcaba;
+  --text-theme-toggle:  #bfcaba;
   --color-fire:         #88d982;
   --color-separator:    #444;
   --bg-notes-block:     #1a1a1a;
@@ -77,6 +78,7 @@ html.light {
   --text-filter-pill:   #4a5240;
   --bg-filter-pill-active: rgba(46, 125, 50, 0.08);
   --color-earthquake:   #4a5240;
+  --text-theme-toggle:  #4a5240;
   --color-fire:         #2e7d32;
   --color-separator:    #b0aa9e;
   --bg-notes-block:     #dedad6;
@@ -321,6 +323,15 @@ td {
   background: var(--text-brand);
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.theme-toggle-btn {
+  color: var(--text-theme-toggle);
+  transition: color 0.15s ease;
+}
+
+.theme-toggle-btn:hover {
+  color: var(--text-primary);
 }
 
 /* ── Main area ───────────────────────────────────────────────────────── */

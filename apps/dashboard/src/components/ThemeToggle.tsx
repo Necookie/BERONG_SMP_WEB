@@ -37,6 +37,7 @@ export default function ThemeToggle() {
   return (
     <button
       id="theme-toggle-btn"
+      className="theme-toggle-btn"
       onClick={toggle}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -51,7 +52,6 @@ export default function ThemeToggle() {
         cursor: 'pointer',
         background: 'transparent',
         border: 'none',
-        color: 'inherit',
         transition: 'color 0.2s ease',
       }}
     >
@@ -66,7 +66,7 @@ export default function ThemeToggle() {
           transform: isDark ? 'rotate(0deg) scale(1)' : 'rotate(90deg) scale(0.5)',
           transition: 'opacity 0.25s ease, transform 0.25s ease',
           pointerEvents: 'none',
-          color: isDark ? '#bfcaba' : 'transparent',
+          color: isDark ? 'currentColor' : 'transparent',
         }}
       >
         light_mode
@@ -83,7 +83,7 @@ export default function ThemeToggle() {
           transform: isDark ? 'rotate(-90deg) scale(0.5)' : 'rotate(0deg) scale(1)',
           transition: 'opacity 0.25s ease, transform 0.25s ease',
           pointerEvents: 'none',
-          color: isDark ? 'transparent' : '#4a5240',
+          color: isDark ? 'transparent' : 'currentColor',
         }}
       >
         dark_mode
