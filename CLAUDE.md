@@ -261,3 +261,5 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 16 | `global.css` — notes-input/save-btn | Fix `.notes-input` using undefined `--bg-card`, `.notes-save-btn` using undefined `--text-secondary` |
 | 17 | `DashboardLayout.astro` — mobile overlay markup | Add hamburger toggle button and mobile sidebar overlay structure |
 | 18 | `ThemeToggle.tsx` — icon color | Replace hardcoded `#bfcaba`/`#4a5240` icon colors with CSS currentColor via class |
+| 19 | `data.astro` — style refactoring | Replace hardcoded and undefined colors with CSS variables, make download grid responsive |
+| 20 | `commands.astro` — card refactoring | Replace hardcoded sidebar variables with themed card background variables |
