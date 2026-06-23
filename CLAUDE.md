@@ -264,3 +264,4 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 19 | `data.astro` — style refactoring | Replace hardcoded and undefined colors with CSS variables, make download grid responsive |
 | 20 | `commands.astro` — card refactoring | Replace hardcoded sidebar variables with themed card background variables |
 | 21 | `global.css` & `guide.astro` | Resolve guide page horizontal overflow and improve mobile flowchart readability |
+| 22 | `index.astro` — recent sessions table | Wrap recent sessions table in a scrollable container for mobile responsiveness |
