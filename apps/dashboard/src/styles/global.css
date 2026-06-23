@@ -397,11 +397,25 @@ td {
   flex-shrink: 0;
 }
 
+@media (max-width: 1024px) {
+  .dist-section {
+    padding: 22px 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .dist-section {
+    padding: 16px 20px;
+  }
+}
+
 .dist-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .section-label {
@@ -434,6 +448,15 @@ td {
   display: flex;
   gap: 28px;
   margin-top: 12px;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .dist-legend {
+    flex-direction: column;
+    gap: 8px;
+  }
 }
 
 .dist-leg-item {
