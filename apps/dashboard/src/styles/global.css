@@ -271,12 +271,31 @@ td {
   flex-shrink: 0;
 }
 
+@media (max-width: 1024px) {
+  .page-header {
+    padding: 22px 28px 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: 16px 20px 14px;
+    padding-top: 60px; /* space for mobile hamburger bar */
+  }
+}
+
 .page-title {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 20px;
   font-weight: 600;
   color: var(--text-heading);
   margin: 0 0 3px;
+}
+
+@media (max-width: 600px) {
+  .page-title {
+    font-size: 17px;
+  }
 }
 
 .page-meta {
