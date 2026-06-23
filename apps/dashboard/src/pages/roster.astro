@@ -36,14 +36,14 @@ const total = stats.length || 1;
         <div class="kpi-item">
           <span class="kpi-label">Best: {lvl}</span>
           <span class={`kpi-value tier-num-${lvl.toLowerCase()}`}>{count}</span>
-          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#383838;">{pct}% of students</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-brand-sub);">{pct}% of students</span>
         </div>
       );
     })}
     <div class="kpi-item">
       <span class="kpi-label">No sessions</span>
-      <span class="kpi-value" style="color:#333;">{stats.filter(s => Number(s.session_count) === 0).length}</span>
-      <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#383838;">pending</span>
+      <span class="kpi-value" style="color:var(--text-brand-sub);">{stats.filter(s => Number(s.session_count) === 0).length}</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-brand-sub);">pending</span>
     </div>
   </div>
 
