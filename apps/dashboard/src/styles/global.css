@@ -478,9 +478,29 @@ td {
   padding: 28px 40px;
 }
 
+@media (max-width: 1024px) {
+  .sessions-section {
+    padding: 22px 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .sessions-section {
+    padding: 16px 20px;
+  }
+}
+
+/* Horizontal scroll wrapper for wide tables on narrow viewports */
+.table-scroll-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .sessions-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 560px; /* prevent collapse below readable width */
 }
 
 .sessions-table th {
@@ -493,6 +513,7 @@ td {
   text-align: left;
   padding: 0 0 10px;
   border-bottom: 1px solid var(--border-card);
+  white-space: nowrap;
 }
 
 .sessions-table td {
@@ -501,6 +522,7 @@ td {
   padding: 11px 0;
   border-bottom: 1px solid var(--border-table);
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .sessions-table td.name-cell { color: var(--text-table-name); }
@@ -511,6 +533,42 @@ td {
 
 .sessions-table th + th,
 .sessions-table td + td { padding-left: 20px; }
+
+/* Utility classes for themed table cells — replaces hardcoded inline styles */
+.td-mono-muted {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-section-cell);
+}
+
+.td-mono-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-id-cell);
+  letter-spacing: 0.06em;
+}
+
+.td-score {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-table-cell);
+}
+
+.td-pending {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-pending);
+}
+
+.td-no-data {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-no-data);
+}
+
+.td-type-fire     { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--color-fire); }
+.td-type-quake    { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--color-earthquake); }
 
 .view-link {
   font-family: 'JetBrains Mono', monospace;
