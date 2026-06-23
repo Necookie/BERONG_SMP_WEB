@@ -99,74 +99,76 @@ const total = stats.length || 1;
         {hasDb ? 'No completed sessions yet.' : 'Configure TURSO_URL and TURSO_TOKEN to see live data.'}
       </p>
     ) : (
-      <table class="sessions-table roster-table">
-        <thead>
-          <tr>
-            <th>Student</th>
-            <th>ID</th>
-            <th>Section</th>
-            <th>Sessions</th>
-            <th>Avg score</th>
-            <th>Best score</th>
-            <th>Passed</th>
-            <th>Best level</th>
-            <th>Last active</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {stats.map(s => {
-            const lvl = s.best_prep_level
-              ? derivePrepLevel(Number(s.best_score), s.best_prep_level)
-              : 'PENDING';
-            return (
-              <tr
-                data-section={s.section ?? ''}
-                onclick={s.latest_session_id ? `window.location='/sessions/${s.latest_session_id}'` : undefined}
-                style={s.latest_session_id ? 'cursor:pointer;' : ''}
-              >
-                <td class="name-cell">{s.student_name}</td>
-                <td class="td-mono-muted">{s.student_id ?? '—'}</td>
-                <td class="td-mono-muted">{s.section ?? '—'}</td>
-                <td class="td-mono-muted">{s.session_count}</td>
-                <td>
-                  {Number(s.session_count) > 0 ? (
-                    <span class="td-score">
-                      {s.avg_score}
-                    </span>
-                  ) : (
-                    <span class="td-no-data">—</span>
-                  )}
-                </td>
-                <td class="td-score">
-                  {Number(s.session_count) > 0 ? s.best_score : '—'}
-                </td>
-                <td class="td-mono-muted">
-                  {s.pass_count} / {s.session_count}
-                </td>
-                <td>
-                  {lvl !== 'PENDING' ? (
-                    <span class={`tier-badge ${lvl.toLowerCase()}`}>
-                      <span class="dot"></span>
-                      {lvl}
-                    </span>
-                  ) : (
-                    <span class="td-no-data">—</span>
-                  )}
-                </td>
-                <td class="td-mono-id">
-                  {s.latest_start ? formatDate(s.latest_start) : '—'}
-                </td>
-                <td class="link-cell">
-                  {s.latest_session_id && (
-                    <a href={`/sessions/${s.latest_session_id}`} class="view-link" onclick="event.stopPropagation()">→</a>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div class="table-scroll-wrap">
+        <table class="sessions-table roster-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>ID</th>
+              <th>Section</th>
+              <th>Sessions</th>
+              <th>Avg score</th>
+              <th>Best score</th>
+              <th>Passed</th>
+              <th>Best level</th>
+              <th>Last active</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.map(s => {
+              const lvl = s.best_prep_level
+                ? derivePrepLevel(Number(s.best_score), s.best_prep_level)
+                : 'PENDING';
+              return (
+                <tr
+                  data-section={s.section ?? ''}
+                  onclick={s.latest_session_id ? `window.location='/sessions/${s.latest_session_id}'` : undefined}
+                  style={s.latest_session_id ? 'cursor:pointer;' : ''}
+                >
+                  <td class="name-cell">{s.student_name}</td>
+                  <td class="td-mono-muted">{s.student_id ?? '—'}</td>
+                  <td class="td-mono-muted">{s.section ?? '—'}</td>
+                  <td class="td-mono-muted">{s.session_count}</td>
+                  <td>
+                    {Number(s.session_count) > 0 ? (
+                      <span class="td-score">
+                        {s.avg_score}
+                      </span>
+                    ) : (
+                      <span class="td-no-data">—</span>
+                    )}
+                  </td>
+                  <td class="td-score">
+                    {Number(s.session_count) > 0 ? s.best_score : '—'}
+                  </td>
+                  <td class="td-mono-muted">
+                    {s.pass_count} / {s.session_count}
+                  </td>
+                  <td>
+                    {lvl !== 'PENDING' ? (
+                      <span class={`tier-badge ${lvl.toLowerCase()}`}>
+                        <span class="dot"></span>
+                        {lvl}
+                      </span>
+                    ) : (
+                      <span class="td-no-data">—</span>
+                    )}
+                  </td>
+                  <td class="td-mono-id">
+                    {s.latest_start ? formatDate(s.latest_start) : '—'}
+                  </td>
+                  <td class="link-cell">
+                    {s.latest_session_id && (
+                      <a href={`/sessions/${s.latest_session_id}`} class="view-link" onclick="event.stopPropagation()">→</a>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     )}
 
     <p class="roster-note">

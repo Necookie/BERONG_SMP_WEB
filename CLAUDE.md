@@ -265,3 +265,5 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 20 | `commands.astro` — card refactoring | Replace hardcoded sidebar variables with themed card background variables |
 | 21 | `global.css` & `guide.astro` | Resolve guide page horizontal overflow and improve mobile flowchart readability |
 | 22 | `index.astro` — recent sessions table | Wrap recent sessions table in a scrollable container for mobile responsiveness |
+| 23 | `sessions/index.astro` & `roster.astro` | Wrap tables in scrollable containers for mobile layout responsiveness |
+| 24 | `global.css` — filter bar & pills | Make filter bars, groups, and pills responsive to prevent layout blowout |

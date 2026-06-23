@@ -44,62 +44,64 @@ const sessions = env ? await getAllSessions(env) : [];
       </p>
     ) : (
       <>
-        <table class="sessions-table" id="sessions-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Student</th>
-              <th>Section</th>
-              <th>Scenario</th>
-              <th>Date</th>
-              <th>Duration</th>
-              <th>Score</th>
-              <th>Level</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {sessions.map(s => {
-              const level = derivePrepLevel(s.simulation_score, s.prep_level);
-              return (
-                <tr
-                  data-type={s.simulation_type ?? 'UNKNOWN'}
-                  data-level={level}
-                  onclick={`window.location='/sessions/${s.id}'`}
-                >
-                  <td class="td-mono-id">
-                    {s.id}
-                  </td>
-                  <td class="name-cell">{s.student_name}</td>
-                  <td class="td-mono-muted">{s.section ?? '—'}</td>
-                  <td>
-                    <span class={s.simulation_type === 'FIRE' ? 'td-type-fire' : 'td-type-quake'}>
-                      {s.simulation_type ?? '—'}
-                    </span>
-                  </td>
-                  <td class="td-mono-muted">{formatDate(s.start_time)}</td>
-                  <td class="td-mono-muted">{formatDuration(s.start_time, s.end_time)}</td>
-                  <td class="td-score">
-                    {s.simulation_score}
-                  </td>
-                  <td>
-                    {level !== 'PENDING' ? (
-                      <span class={`tier-badge ${level.toLowerCase()}`}>
-                        <span class="dot"></span>
-                        {level}
+        <div class="table-scroll-wrap">
+          <table class="sessions-table" id="sessions-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Student</th>
+                <th>Section</th>
+                <th>Scenario</th>
+                <th>Date</th>
+                <th>Duration</th>
+                <th>Score</th>
+                <th>Level</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sessions.map(s => {
+                const level = derivePrepLevel(s.simulation_score, s.prep_level);
+                return (
+                  <tr
+                    data-type={s.simulation_type ?? 'UNKNOWN'}
+                    data-level={level}
+                    onclick={`window.location='/sessions/${s.id}'`}
+                  >
+                    <td class="td-mono-id">
+                      {s.id}
+                    </td>
+                    <td class="name-cell">{s.student_name}</td>
+                    <td class="td-mono-muted">{s.section ?? '—'}</td>
+                    <td>
+                      <span class={s.simulation_type === 'FIRE' ? 'td-type-fire' : 'td-type-quake'}>
+                        {s.simulation_type ?? '—'}
                       </span>
-                    ) : (
-                      <span class="td-pending">PENDING</span>
-                    )}
-                  </td>
-                  <td class="link-cell">
-                    <a href={`/sessions/${s.id}`} class="view-link" onclick="event.stopPropagation()">→</a>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    </td>
+                    <td class="td-mono-muted">{formatDate(s.start_time)}</td>
+                    <td class="td-mono-muted">{formatDuration(s.start_time, s.end_time)}</td>
+                    <td class="td-score">
+                      {s.simulation_score}
+                    </td>
+                    <td>
+                      {level !== 'PENDING' ? (
+                        <span class={`tier-badge ${level.toLowerCase()}`}>
+                          <span class="dot"></span>
+                          {level}
+                        </span>
+                      ) : (
+                        <span class="td-pending">PENDING</span>
+                      )}
+                    </td>
+                    <td class="link-cell">
+                      <a href={`/sessions/${s.id}`} class="view-link" onclick="event.stopPropagation()">→</a>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
         <div id="empty-state" class="sessions-empty" style="display:none;">
           <span class="sessions-empty-text">No sessions match the selected filters.</span>
