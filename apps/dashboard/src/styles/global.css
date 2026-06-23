@@ -1041,9 +1041,23 @@ td {
 @media (max-width: 600px) {
   .filter-bar {
     padding: 10px 20px;
-    gap: 10px;
+    gap: 12px;
     align-items: flex-start;
     flex-direction: column;
+  }
+  .filter-group {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .filter-pills {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .filter-count {
+    margin-left: 0;
+    margin-top: 4px;
   }
 }
 
