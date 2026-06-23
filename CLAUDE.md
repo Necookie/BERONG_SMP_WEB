@@ -263,3 +263,4 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 18 | `ThemeToggle.tsx` — icon color | Replace hardcoded `#bfcaba`/`#4a5240` icon colors with CSS currentColor via class |
 | 19 | `data.astro` — style refactoring | Replace hardcoded and undefined colors with CSS variables, make download grid responsive |
 | 20 | `commands.astro` — card refactoring | Replace hardcoded sidebar variables with themed card background variables |
+| 21 | `global.css` & `guide.astro` | Resolve guide page horizontal overflow and improve mobile flowchart readability |

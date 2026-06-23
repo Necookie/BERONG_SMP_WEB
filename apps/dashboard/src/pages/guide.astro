@@ -354,6 +354,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     display: flex;
     flex-direction: column;
     gap: 0;
+    padding: 28px 40px;
+  }
+
+  @media (max-width: 1024px) {
+    .guide-wrap {
+      padding: 22px 28px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .guide-wrap {
+      padding: 16px 20px;
+    }
   }
 
   .guide-toc {
@@ -364,6 +377,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     padding: 12px 0 24px;
     border-bottom: 1px solid var(--border-card);
     margin-bottom: 40px;
+  }
+
+  @media (max-width: 600px) {
+    .guide-toc {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
   }
   .toc-label {
     font-family: 'JetBrains Mono', monospace;
@@ -452,6 +473,23 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     border: 1px solid var(--border-card);
     border-radius: 6px;
     margin-top: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .guide-arch {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+    .arch-node {
+      width: 100%;
+    }
+    .arch-arrow {
+      text-align: center;
+      transform: rotate(90deg);
+      margin: 4px 0;
+      display: block;
+    }
   }
   .arch-node {
     font-family: 'Space Grotesk', sans-serif;
