@@ -1,7 +1,7 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import { EventLog } from '../../components/EventLog.tsx';
-import { getSessionById, formatDuration, formatDate, derivePrepLevel, parseEventLog } from '../../lib/queries';
+import { getSessionById, formatDuration, formatDate, derivePrepLevel, parseEventLog, extractRubricSignals } from '../../lib/queries';
 import { getEnv } from '../../lib/db';
 
 const { id } = Astro.params;
@@ -17,6 +17,7 @@ const level = derivePrepLevel(session.simulation_score, session.prep_level);
 const tierClass = level !== 'PENDING' ? level.toLowerCase() : 'low';
 const isFireSession = session.simulation_type === 'FIRE';
 const logEntries = parseEventLog(session.event_log);
+const rubric     = extractRubricSignals(session.event_log);
 ---
 
 <DashboardLayout
@@ -111,9 +112,47 @@ const logEntries = parseEventLog(session.event_log);
         </div>
 
         <div class="stat-section">
-          <span class="stat-section-label">Classifier signals</span>
-          {session.prep_level ? (
-            <div class="feat-list" style="margin-top:8px;">
+          <span class="stat-section-label">Rubric signals</span>
+          <div class="stat-grid" style="margin-top:8px;">
+
+            {isFireSession && (
+              <>
+                <span class="stat-key">Fire alarm</span>
+                <span class="stat-val" style={`color: ${rubric.alarmActivated ? '#88d982' : '#c45c5c'}`}>
+                  {rubric.alarmActivated ? '✓ Activated' : '✗ Not pressed'}
+                </span>
+
+                <span class="stat-key">Extinguisher hits</span>
+                <span class="stat-val">{rubric.extHits > 0 ? rubric.extHits : '—'}</span>
+              </>
+            )}
+
+            <span class="stat-key">Doors opened</span>
+            <span class="stat-val">{rubric.doorOpens > 0 ? rubric.doorOpens : '—'}</span>
+
+            <span class="stat-key">Exit used</span>
+            <span class="stat-val">
+              {rubric.exitUsed
+                ? <span style="font-family:'JetBrains Mono',monospace; font-size:10px;">{rubric.exitUsed}</span>
+                : <span style="color:#555;">—</span>}
+            </span>
+
+            <span class="stat-key">Assembly area</span>
+            <span class="stat-val" style={`color: ${rubric.assemblyReached ? '#88d982' : '#c45c5c'}`}>
+              {rubric.assemblyReached ? '✓ Reached' : '✗ Not reached'}
+            </span>
+
+            <span class="stat-key">Evacuation time</span>
+            <span class="stat-val">
+              {rubric.evacuationTimeSec != null
+                ? `${rubric.evacuationTimeSec.toFixed(1)}s`
+                : <span style="color:#555;">—</span>}
+            </span>
+
+          </div>
+
+          {session.prep_level && (
+            <div class="feat-list" style="margin-top:12px;">
               <div class="feat-row">
                 <div class="feat-header">
                   <span class="feat-name">RF Confidence</span>
@@ -123,14 +162,10 @@ const logEntries = parseEventLog(session.event_log);
                   <div class="feat-fill" style={`width: ${Math.round((session.confidence ?? 0) * 100)}%`}></div>
                 </div>
               </div>
-              <p style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#444; margin-top:8px;">
+              <p style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#444; margin-top:6px;">
                 Prep level assigned by Random Forest classifier.
               </p>
             </div>
-          ) : (
-            <p style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#333; margin-top:8px; line-height:1.6;">
-              Pending RF classification — run the Python scoring script to populate prep_level and confidence.
-            </p>
           )}
         </div>
 

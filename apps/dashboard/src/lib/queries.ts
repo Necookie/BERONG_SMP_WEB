@@ -160,3 +160,38 @@ export function parseEventLog(eventLogJson: string | null) {
     return [];
   }
 }
+
+export interface RubricSignals {
+  alarmActivated:    boolean;
+  assemblyReached:   boolean;
+  exitUsed:          string | null;   // exit label or null
+  evacuationTimeSec: number | null;   // seconds from trigger to assembly_area_reached
+  extHits:           number;          // EXT_SPRAY events with hit_fire=true
+  doorOpens:         number;
+}
+
+export function extractRubricSignals(eventLogJson: string | null): RubricSignals {
+  const out: RubricSignals = {
+    alarmActivated: false, assemblyReached: false,
+    exitUsed: null, evacuationTimeSec: null,
+    extHits: 0, doorOpens: 0,
+  };
+  if (!eventLogJson) return out;
+  try {
+    const events = JSON.parse(eventLogJson) as Array<{type: string; tOffsetMs: number; data: Record<string, unknown>}>;
+    for (const e of events) {
+      if (e.type === 'fire_alarm_activate') out.alarmActivated = true;
+      if (e.type === 'assembly_area_reached') {
+        out.assemblyReached = true;
+        const t = e.data.t;
+        if (typeof t === 'number') out.evacuationTimeSec = t;
+      }
+      if (e.type === 'emergency_exit' && !out.exitUsed) {
+        out.exitUsed = String(e.data.exit ?? e.data.interaction_target ?? '');
+      }
+      if (e.type === 'EXT_SPRAY' && e.data.hit_fire === true) out.extHits++;
+      if (e.type === 'door_open') out.doorOpens++;
+    }
+  } catch {}
+  return out;
+}
