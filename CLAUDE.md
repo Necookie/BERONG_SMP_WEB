@@ -207,6 +207,22 @@ a real mod-sourced payload.
 
 ---
 
+## Admin game commands relevant to dashboard testing
+
+When testing the full session flow (mod → Turso → dashboard), these in-game commands are useful:
+
+| Command | Effect |
+|---|---|
+| `/bfp bypass on` | Skip lobby gates (registration, active session, tutorial) for your player — lets you click fire/quake buttons instantly without completing onboarding. Resets on server restart. |
+| `/bfp bypass off` | Re-enable gates (for testing the normal student flow). |
+| `/bfp checkin <student_name>` | Create a session row so the dashboard can show the student. |
+| `/bfp checkout` | Close the session row (writes end_time + score to Turso). |
+| `/sim_fire` / `/sim_earthquake` | Start a simulation directly via command (also works without bypass). |
+
+The typical quick-test loop: `/bfp bypass on` → click lobby button → simulate → `/bfp checkout` → check dashboard.
+
+---
+
 ## When making API or pipeline changes
 1. Check the mod repo's `SimulationSession` / `CLAUDE.md` for what fields actually exist before adding a route or feature that assumes more
 2. If a new field is needed from the mod (e.g. evacuation path choice), say so explicitly — that's new mod-side instrumentation work, call it out as a cross-repo dependency rather than building around it silently
