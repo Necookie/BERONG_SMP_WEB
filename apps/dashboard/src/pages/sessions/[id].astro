@@ -118,8 +118,8 @@ const rubric     = extractRubricSignals(session.event_log);
             {isFireSession && (
               <>
                 <span class="stat-key">Fire alarm</span>
-                <span class="stat-val" style={`color: ${rubric.alarmActivated ? '#88d982' : '#c45c5c'}`}>
-                  {rubric.alarmActivated ? '✓ Activated' : '✗ Not pressed'}
+                <span class="stat-val" style={`color: ${rubric.alarmActivated ? '#88d982' : '#555'}`}>
+                  {rubric.alarmActivated ? '✓ Activated' : '— Not installed'}
                 </span>
 
                 <span class="stat-key">Extinguisher hits</span>
