@@ -34,6 +34,12 @@ const sessions = env ? await getAllSessions(env) : [];
         <button class="filter-pill" data-value="LOW">Low</button>
       </div>
     </div>
+    <div class="filter-group" style="margin-left: auto;">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search student, ID, section..." class="search-input" />
+      </div>
+    </div>
     <span class="filter-count" id="session-count">{sessions.length} sessions</span>
   </div>
 
@@ -66,6 +72,7 @@ const sessions = env ? await getAllSessions(env) : [];
                   <tr
                     data-type={s.simulation_type ?? 'UNKNOWN'}
                     data-level={level}
+                    data-search={`${s.student_name} ${s.student_id ?? ''} ${s.section ?? ''}`.toLowerCase()}
                     onclick={`window.location='/sessions/${s.id}'`}
                   >
                     <td class="td-mono-id">
@@ -113,11 +120,12 @@ const sessions = env ? await getAllSessions(env) : [];
 </DashboardLayout>
 
 <script>
-  const typeGroup  = document.getElementById('filter-type');
-  const levelGroup = document.getElementById('filter-level');
-  const table      = document.getElementById('sessions-table');
-  const countLabel = document.getElementById('session-count');
-  const emptyState = document.getElementById('empty-state');
+  const typeGroup   = document.getElementById('filter-type');
+  const levelGroup  = document.getElementById('filter-level');
+  const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+  const table       = document.getElementById('sessions-table');
+  const countLabel  = document.getElementById('session-count');
+  const emptyState  = document.getElementById('empty-state');
 
   if (typeGroup && levelGroup && table && countLabel && emptyState) {
     let activeType  = 'ALL';
@@ -125,11 +133,13 @@ const sessions = env ? await getAllSessions(env) : [];
 
     function applyFilters() {
       const rows = table!.querySelectorAll<HTMLTableRowElement>('tbody tr');
+      const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
       let visible = 0;
       rows.forEach(row => {
         const typeMatch  = activeType  === 'ALL' || row.dataset.type  === activeType;
         const levelMatch = activeLevel === 'ALL' || row.dataset.level === activeLevel;
-        const show = typeMatch && levelMatch;
+        const searchMatch = !query || (row.dataset.search && row.dataset.search.includes(query));
+        const show = typeMatch && levelMatch && searchMatch;
         row.style.display = show ? '' : 'none';
         if (show) visible++;
       });
@@ -151,5 +161,9 @@ const sessions = env ? await getAllSessions(env) : [];
 
     bindPills(typeGroup,  v => { activeType  = v; });
     bindPills(levelGroup, v => { activeLevel = v; });
+    
+    if (searchInput) {
+      searchInput.addEventListener('input', applyFilters);
+    }
   }
 </script>

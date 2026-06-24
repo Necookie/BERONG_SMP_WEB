@@ -1400,3 +1400,41 @@ td {
   background: #d46c6c;
 }
 
+/* ── Search Bar styling ──────────────────────────────────────────────── */
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 4px;
+  padding: 4px 10px;
+  width: 240px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  height: 24px;
+}
+.search-wrapper:focus-within {
+  border-color: var(--text-brand);
+  box-shadow: 0 0 0 1px var(--text-brand);
+}
+.search-input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  outline: none;
+  width: 100%;
+  padding: 0;
+  height: 100%;
+}
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+.search-icon {
+  color: var(--text-muted);
+  font-size: 13px;
+  user-select: none;
+}
+
+

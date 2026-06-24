@@ -74,15 +74,23 @@ const total = stats.length || 1;
     </div>
   </div>
 
-  {sections.length > 0 && (
+  {stats.length > 0 && (
     <div class="filter-bar">
-      <div class="filter-group">
-        <span class="filter-label">Section</span>
-        <div class="filter-pills" id="filter-section">
-          <button class="filter-pill active" data-value="ALL">All</button>
-          {sections.map(sec => (
-            <button class="filter-pill" data-value={sec}>{sec}</button>
-          ))}
+      {sections.length > 0 && (
+        <div class="filter-group">
+          <span class="filter-label">Section</span>
+          <div class="filter-pills" id="filter-section">
+            <button class="filter-pill active" data-value="ALL">All</button>
+            {sections.map(sec => (
+              <button class="filter-pill" data-value={sec}>{sec}</button>
+            ))}
+          </div>
+        </div>
+      )}
+      <div class="filter-group" style="margin-left: auto;">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="Search student, ID, section..." class="search-input" />
         </div>
       </div>
       <span class="filter-count" id="roster-count">{stats.length} students</span>
@@ -123,6 +131,7 @@ const total = stats.length || 1;
               return (
                 <tr
                   data-section={s.section ?? ''}
+                  data-search={`${s.student_name} ${s.student_id ?? ''} ${s.section ?? ''}`.toLowerCase()}
                   onclick={s.latest_session_id ? `window.location='/sessions/${s.latest_session_id}'` : undefined}
                   style={s.latest_session_id ? 'cursor:pointer;' : ''}
                 >
@@ -179,31 +188,43 @@ const total = stats.length || 1;
 </DashboardLayout>
 
 <script>
-  const secGroup   = document.getElementById('filter-section');
-  const countLabel = document.getElementById('roster-count');
-  const tbody      = document.querySelector('.roster-table tbody');
+  const secGroup    = document.getElementById('filter-section');
+  const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+  const countLabel  = document.getElementById('roster-count');
+  const tbody       = document.querySelector('.roster-table tbody');
 
-  if (secGroup && tbody) {
+  if (tbody) {
     let activeSection = 'ALL';
 
     function applyFilter() {
       const rows = tbody!.querySelectorAll<HTMLTableRowElement>('tr');
+      const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
       let visible = 0;
       rows.forEach(row => {
-        const match = activeSection === 'ALL' || row.dataset.section === activeSection;
+        const sectionMatch = activeSection === 'ALL' || row.dataset.section === activeSection;
+        const searchMatch = !query || (row.dataset.search && row.dataset.search.includes(query));
+        const match = sectionMatch && searchMatch;
         row.style.display = match ? '' : 'none';
         if (match) visible++;
       });
-      if (countLabel) countLabel.textContent = `${visible} student${visible !== 1 ? 's' : ''}`;
+      if (countLabel) {
+        countLabel.textContent = `${visible} student${visible !== 1 ? 's' : ''}`;
+      }
     }
 
-    secGroup.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
-        secGroup!.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-        activeSection = pill.dataset.value!;
-        applyFilter();
+    if (secGroup) {
+      secGroup.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          secGroup!.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          activeSection = pill.dataset.value!;
+          applyFilter();
+        });
       });
-    });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', applyFilter);
+    }
   }
 </script>
