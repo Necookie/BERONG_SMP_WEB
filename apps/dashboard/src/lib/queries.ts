@@ -195,3 +195,41 @@ export function extractRubricSignals(eventLogJson: string | null): RubricSignals
   } catch {}
   return out;
 }
+
+export async function updateSessionDetails(
+  env: Env,
+  id: number,
+  details: {
+    student_name: string;
+    student_id: string | null;
+    section: string | null;
+    simulation_type: 'FIRE' | 'EARTHQUAKE' | null;
+    simulation_score: number;
+    prep_level: 'HIGH' | 'MODERATE' | 'LOW' | 'PENDING' | null;
+    passed: number;
+  }
+): Promise<void> {
+  const db = getDb(env);
+  await db.execute(
+    `UPDATE sessions 
+     SET student_name = ?, student_id = ?, section = ?, simulation_type = ?, 
+         simulation_score = ?, prep_level = ?, passed = ?
+     WHERE id = ?`,
+    [
+      details.student_name,
+      details.student_id ? details.student_id : null,
+      details.section ? details.section : null,
+      details.simulation_type,
+      details.simulation_score,
+      details.prep_level === 'PENDING' ? null : details.prep_level,
+      details.passed,
+      id
+    ]
+  );
+}
+
+export async function deleteSession(env: Env, id: number): Promise<void> {
+  const db = getDb(env);
+  await db.execute(`DELETE FROM sessions WHERE id = ?`, [id]);
+}
+

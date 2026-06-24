@@ -268,3 +268,5 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 23 | `sessions/index.astro` & `roster.astro` | Wrap tables in scrollable containers for mobile layout responsiveness |
 | 24 | `global.css` — filter bar & pills | Make filter bars, groups, and pills responsive to prevent layout blowout |
 | 25 | `global.css` — session detail layout | Make session detail split panels and header responsive for mobile stacking |
+| 26 | Edit details & delete session | Added popup modals in detail view, styles in global.css, and API endpoints for edit/delete operations |
+
