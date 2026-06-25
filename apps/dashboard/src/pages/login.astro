@@ -48,17 +48,19 @@ if (sessionToken) {
     rel="stylesheet"
   />
 </head>
-<body class="bg-base min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+<body class="bg-base min-h-screen flex items-center justify-center py-12 px-4 relative">
   <!-- Glowing decorative blobs -->
   <div class="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-brand/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
   <div class="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-brand/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
-  <div class="login-wrapper w-full max-w-[420px] relative z-10">
-    <div class="theme-toggle-container flex justify-end mb-6">
-      <div class="glass-toggle p-1 rounded-full border border-card/40 bg-card/30 backdrop-blur-md shadow-sm">
-        <ThemeToggle client:only="react" />
-      </div>
+  <!-- Float ThemeToggle in the top-right corner -->
+  <div class="absolute top-4 right-4 z-20">
+    <div class="glass-toggle p-1 rounded-full border border-card/40 bg-card/30 backdrop-blur-md shadow-sm">
+      <ThemeToggle client:only="react" />
     </div>
+  </div>
+
+  <div class="login-wrapper w-full max-w-[420px] relative z-10">
     
     <div class="card p-8 md:p-10 border border-card bg-card rounded-2xl shadow-2xl relative overflow-hidden">
       <!-- Glow border effect -->
@@ -126,6 +128,11 @@ if (sessionToken) {
   </div>
 
   <style>
+    html, body {
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
     body {
       background-color: var(--bg-base);
       color: var(--text-primary);
