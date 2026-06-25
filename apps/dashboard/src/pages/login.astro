@@ -84,6 +84,7 @@ if (sessionToken) {
       </div>
 
       <div id="error-message" class="hidden p-3 bg-red-950/40 border border-red-900/60 text-red-400 text-sm rounded-lg mb-4 text-center backdrop-blur-sm"></div>
+      <div id="info-message" class="hidden p-3 bg-emerald-950/40 border border-emerald-900/60 text-emerald-400 text-sm rounded-lg mb-4 text-center backdrop-blur-sm"></div>
 
       <form id="login-form" class="space-y-5">
         <div>
@@ -124,6 +125,68 @@ if (sessionToken) {
           Sign In
         </button>
       </form>
+
+      <form id="register-form" class="space-y-5 hidden">
+        <div>
+          <label for="reg-username" class="block text-[11px] font-semibold uppercase tracking-wider text-secondary mb-1.5">Username</label>
+          <div class="input-wrapper relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary pointer-events-none text-[20px] transition-all duration-300">person</span>
+            <input
+              type="text"
+              id="reg-username"
+              name="username"
+              required
+              autocomplete="username"
+              placeholder="e.g. admin"
+              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+            />
+          </div>
+        </div>
+        <div>
+          <label for="reg-password" class="block text-[11px] font-semibold uppercase tracking-wider text-secondary mb-1.5">Password</label>
+          <div class="input-wrapper relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary pointer-events-none text-[20px] transition-all duration-300">lock</span>
+            <input
+              type="password"
+              id="reg-password"
+              name="password"
+              required
+              autocomplete="new-password"
+              placeholder="••••••••"
+              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+            />
+          </div>
+        </div>
+        <div>
+          <label for="reg-confirm-password" class="block text-[11px] font-semibold uppercase tracking-wider text-secondary mb-1.5">Confirm Password</label>
+          <div class="input-wrapper relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary pointer-events-none text-[20px] transition-all duration-300">lock_reset</span>
+            <input
+              type="password"
+              id="reg-confirm-password"
+              name="confirmPassword"
+              required
+              autocomplete="new-password"
+              placeholder="••••••••"
+              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+            />
+          </div>
+        </div>
+        
+        <button
+          type="submit"
+          class="w-full bg-brand text-black font-semibold rounded-lg py-3 hover:shadow-[0_0_20px_rgba(136,217,130,0.35)] transition-all duration-300 active:scale-[0.98] mt-3"
+        >
+          Create Account
+        </button>
+      </form>
+
+      <!-- Toggle auth mode link -->
+      <div class="mt-6 text-center">
+        <button id="toggle-auth-mode" class="text-xs hover:underline font-semibold transition-colors" style="color: var(--text-brand);">
+          Need an account? Create one
+        </button>
+      </div>
     </div>
   </div>
 
@@ -217,16 +280,49 @@ if (sessionToken) {
   </style>
 
   <script>
-    const form = document.getElementById('login-form') as HTMLFormElement;
+    const loginForm = document.getElementById('login-form') as HTMLFormElement;
+    const registerForm = document.getElementById('register-form') as HTMLFormElement;
+    const toggleBtn = document.getElementById('toggle-auth-mode') as HTMLButtonElement;
     const errorDiv = document.getElementById('error-message') as HTMLDivElement;
+    const infoDiv = document.getElementById('info-message') as HTMLDivElement;
+    const cardTitle = document.querySelector('.card h1') as HTMLHeadingElement;
+    const cardDesc = document.querySelector('.card p') as HTMLParagraphElement;
+    const badge = document.querySelector('.login-badge') as HTMLSpanElement;
 
-    form?.addEventListener('submit', async (e) => {
+    let mode = 'login'; // 'login' | 'register'
+
+    toggleBtn?.addEventListener('click', () => {
+      errorDiv?.classList.add('hidden');
+      infoDiv?.classList.add('hidden');
+      
+      if (mode === 'login') {
+        mode = 'register';
+        loginForm?.classList.add('hidden');
+        registerForm?.classList.remove('hidden');
+        toggleBtn.textContent = 'Already have an account? Sign In';
+        if (cardTitle) cardTitle.textContent = 'Create Account';
+        if (cardDesc) cardDesc.textContent = 'Register an administrator account for approval';
+        if (badge) badge.textContent = 'Sign Up';
+      } else {
+        mode = 'login';
+        loginForm?.classList.remove('hidden');
+        registerForm?.classList.add('hidden');
+        toggleBtn.textContent = 'Need an account? Create one';
+        if (cardTitle) cardTitle.textContent = 'BERONG SMP';
+        if (cardDesc) cardDesc.textContent = 'Sign in to access the analytics and telemetries dashboard';
+        if (badge) badge.textContent = 'Secure Portal';
+      }
+    });
+
+    // Login Form Submit
+    loginForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!errorDiv) return;
+      if (!errorDiv || !infoDiv) return;
       errorDiv.classList.add('hidden');
+      infoDiv.classList.add('hidden');
       errorDiv.textContent = '';
 
-      const formData = new FormData(form);
+      const formData = new FormData(loginForm);
       const username = formData.get('username')?.toString().trim();
       const password = formData.get('password')?.toString();
 
@@ -248,6 +344,67 @@ if (sessionToken) {
           window.location.href = '/';
         } else {
           errorDiv.textContent = data.error || 'Authentication failed';
+          errorDiv.classList.remove('hidden');
+        }
+      } catch (err) {
+        errorDiv.textContent = 'An unexpected connection error occurred';
+        errorDiv.classList.remove('hidden');
+      }
+    });
+
+    // Register Form Submit
+    registerForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!errorDiv || !infoDiv) return;
+      errorDiv.classList.add('hidden');
+      infoDiv.classList.add('hidden');
+      errorDiv.textContent = '';
+      infoDiv.textContent = '';
+
+      const formData = new FormData(registerForm);
+      const username = formData.get('username')?.toString().trim();
+      const password = formData.get('password')?.toString();
+      const confirmPassword = formData.get('confirmPassword')?.toString();
+
+      if (!username || !password || !confirmPassword) {
+        errorDiv.textContent = 'Please fill out all fields';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        errorDiv.textContent = 'Passwords do not match';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json() as any;
+        if (res.ok && data.ok) {
+          if (data.pending) {
+            infoDiv.textContent = 'Account created successfully! Please wait for necookie to approve it.';
+          } else {
+            infoDiv.textContent = 'Owner account created successfully! Redirecting...';
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 1500);
+          }
+          infoDiv.classList.remove('hidden');
+          registerForm.reset();
+
+          if (data.pending) {
+            setTimeout(() => {
+              toggleBtn?.click();
+            }, 3000);
+          }
+        } else {
+          errorDiv.textContent = data.error || 'Registration failed';
           errorDiv.classList.remove('hidden');
         }
       } catch (err) {

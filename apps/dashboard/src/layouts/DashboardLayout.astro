@@ -96,6 +96,15 @@ const navItems = [
             <span class="nav-badge">{item.badge}</span>
           </a>
         ))}
+        {Astro.locals.user?.role === 'owner' && (
+          <a
+            href="/users"
+            class={`nav-item${currentPath === '/users' ? ' active' : ''}`}
+          >
+            <span class="nav-label">Users</span>
+            <span class="nav-badge">ADMIN</span>
+          </a>
+        )}
       </nav>
 
       <div class="sidebar-footer">
