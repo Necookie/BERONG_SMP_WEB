@@ -82,10 +82,24 @@ export async function getRecentSessions(env: Env, limit = 5): Promise<LiveSessio
   return res.rows as unknown as LiveSession[];
 }
 
-export async function getAllSessions(env: Env): Promise<LiveSession[]> {
+export async function getAllSessions(env: Env, limit?: number, offset?: number): Promise<LiveSession[]> {
   const db = getDb(env);
+  if (limit !== undefined) {
+    const off = offset ?? 0;
+    const res = await db.execute({
+      sql: `SELECT * FROM sessions ORDER BY start_time DESC LIMIT ? OFFSET ?`,
+      args: [limit, off]
+    });
+    return res.rows as unknown as LiveSession[];
+  }
   const res = await db.execute(`SELECT * FROM sessions ORDER BY start_time DESC`);
   return res.rows as unknown as LiveSession[];
+}
+
+export async function getSessionCount(env: Env): Promise<number> {
+  const db = getDb(env);
+  const res = await db.execute(`SELECT COUNT(*) AS total FROM sessions`);
+  return Number((res.rows[0] as Record<string, unknown>).total ?? 0);
 }
 
 export async function getSessionById(env: Env, id: number): Promise<LiveSession | null> {
@@ -94,8 +108,33 @@ export async function getSessionById(env: Env, id: number): Promise<LiveSession 
   return (res.rows[0] as unknown as LiveSession) ?? null;
 }
 
-export async function getRosterStats(env: Env): Promise<RosterRow[]> {
+export async function getRosterStats(env: Env, limit?: number, offset?: number): Promise<RosterRow[]> {
   const db = getDb(env);
+  if (limit !== undefined) {
+    const off = offset ?? 0;
+    const res = await db.execute({
+      sql: `
+        SELECT
+          student_name,
+          student_id,
+          section,
+          COUNT(*)                              AS session_count,
+          MAX(simulation_score)                 AS best_score,
+          CAST(ROUND(AVG(simulation_score)) AS INTEGER) AS avg_score,
+          SUM(passed)                           AS pass_count,
+          MAX(prep_level)                       AS best_prep_level,
+          MAX(start_time)                       AS latest_start,
+          MAX(id)                               AS latest_session_id
+        FROM sessions
+        WHERE status='completed'
+        GROUP BY student_name, student_id, section
+        ORDER BY avg_score DESC
+        LIMIT ? OFFSET ?
+      `,
+      args: [limit, off]
+    });
+    return res.rows as unknown as RosterRow[];
+  }
   const res = await db.execute(`
     SELECT
       student_name,
@@ -114,6 +153,16 @@ export async function getRosterStats(env: Env): Promise<RosterRow[]> {
     ORDER BY avg_score DESC
   `);
   return res.rows as unknown as RosterRow[];
+}
+
+export async function getRosterCount(env: Env): Promise<number> {
+  const db = getDb(env);
+  const res = await db.execute(`
+    SELECT COUNT(*) AS total FROM (
+      SELECT 1 FROM sessions WHERE status='completed' GROUP BY student_name, student_id, section
+    )
+  `);
+  return Number((res.rows[0] as Record<string, unknown>).total ?? 0);
 }
 
 export async function getDistinctSections(env: Env): Promise<string[]> {

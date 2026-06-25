@@ -1,31 +1,46 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 import ErrorCard from '../components/ErrorCard.astro';
-import { getRosterStats, getDistinctSections, formatDate, derivePrepLevel } from '../lib/queries';
+import { getRosterStats, getRosterCount, getDistinctSections, formatDate, derivePrepLevel } from '../lib/queries';
 import { getEnv } from '../lib/db';
 
 const env = await getEnv();
 const hasDb = !!env;
 
+const pageParam = Astro.url.searchParams.get('page');
+let page = pageParam ? parseInt(pageParam, 10) : 1;
+if (isNaN(page) || page < 1) page = 1;
+
+const limit = 25;
+const offset = (page - 1) * limit;
+
+let allStats: Awaited<ReturnType<typeof getRosterStats>> = [];
 let stats: Awaited<ReturnType<typeof getRosterStats>> = [];
 let sections: string[] = [];
 let dbError: string | null = null;
+let totalRoster = 0;
 
 if (env) {
   try {
-    [stats, sections] = await Promise.all([getRosterStats(env), getDistinctSections(env)]);
+    totalRoster = await getRosterCount(env);
+    [allStats, stats, sections] = await Promise.all([
+      getRosterStats(env),
+      getRosterStats(env, limit, offset),
+      getDistinctSections(env)
+    ]);
   } catch (err) {
     dbError = err instanceof Error ? err.message : 'Unknown database error';
   }
 }
 
-const totalSessions = stats.reduce((a, s) => a + Number(s.session_count), 0);
-const withSessions  = stats.filter(s => Number(s.session_count) > 0);
+const totalSessions = allStats.reduce((a, s) => a + Number(s.session_count), 0);
+const withSessions  = allStats.filter(s => Number(s.session_count) > 0);
 const cohortAvg = withSessions.length
   ? Math.round(withSessions.reduce((a, s) => a + Number(s.avg_score), 0) / withSessions.length)
   : 0;
 
-const total = stats.length || 1;
+const total = allStats.length || 1;
+const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
 ---
 
 <DashboardLayout title="Roster" currentPath="/roster">
@@ -33,7 +48,7 @@ const total = stats.length || 1;
   <div class="page-header">
     <h1 class="page-title">Roster</h1>
     <p class="page-meta">
-      {stats.length} students · {totalSessions} sessions · cohort avg {cohortAvg}% · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB'}
+      {totalRoster} students · {totalSessions} sessions · cohort avg {cohortAvg}% · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB'}
     </p>
   </div>
 
@@ -41,7 +56,7 @@ const total = stats.length || 1;
 
   <div class="kpi-strip">
     {(['HIGH', 'MODERATE', 'LOW'] as const).map(lvl => {
-      const count = stats.filter(s => s.best_prep_level === lvl).length;
+      const count = allStats.filter(s => s.best_prep_level === lvl).length;
       const pct   = Math.round((count / total) * 100);
       return (
         <div class="kpi-item">
@@ -118,7 +133,8 @@ const total = stats.length || 1;
         {hasDb ? 'No completed sessions yet.' : 'Configure TURSO_URL and TURSO_TOKEN to see live data.'}
       </p>
     ) : (
-      <div class="table-scroll-wrap">
+      <>
+        <div class="table-scroll-wrap">
         <table class="sessions-table roster-table">
           <thead>
             <tr>
@@ -199,6 +215,29 @@ const total = stats.length || 1;
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div class="pagination">
+          <a
+            href={page > 1 ? `?page=${page - 1}` : '#'}
+            class={`pagination-btn ${page <= 1 ? 'disabled' : ''}`}
+            aria-disabled={page <= 1}
+          >
+            &larr; Prev
+          </a>
+          <span class="pagination-info">
+            Page <strong>{page}</strong> of <strong>{totalPages}</strong>
+          </span>
+          <a
+            href={page < totalPages ? `?page=${page + 1}` : '#'}
+            class={`pagination-btn ${page >= totalPages ? 'disabled' : ''}`}
+            aria-disabled={page >= totalPages}
+          >
+            Next &rarr;
+          </a>
+        </div>
+      )}
+      </>
     )}
 
     <p class="roster-note">

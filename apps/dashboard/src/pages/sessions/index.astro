@@ -1,29 +1,40 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import ErrorCard from '../../components/ErrorCard.astro';
-import { getAllSessions, formatDuration, formatDate, derivePrepLevel } from '../../lib/queries';
+import { getAllSessions, getSessionCount, formatDuration, formatDate, derivePrepLevel } from '../../lib/queries';
 import { getEnv } from '../../lib/db';
 
 const env = await getEnv();
 const hasDb = !!env;
 
+const pageParam = Astro.url.searchParams.get('page');
+let page = pageParam ? parseInt(pageParam, 10) : 1;
+if (isNaN(page) || page < 1) page = 1;
+
+const limit = 25;
+const offset = (page - 1) * limit;
+
 let sessions: Awaited<ReturnType<typeof getAllSessions>> = [];
+let totalSessions = 0;
 let dbError: string | null = null;
 
 if (env) {
   try {
-    sessions = await getAllSessions(env);
+    totalSessions = await getSessionCount(env);
+    sessions = await getAllSessions(env, limit, offset);
   } catch (err) {
     dbError = err instanceof Error ? err.message : 'Unknown database error';
   }
 }
+
+const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
 ---
 
 <DashboardLayout title="Sessions" currentPath="/sessions">
 
   <div class="page-header">
     <h1 class="page-title">Sessions</h1>
-    <p class="page-meta">All drill sessions · {sessions.length} records · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB'}</p>
+    <p class="page-meta">All drill sessions · {totalSessions} records · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB'}</p>
   </div>
 
   {dbError && <ErrorCard message={dbError} />}
@@ -132,6 +143,28 @@ if (env) {
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div class="pagination">
+            <a
+              href={page > 1 ? `?page=${page - 1}` : '#'}
+              class={`pagination-btn ${page <= 1 ? 'disabled' : ''}`}
+              aria-disabled={page <= 1}
+            >
+              &larr; Prev
+            </a>
+            <span class="pagination-info">
+              Page <strong>{page}</strong> of <strong>{totalPages}</strong>
+            </span>
+            <a
+              href={page < totalPages ? `?page=${page + 1}` : '#'}
+              class={`pagination-btn ${page >= totalPages ? 'disabled' : ''}`}
+              aria-disabled={page >= totalPages}
+            >
+              Next &rarr;
+            </a>
+          </div>
+        )}
 
         <div id="empty-state" class="sessions-empty" style="display:none;">
           <span class="sessions-empty-text">No sessions match the selected filters.</span>

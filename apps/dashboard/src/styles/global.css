@@ -1476,4 +1476,56 @@ td {
   user-select: none;
 }
 
+/* ── Pagination styling ──────────────────────────────────────────────── */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 12px 16px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 14px;
+  color: var(--text-brand);
+  background: transparent;
+  border: 1px solid var(--border-card);
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(.disabled) {
+  background-color: var(--text-brand);
+  color: var(--bg-base);
+  border-color: var(--text-brand);
+}
+
+.pagination-btn.disabled {
+  color: var(--text-muted);
+  border-color: var(--border-card);
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.pagination-info strong {
+  color: var(--text-brand);
+}
+
+
 
