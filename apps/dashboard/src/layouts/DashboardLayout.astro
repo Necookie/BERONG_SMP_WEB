@@ -106,19 +106,24 @@ const navItems = [
 
       <div class="sidebar-footer">
         {Astro.locals.user && (
-          <div class="flex items-center justify-between w-full border-b pb-2 mb-2" style="border-color: var(--border-table);">
-            <span class="text-xs font-semibold flex items-center gap-1.5" style="color: var(--text-secondary);">
-              <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">person</span>
-              {Astro.locals.user.username}
-            </span>
-            <a href="/api/auth/logout" class="text-xs flex items-center gap-0.5 hover:underline" style="color: var(--text-brand);">
-              Logout
+          <div class="flex flex-col gap-1.5 w-full border-b pb-2 mb-2" style="border-color: var(--border-table);">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-xs font-semibold flex items-center gap-1.5" style="color: var(--text-secondary);">
+                <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">person</span>
+                <span class="truncate max-w-[100px]" title={Astro.locals.user.username}>{Astro.locals.user.username}</span>
+              </span>
+              <span class="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded" style="background: rgba(128, 128, 128, 0.05); border: 1px solid var(--border-card); color: var(--text-secondary);">
+                {Astro.locals.user.role}
+              </span>
+            </div>
+            <a href="/api/auth/logout" class="text-xs flex items-center gap-1 hover:underline self-start" style="color: var(--text-brand);">
               <span class="material-symbols-outlined" style="font-size: 12px; vertical-align: middle;">logout</span>
+              Logout
             </a>
           </div>
         )}
         <div class="flex items-center justify-between w-full">
-          <div class="status-line">
+          <div class="status-line" style="white-space: nowrap;">
             <span class="status-dot"></span>
             MOCK DATA · v0.1
           </div>
