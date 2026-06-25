@@ -327,3 +327,90 @@ export async function getAllCompletedScores(env: Env): Promise<number[]> {
   return res.rows.map(r => Number((r as Record<string, unknown>).simulation_score ?? 0));
 }
 
+export interface User {
+  id: number;
+  username: string;
+  password_hash: string;
+  created_at: string;
+}
+
+export interface AdminSession {
+  id: number;
+  user_id: number;
+  token: string;
+  created_at: string;
+  expires_at: string;
+}
+
+export async function getUserByUsername(env: Env, username: string): Promise<User | undefined> {
+  const db = getDb(env);
+  const res = await db.execute({
+    sql: `SELECT * FROM users WHERE username = ? LIMIT 1`,
+    args: [username]
+  });
+  if (res.rows.length === 0) return undefined;
+  return res.rows[0] as unknown as User;
+}
+
+export async function createUser(env: Env, username: string, passwordHash: string): Promise<void> {
+  const db = getDb(env);
+  await db.execute({
+    sql: `INSERT INTO users (username, password_hash) VALUES (?, ?)`,
+    args: [username, passwordHash]
+  });
+}
+
+export async function hasAnyUsers(env: Env): Promise<boolean> {
+  const db = getDb(env);
+  const res = await db.execute(`SELECT COUNT(*) as count FROM users`);
+  if (res.rows.length === 0) return false;
+  const r = res.rows[0] as Record<string, unknown>;
+  return Number(r.count ?? 0) > 0;
+}
+
+export async function createSession(env: Env, userId: number, token: string, expiresAt: string): Promise<void> {
+  const db = getDb(env);
+  await db.execute({
+    sql: `INSERT INTO admin_sessions (user_id, token, expires_at) VALUES (?, ?, ?)`,
+    args: [userId, token, expiresAt]
+  });
+}
+
+export async function validateSession(env: Env, token: string): Promise<{ session: AdminSession; user: User } | null> {
+  const db = getDb(env);
+  const res = await db.execute({
+    sql: `
+      SELECT s.*, u.username, u.password_hash, u.created_at as u_created_at
+      FROM admin_sessions s
+      JOIN users u ON s.user_id = u.id
+      WHERE s.token = ? AND datetime(s.expires_at) > datetime('now')
+      LIMIT 1
+    `,
+    args: [token]
+  });
+  if (res.rows.length === 0) return null;
+  const row = res.rows[0] as Record<string, unknown>;
+  const session: AdminSession = {
+    id: Number(row.id),
+    user_id: Number(row.user_id),
+    token: String(row.token),
+    created_at: String(row.created_at),
+    expires_at: String(row.expires_at),
+  };
+  const user: User = {
+    id: Number(row.user_id),
+    username: String(row.username),
+    password_hash: String(row.password_hash),
+    created_at: String(row.u_created_at),
+  };
+  return { session, user };
+}
+
+export async function deleteSessionToken(env: Env, token: string): Promise<void> {
+  const db = getDb(env);
+  await db.execute({
+    sql: `DELETE FROM admin_sessions WHERE token = ?`,
+    args: [token]
+  });
+}
+

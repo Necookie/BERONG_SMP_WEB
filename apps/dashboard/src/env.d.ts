@@ -9,7 +9,9 @@ type CloudflareEnv = {
 type Runtime = import('@astrojs/cloudflare').Runtime<CloudflareEnv>;
 
 declare namespace App {
-  interface Locals extends Runtime {}
+  interface Locals extends Runtime {
+    user?: import('./lib/queries').User;
+  }
 }
 
 // Astro v6 / @astrojs/cloudflare v13: env accessed via cloudflare:workers module
