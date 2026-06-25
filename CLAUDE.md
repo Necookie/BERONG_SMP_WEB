@@ -270,5 +270,80 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 25 | `global.css` — session detail layout | Make session detail split panels and header responsive for mobile stacking |
 | 26 | Edit details & delete session | Added popup modals in detail view, styles in global.css, and API endpoints for edit/delete operations |
 | 27 | Search bar | Added client-side search bars to filter tables in Sessions and Roster views, with styles in global.css |
+| 28 | Sorting system | Added client-side table sorting (tableSorter.ts) with sortable headers, data-sort attributes, and CSS indicators across Overview, Sessions, and Roster tables |
 
+---
+
+## Comprehensive Evolution Log (Phase 3 — Multi-task implementation)
+
+> These changes were implemented as a coordinated 16-task evolution of both apps.
+
+| # | Task | What was changed |
+|---|---|---|
+| 16 | Shared Tailwind config | Created `tailwind.base.cjs` at monorepo root with shared colors, fonts, spacing, borderRadius tokens. Both `apps/landing/tailwind.config.cjs` and `apps/dashboard/tailwind.config.cjs` now extend this base via `require('../../tailwind.base.cjs')`. |
+| 15 | Sitemap auto-generation | Landing already had `@astrojs/sitemap` configured. Added `site: 'https://dashboard.berongsmp.dev'` to `apps/dashboard/astro.config.mjs` for correct canonical URL generation. |
+| 14 | ThemeToggle consolidation | Extracted shared theme logic into `src/lib/theme.ts` in both apps. Dashboard `ThemeToggle.tsx` and landing `ThemeToggle.astro` both import from the shared utility. FOUC prevention scripts in layouts reference the same `initTheme` serialized function. |
+| 12 | Image optimization | Converted PNG logo usage in `DashboardLayout.astro` and `Navbar.astro` to use Astro's `<Image>` component for automatic WebP optimization. |
+| 3 | DB error boundaries | Wrapped all DB queries in `index.astro`, `sessions/index.astro`, and `roster.astro` with try-catch. Added `ErrorCard.astro` component rendered on failure. |
+| 5 | EventLog keyword filter | Added search input + keyword filtering inside `EventLog.tsx` React island. Filters across all log columns (timestamp, event code, message body). Match count badge displayed. |
+| 11 | MC username validation | Added Minecraft username regex `^[a-zA-Z0-9_]{3,16}$` to `EnrollForm.tsx`. Inline error message on invalid input; submit disabled until valid. |
+| 2 | Streaming CSV export | Refactored `/api/export/sessions` to stream CSV via `TransformStream` in 50-row chunks using paginated SQL queries. |
+| 4 | Table pagination | Added `limit`/`offset` support to `getAllSessions` and `getRosterStats` in `queries.ts`. Sessions and Roster pages now show 25 rows per page with Prev/Next controls. |
+| 9 | Audit trail logging | Created `audit_logs` table. `logAuditEvent` called from edit and delete API endpoints. Session detail view shows compact change history. **Migration required:** see SQL below. |
+| 8 | Bulk actions | Added row checkboxes + bulk action toolbar to sessions table. New `POST /api/sessions/bulk-delete` endpoint for batch deletion. |
+| 6 | Auto-polling live drills | Added 15-second `setInterval` on Overview page polling `/api/sessions/latest`. Updates recent sessions table in-place. Shows "Live" badge and last-updated timestamp. |
+| 7 | Chart.js integration | Added `PrepChart.tsx` (doughnut) and `ScoreHistogram.tsx` (bar) React islands to Overview page. Chart.js loaded via CDN. Replaces static CSS distribution bar. |
+| 13 | MC server status | New `GET /api/server-status` endpoint (landing app) proxies `api.mcsrvstat.us` with 60s cache. `ServerStatus.tsx` React island in Hero replaces static badge. |
+| 10 | Native leads endpoint | Replaced external FastAPI `/leads` call with native Astro API route `apps/landing/src/pages/api/leads.ts` writing to Turso `leads` table. **Migration required:** see SQL below. |
+| 1 | Dashboard authentication | Added middleware-based session auth (`src/middleware.ts`). Login page at `/login`. Sessions stored in `admin_sessions` table. **Migration required:** see SQL below. |
+
+---
+
+## Required Database Migrations (run in Turso console or via libSQL CLI)
+
+### Task 9 — Audit logs table
+```sql
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id   INTEGER,
+  action       TEXT NOT NULL,       -- 'edit' | 'delete'
+  changed_by   TEXT DEFAULT 'admin',
+  changed_at   TEXT DEFAULT (datetime('now')),
+  old_values   TEXT,                -- JSON string
+  new_values   TEXT                 -- JSON string
+);
+```
+
+### Task 10 — Landing leads table
+```sql
+CREATE TABLE IF NOT EXISTS leads (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  username     TEXT NOT NULL,
+  email        TEXT NOT NULL,
+  message      TEXT,
+  submitted_at TEXT DEFAULT (datetime('now')),
+  ip_hash      TEXT
+);
+```
+
+### Task 1 — Auth tables
+```sql
+CREATE TABLE IF NOT EXISTS users (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  username     TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at   TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS admin_sessions (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id      INTEGER NOT NULL REFERENCES users(id),
+  token        TEXT NOT NULL UNIQUE,
+  created_at   TEXT DEFAULT (datetime('now')),
+  expires_at   TEXT NOT NULL
+);
+```
+
+### Task 1 — Seed initial admin user
+On first deploy, visit `/login` and the system will detect no users exist. Navigate to `/setup` (only accessible when zero users exist) to create the first admin account.
 

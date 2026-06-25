@@ -6,6 +6,7 @@ import cloudflare from '@astrojs/cloudflare';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://dashboard.berongsmp.dev',
   // Dashboard uses SSR — needed for auth sessions, protected routes, API proxying
   output: 'server',
   adapter: cloudflare({
