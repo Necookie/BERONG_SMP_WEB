@@ -39,65 +39,89 @@ if (usersExist) {
     rel="stylesheet"
   />
 </head>
-<body class="bg-base min-h-screen flex items-center justify-center p-4">
-  <div class="setup-wrapper w-full max-w-md">
-    <div class="theme-toggle-container flex justify-end mb-4">
-      <ThemeToggle client:only="react" />
+<body class="bg-base min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+  <!-- Glowing decorative blobs -->
+  <div class="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-brand/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+  <div class="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-brand/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+
+  <div class="setup-wrapper w-full max-w-[420px] relative z-10">
+    <div class="theme-toggle-container flex justify-end mb-6">
+      <div class="glass-toggle p-1 rounded-full border border-card/40 bg-card/30 backdrop-blur-md shadow-sm">
+        <ThemeToggle client:only="react" />
+      </div>
     </div>
     
-    <div class="card p-8 border border-card bg-card rounded-lg shadow-xl">
-      <div class="flex flex-col items-center mb-6">
-        <img
-          src={logo.src}
-          alt="BERONG SMP logo"
-          class="w-16 h-16 object-contain mb-3"
-          width="64"
-          height="64"
-        />
-        <h1 class="text-2xl font-semibold font-display text-heading">Setup Admin</h1>
-        <p class="text-sm text-secondary mt-1">Create the initial administrator account</p>
+    <div class="card p-8 md:p-10 border border-card bg-card rounded-2xl shadow-2xl relative overflow-hidden">
+      <!-- Glow border effect -->
+      <div class="absolute inset-0 border border-white/5 rounded-2xl pointer-events-none"></div>
+
+      <div class="flex flex-col items-center mb-8">
+        <div class="logo-box p-4 rounded-2xl bg-base/50 border border-card/60 mb-4 shadow-inner flex items-center justify-center">
+          <img
+            src={logo.src}
+            alt="BERONG SMP logo"
+            class="w-12 h-12 object-contain"
+            width="48"
+            height="48"
+          />
+        </div>
+        <span class="setup-badge px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase mb-3">
+          Secure initialization
+        </span>
+        <h1 class="text-3xl font-bold font-display text-heading tracking-tight">Setup Admin</h1>
+        <p class="text-sm text-secondary mt-2 text-center max-w-[280px]">Create the initial administrator account to unlock dashboard access</p>
       </div>
 
-      <div id="error-message" class="hidden p-3 bg-red-950/40 border border-red-900 text-red-400 text-sm rounded mb-4 text-center"></div>
-      <div id="success-message" class="hidden p-3 bg-emerald-950/40 border border-emerald-900 text-emerald-400 text-sm rounded mb-4 text-center"></div>
+      <div id="error-message" class="hidden p-3 bg-red-950/40 border border-red-900/60 text-red-400 text-sm rounded-lg mb-4 text-center backdrop-blur-sm"></div>
+      <div id="success-message" class="hidden p-3 bg-emerald-950/40 border border-emerald-900/60 text-emerald-400 text-sm rounded-lg mb-4 text-center backdrop-blur-sm"></div>
 
-      <form id="setup-form" class="space-y-4">
+      <form id="setup-form" class="space-y-5">
         <div>
-          <label for="username" class="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Username</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            required
-            autocomplete="username"
-            class="w-full bg-base border border-card rounded px-3 py-2 text-primary focus:outline-none focus:border-brand transition-colors"
-          />
+          <label for="username" class="block text-[11px] font-semibold uppercase tracking-wider text-secondary mb-1.5">Username</label>
+          <div class="input-wrapper relative">
+            <input
+              type="text"
+              id="username"
+              name="username"
+              required
+              autocomplete="username"
+              placeholder="e.g. admin"
+              class="w-full bg-base border border-card rounded-lg px-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+            />
+          </div>
         </div>
         <div>
-          <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            autocomplete="new-password"
-            class="w-full bg-base border border-card rounded px-3 py-2 text-primary focus:outline-none focus:border-brand transition-colors"
-          />
+          <label for="password" class="block text-[11px] font-semibold uppercase tracking-wider text-secondary mb-1.5">Password</label>
+          <div class="input-wrapper relative">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              autocomplete="new-password"
+              placeholder="••••••••"
+              class="w-full bg-base border border-card rounded-lg px-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+            />
+          </div>
         </div>
         <div>
-          <label for="confirm-password" class="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Confirm Password</label>
-          <input
-            type="password"
-            id="confirm-password"
-            name="confirmPassword"
-            required
-            autocomplete="new-password"
-            class="w-full bg-base border border-card rounded px-3 py-2 text-primary focus:outline-none focus:border-brand transition-colors"
-          />
+          <label for="confirm-password" class="block text-[11px] font-semibold uppercase tracking-wider text-secondary mb-1.5">Confirm Password</label>
+          <div class="input-wrapper relative">
+            <input
+              type="password"
+              id="confirm-password"
+              name="confirmPassword"
+              required
+              autocomplete="new-password"
+              placeholder="••••••••"
+              class="w-full bg-base border border-card rounded-lg px-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+            />
+          </div>
         </div>
+        
         <button
           type="submit"
-          class="w-full bg-brand text-black font-semibold rounded py-2 hover:opacity-90 transition-opacity mt-2"
+          class="w-full bg-brand text-black font-semibold rounded-lg py-3 hover:shadow-[0_0_20px_rgba(136,217,130,0.35)] transition-all duration-300 active:scale-[0.98] mt-3"
         >
           Initialize Administrator
         </button>
@@ -120,26 +144,68 @@ if (usersExist) {
     .text-secondary {
       color: var(--text-secondary);
     }
+    .placeholder-muted::placeholder {
+      color: var(--text-muted);
+      opacity: 0.5;
+    }
     .card {
-      background-color: var(--bg-card);
-      border-color: var(--border-card);
+      background-color: rgba(17, 17, 17, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.02);
+    }
+    .logo-box {
+      background-color: rgba(13, 13, 13, 0.8);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+    .setup-badge {
+      background: rgba(136, 217, 130, 0.08);
+      color: var(--text-brand);
+      border: 1px solid rgba(136, 217, 130, 0.15);
     }
     .bg-base {
-      background-color: var(--bg-base);
+      background-color: rgba(13, 13, 13, 0.7);
+      border-color: rgba(255, 255, 255, 0.08);
     }
-    .border-card {
-      border-color: var(--border-card);
-    }
-    .focus\:border-brand:focus {
-      border-color: var(--text-brand);
-      box-shadow: 0 0 0 2px rgba(136, 217, 130, 0.2);
+    input:focus {
+      border-color: var(--text-brand) !important;
+      box-shadow: 0 0 0 3px rgba(136, 217, 130, 0.15);
     }
     .bg-brand {
       background-color: var(--text-brand);
-      color: var(--bg-base);
+      color: #0d0d0d;
+      border: none;
+    }
+    .bg-brand:hover {
+      filter: brightness(1.05);
+    }
+    
+    /* Light mode adaptations */
+    :global(html.light) .card {
+      background-color: rgba(234, 230, 226, 0.85);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
+    }
+    :global(html.light) .logo-box {
+      background-color: rgba(244, 241, 238, 0.9);
+      border-color: rgba(0, 0, 0, 0.06);
+    }
+    :global(html.light) .setup-badge {
+      background: rgba(46, 125, 50, 0.08);
+      color: var(--text-brand);
+      border: 1px solid rgba(46, 125, 50, 0.15);
+    }
+    :global(html.light) .bg-base {
+      background-color: rgba(244, 241, 238, 0.8);
+      border-color: rgba(0, 0, 0, 0.08);
+      color: #1a1a1a;
     }
     :global(html.light) .bg-brand {
       color: #ffffff;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+    }
+    :global(html.light) .bg-brand:hover {
+      box-shadow: 0 6px 16px rgba(46, 125, 50, 0.35);
     }
   </style>
 
