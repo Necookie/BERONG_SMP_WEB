@@ -1,7 +1,5 @@
 ---
 import '../styles/global.css';
-
-import { Image } from 'astro:assets';
 import logo from '../assets/images/berong-elearning-logo.png';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -70,14 +68,13 @@ const navItems = [
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand flex items-center gap-3">
-        <Image
-          src={logo}
+        <img
+          src={logo.src}
           alt="BERONG SMP logo"
           class="w-9 h-9 object-contain"
           width={36}
           height={36}
-          format="webp"
-          quality={85}
+          loading="eager"
         />
         <div>
           <span class="sidebar-brand-name">BERONG SMP</span>

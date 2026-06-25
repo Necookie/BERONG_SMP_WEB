@@ -276,6 +276,8 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 31 | `login.astro` | Redesign admin sign-in page to match setup page visual style. |
 | 32 | `login.astro` & `setup.astro` | Add interactive focus-highlighted Material Symbols Outlined icons inside inputs and button active scale effects. |
 | 33 | `login.astro` & `setup.astro` | Improve layout responsiveness by removing body overflow restrictions, enabling vertical scrolling, adding padding, and floating the theme toggle in the top-right corner. |
+| 34 | `astro.config.mjs` (landing) | Fix landing page image rendering by changing imageService to 'compile' for pre-optimized build-time WebP assets. |
+| 35 | `DashboardLayout.astro` | Replace dashboard layout <Image> component with standard <img> using logo.src to prevent dynamic Cloudflare Image Resizing errors. |
 
 ---
 
