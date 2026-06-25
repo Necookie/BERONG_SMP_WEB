@@ -332,6 +332,8 @@ export interface User {
   username: string;
   password_hash: string;
   created_at: string;
+  role: string;
+  status: string;
 }
 
 export interface AdminSession {
@@ -349,14 +351,22 @@ export async function getUserByUsername(env: Env, username: string): Promise<Use
     args: [username]
   });
   if (res.rows.length === 0) return undefined;
-  return res.rows[0] as unknown as User;
+  const r = res.rows[0] as Record<string, unknown>;
+  return {
+    id: Number(r.id),
+    username: String(r.username),
+    password_hash: String(r.password_hash),
+    created_at: String(r.created_at),
+    role: String(r.role ?? 'admin'),
+    status: String(r.status ?? 'pending'),
+  };
 }
 
-export async function createUser(env: Env, username: string, passwordHash: string): Promise<void> {
+export async function createUser(env: Env, username: string, passwordHash: string, role = 'admin', status = 'pending'): Promise<void> {
   const db = getDb(env);
   await db.execute({
-    sql: `INSERT INTO users (username, password_hash) VALUES (?, ?)`,
-    args: [username, passwordHash]
+    sql: `INSERT INTO users (username, password_hash, role, status) VALUES (?, ?, ?, ?)`,
+    args: [username, passwordHash, role, status]
   });
 }
 
@@ -380,10 +390,11 @@ export async function validateSession(env: Env, token: string): Promise<{ sessio
   const db = getDb(env);
   const res = await db.execute({
     sql: `
-      SELECT s.*, u.username, u.password_hash, u.created_at as u_created_at
+      SELECT s.*, u.username, u.password_hash, u.created_at as u_created_at, u.role, u.status
       FROM admin_sessions s
       JOIN users u ON s.user_id = u.id
       WHERE s.token = ? AND datetime(s.expires_at) > datetime('now')
+        AND (u.status = 'active' OR u.role = 'owner')
       LIMIT 1
     `,
     args: [token]
@@ -402,6 +413,8 @@ export async function validateSession(env: Env, token: string): Promise<{ sessio
     username: String(row.username),
     password_hash: String(row.password_hash),
     created_at: String(row.u_created_at),
+    role: String(row.role ?? 'admin'),
+    status: String(row.status ?? 'pending'),
   };
   return { session, user };
 }
@@ -411,6 +424,46 @@ export async function deleteSessionToken(env: Env, token: string): Promise<void>
   await db.execute({
     sql: `DELETE FROM admin_sessions WHERE token = ?`,
     args: [token]
+  });
+}
+
+export async function getAllUsers(env: Env): Promise<User[]> {
+  const db = getDb(env);
+  const res = await db.execute(`
+    SELECT * FROM users WHERE role != 'owner' ORDER BY created_at DESC
+  `);
+  return res.rows.map(r => {
+    const row = r as Record<string, unknown>;
+    return {
+      id: Number(row.id),
+      username: String(row.username),
+      password_hash: String(row.password_hash),
+      created_at: String(row.created_at),
+      role: String(row.role ?? 'admin'),
+      status: String(row.status ?? 'pending'),
+    };
+  });
+}
+
+export async function updateUserStatus(env: Env, userId: number, status: 'active' | 'pending' | 'suspended'): Promise<void> {
+  const db = getDb(env);
+  await db.execute({
+    sql: `UPDATE users SET status = ? WHERE id = ? AND role != 'owner'`,
+    args: [status, userId]
+  });
+}
+
+export async function deleteUser(env: Env, userId: number): Promise<void> {
+  const db = getDb(env);
+  // Delete user sessions first
+  await db.execute({
+    sql: `DELETE FROM admin_sessions WHERE user_id = ?`,
+    args: [userId]
+  });
+  // Delete user
+  await db.execute({
+    sql: `DELETE FROM users WHERE id = ? AND role != 'owner'`,
+    args: [userId]
   });
 }
 
