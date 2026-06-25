@@ -21,14 +21,8 @@ export type LeadResult =
  * Example: PUBLIC_API_BASE_URL=https://api.berongsmp.dev
  */
 export async function submitLead(data: LeadPayload): Promise<LeadResult> {
-  const baseUrl = import.meta.env.PUBLIC_API_BASE_URL;
-  if (!baseUrl) {
-    console.error('[api] PUBLIC_API_BASE_URL is not set');
-    return { ok: false, error: 'API not configured.' };
-  }
-
   try {
-    const res = await fetch(`${baseUrl}/leads`, {
+    const res = await fetch('/api/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -36,6 +30,10 @@ export async function submitLead(data: LeadPayload): Promise<LeadResult> {
 
     if (!res.ok) {
       const text = await res.text().catch(() => res.statusText);
+      try {
+        const json = JSON.parse(text) as any;
+        if (json.error) return { ok: false, error: json.error };
+      } catch {}
       return { ok: false, error: `Server error ${res.status}: ${text}` };
     }
 
