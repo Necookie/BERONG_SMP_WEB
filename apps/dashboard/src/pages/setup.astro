@@ -79,6 +79,7 @@ if (usersExist) {
         <div>
           <label for="username" class="block text-[11px] font-semibold uppercase tracking-wider text-secondary mb-1.5">Username</label>
           <div class="input-wrapper relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary pointer-events-none text-[20px] transition-all duration-300">person</span>
             <input
               type="text"
               id="username"
@@ -86,13 +87,14 @@ if (usersExist) {
               required
               autocomplete="username"
               placeholder="e.g. admin"
-              class="w-full bg-base border border-card rounded-lg px-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
             />
           </div>
         </div>
         <div>
           <label for="password" class="block text-[11px] font-semibold uppercase tracking-wider text-secondary mb-1.5">Password</label>
           <div class="input-wrapper relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary pointer-events-none text-[20px] transition-all duration-300">lock</span>
             <input
               type="password"
               id="password"
@@ -100,13 +102,14 @@ if (usersExist) {
               required
               autocomplete="new-password"
               placeholder="••••••••"
-              class="w-full bg-base border border-card rounded-lg px-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
             />
           </div>
         </div>
         <div>
           <label for="confirm-password" class="block text-[11px] font-semibold uppercase tracking-wider text-secondary mb-1.5">Confirm Password</label>
           <div class="input-wrapper relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary pointer-events-none text-[20px] transition-all duration-300">lock_reset</span>
             <input
               type="password"
               id="confirm-password"
@@ -114,7 +117,7 @@ if (usersExist) {
               required
               autocomplete="new-password"
               placeholder="••••••••"
-              class="w-full bg-base border border-card rounded-lg px-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
             />
           </div>
         </div>
@@ -170,6 +173,10 @@ if (usersExist) {
     input:focus {
       border-color: var(--text-brand) !important;
       box-shadow: 0 0 0 3px rgba(136, 217, 130, 0.15);
+    }
+    .input-wrapper:focus-within span {
+      color: var(--text-brand) !important;
+      opacity: 0.9 !important;
     }
     .bg-brand {
       background-color: var(--text-brand);
