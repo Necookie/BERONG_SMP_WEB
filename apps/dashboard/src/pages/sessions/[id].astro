@@ -1,7 +1,7 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import { EventLog } from '../../components/EventLog.tsx';
-import { getSessionById, formatDuration, formatDate, derivePrepLevel, parseEventLog, extractRubricSignals } from '../../lib/queries';
+import { getSessionById, getAuditLog, formatDuration, formatDate, derivePrepLevel, parseEventLog, extractRubricSignals } from '../../lib/queries';
 import { getEnv } from '../../lib/db';
 
 const { id } = Astro.params;
@@ -18,6 +18,7 @@ const tierClass = level !== 'PENDING' ? level.toLowerCase() : 'low';
 const isFireSession = session.simulation_type === 'FIRE';
 const logEntries = parseEventLog(session.event_log);
 const rubric     = extractRubricSignals(session.event_log);
+const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
 ---
 
 <DashboardLayout
@@ -212,6 +213,45 @@ const rubric     = extractRubricSignals(session.event_log);
             <button type="submit" class="notes-save-btn">Save Notes</button>
           </form>
         </div>
+
+        {auditLogs.length > 0 && (
+          <div class="stat-section">
+            <span class="stat-section-label">Change History</span>
+            <div class="audit-log-list" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+              {auditLogs.map(log => {
+                const oldVals = log.old_values ? JSON.parse(log.old_values) : null;
+                const newVals = log.new_values ? JSON.parse(log.new_values) : null;
+                
+                const changes: string[] = [];
+                if (log.action === 'edit' && oldVals && newVals) {
+                  const keys = Object.keys(newVals);
+                  for (const key of keys) {
+                    if (oldVals[key] !== newVals[key]) {
+                      const displayKey = key.replace('_', ' ');
+                      changes.push(`${displayKey}: "${oldVals[key] ?? '—'}" → "${newVals[key] ?? '—'}"`);
+                    }
+                  }
+                }
+
+                return (
+                  <div style="font-family:'JetBrains Mono',monospace; font-size:10px; padding:8px; border:1px solid var(--border-card); border-radius:4px; background:var(--bg-base); box-sizing:border-box;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:var(--text-muted); flex-wrap:wrap;">
+                      <span>{log.action.toUpperCase()} by {log.changed_by}</span>
+                      <span>{new Date(log.changed_at).toLocaleString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, month: 'short', day: 'numeric' })}</span>
+                    </div>
+                    {changes.length > 0 ? (
+                      <ul style="margin:0; padding-left:14px; color:var(--text-primary); list-style-type:disc;">
+                        {changes.map(ch => <li>{ch}</li>)}
+                      </ul>
+                    ) : (
+                      <span style="color:var(--text-primary);">{log.action === 'delete' ? 'Session deleted' : 'No fields changed'}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

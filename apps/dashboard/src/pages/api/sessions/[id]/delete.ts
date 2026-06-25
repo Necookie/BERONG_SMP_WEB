@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getEnv } from '../../../../lib/db';
-import { deleteSession } from '../../../../lib/queries';
+import { deleteSession, getSessionById, logAuditEvent } from '../../../../lib/queries';
 
 export const POST: APIRoute = async ({ params }) => {
   const env = await getEnv();
@@ -14,6 +14,20 @@ export const POST: APIRoute = async ({ params }) => {
   }
 
   try {
+    const oldSession = await getSessionById(env, id);
+    if (oldSession) {
+      const oldValues = {
+        student_name: oldSession.student_name,
+        student_id: oldSession.student_id,
+        section: oldSession.section,
+        simulation_type: oldSession.simulation_type,
+        simulation_score: oldSession.simulation_score,
+        prep_level: oldSession.prep_level,
+        passed: oldSession.passed,
+      };
+      await logAuditEvent(env, 'delete', id, oldValues, null);
+    }
+
     await deleteSession(env, id);
 
     return new Response(null, {

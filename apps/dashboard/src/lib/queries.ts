@@ -282,3 +282,42 @@ export async function deleteSession(env: Env, id: number): Promise<void> {
   await db.execute(`DELETE FROM sessions WHERE id = ?`, [id]);
 }
 
+export interface AuditLogEntry {
+  id: number;
+  session_id: number;
+  action: 'edit' | 'delete';
+  changed_by: string;
+  changed_at: string;
+  old_values: string | null;
+  new_values: string | null;
+}
+
+export async function logAuditEvent(
+  env: Env,
+  action: 'edit' | 'delete',
+  sessionId: number,
+  oldValues: Record<string, unknown> | null,
+  newValues: Record<string, unknown> | null,
+  changedBy = 'admin'
+): Promise<void> {
+  const db = getDb(env);
+  const oldStr = oldValues ? JSON.stringify(oldValues) : null;
+  const newStr = newValues ? JSON.stringify(newValues) : null;
+  await db.execute({
+    sql: `
+      INSERT INTO audit_logs (session_id, action, changed_by, old_values, new_values)
+      VALUES (?, ?, ?, ?, ?)
+    `,
+    args: [sessionId, action, changedBy, oldStr, newStr]
+  });
+}
+
+export async function getAuditLog(env: Env, sessionId: number): Promise<AuditLogEntry[]> {
+  const db = getDb(env);
+  const res = await db.execute({
+    sql: `SELECT * FROM audit_logs WHERE session_id = ? ORDER BY changed_at DESC`,
+    args: [sessionId]
+  });
+  return res.rows as unknown as AuditLogEntry[];
+}
+

@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getEnv } from '../../../../lib/db';
-import { updateSessionDetails } from '../../../../lib/queries';
+import { updateSessionDetails, getSessionById, logAuditEvent } from '../../../../lib/queries';
 
 export const POST: APIRoute = async ({ params, request }) => {
   const env = await getEnv();
@@ -27,15 +27,42 @@ export const POST: APIRoute = async ({ params, request }) => {
   }
 
   try {
-    await updateSessionDetails(env, id, {
+    const oldSession = await getSessionById(env, id);
+    if (!oldSession) {
+      return new Response('Session not found', { status: 404 });
+    }
+
+    const oldValues = {
+      student_name: oldSession.student_name,
+      student_id: oldSession.student_id,
+      section: oldSession.section,
+      simulation_type: oldSession.simulation_type,
+      simulation_score: oldSession.simulation_score,
+      prep_level: oldSession.prep_level,
+      passed: oldSession.passed,
+    };
+
+    const newValues = {
       student_name: student_name.trim(),
       student_id: student_id && student_id.trim() !== '' ? student_id.trim() : null,
       section: section && section.trim() !== '' ? section.trim() : null,
       simulation_type,
       simulation_score: Number.isFinite(simulation_score) ? Math.max(0, Math.min(100, simulation_score)) : 0,
-      prep_level,
+      prep_level: prep_level === 'PENDING' ? null : prep_level,
       passed: passed === 1 ? 1 : 0,
+    };
+
+    await updateSessionDetails(env, id, {
+      student_name: newValues.student_name,
+      student_id: newValues.student_id,
+      section: newValues.section,
+      simulation_type: newValues.simulation_type,
+      simulation_score: newValues.simulation_score,
+      prep_level: newValues.prep_level,
+      passed: newValues.passed,
     });
+
+    await logAuditEvent(env, 'edit', id, oldValues, newValues);
 
     return new Response(null, {
       status: 303,
