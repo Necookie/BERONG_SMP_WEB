@@ -1527,5 +1527,66 @@ td {
   color: var(--text-brand);
 }
 
+/* ── Bulk Actions styling ────────────────────────────────────────────── */
+.bulk-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 6px;
+  padding: 8px 16px;
+  margin-bottom: 12px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.bulk-toolbar-info {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  color: var(--text-primary);
+}
+
+.bulk-toolbar-info span {
+  font-weight: bold;
+  color: var(--text-brand);
+}
+
+.btn-bulk-delete {
+  background-color: rgba(196, 92, 92, 0.1);
+  border: 1px solid #c45c5c;
+  color: #c45c5c;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-bulk-delete:hover {
+  background-color: #c45c5c;
+  color: #ffffff;
+}
+
+.checkbox-col {
+  width: 40px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.checkbox-col input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--text-brand);
+  cursor: pointer;
+}
+
+
 
 

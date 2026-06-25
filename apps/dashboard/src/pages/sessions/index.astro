@@ -73,10 +73,16 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
       </p>
     ) : (
       <>
+        <div id="bulk-toolbar" class="bulk-toolbar" style="display:none;">
+          <span class="bulk-toolbar-info"><span id="bulk-select-count">0</span> sessions selected</span>
+          <button id="btn-bulk-delete" class="btn-bulk-delete">Delete Selected</button>
+        </div>
+
         <div class="table-scroll-wrap">
           <table class="sessions-table" id="sessions-table">
             <thead>
               <tr>
+                <th class="checkbox-col"><input type="checkbox" id="check-all" /></th>
                 <th class="sortable" data-sort-key="id">ID</th>
                 <th class="sortable" data-sort-key="student">Student</th>
                 <th class="sortable" data-sort-key="section">Section</th>
@@ -109,6 +115,9 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
                     data-sort-level={level === 'HIGH' ? 3 : level === 'MODERATE' ? 2 : level === 'LOW' ? 1 : 0}
                     onclick={`window.location='/sessions/${s.id}'`}
                   >
+                    <td class="checkbox-col" onclick="event.stopPropagation()">
+                      <input type="checkbox" class="row-check" data-id={s.id} />
+                    </td>
                     <td class="td-mono-id">
                       {s.id}
                     </td>
@@ -188,6 +197,87 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
   const countLabel  = document.getElementById('session-count');
   const emptyState  = document.getElementById('empty-state');
 
+  // Bulk Actions
+  const checkAll = document.getElementById('check-all') as HTMLInputElement | null;
+  const rowChecks = document.querySelectorAll('.row-check');
+  const bulkToolbar = document.getElementById('bulk-toolbar');
+  const bulkSelectCount = document.getElementById('bulk-select-count');
+  const btnBulkDelete = document.getElementById('btn-bulk-delete');
+
+  function updateBulkToolbar() {
+    const checkedRows = document.querySelectorAll('.row-check:checked');
+    const count = checkedRows.length;
+    if (bulkToolbar && bulkSelectCount) {
+      if (count > 0) {
+        bulkToolbar.style.display = 'flex';
+        bulkSelectCount.textContent = count.toString();
+      } else {
+        bulkToolbar.style.display = 'none';
+      }
+    }
+    if (checkAll) {
+      const allChecked = rowChecks.length > 0 && Array.from(rowChecks).every(c => (c as HTMLInputElement).checked);
+      const someChecked = count > 0 && count < rowChecks.length;
+      checkAll.checked = allChecked;
+      checkAll.indeterminate = someChecked;
+    }
+  }
+
+  if (checkAll) {
+    checkAll.addEventListener('change', () => {
+      const rows = table!.querySelectorAll<HTMLTableRowElement>('tbody tr');
+      rows.forEach(row => {
+        if (row.style.display !== 'none') {
+          const check = row.querySelector('.row-check') as HTMLInputElement | null;
+          if (check) {
+            check.checked = checkAll.checked;
+          }
+        }
+      });
+      updateBulkToolbar();
+    });
+  }
+
+  rowChecks.forEach(check => {
+    check.addEventListener('change', updateBulkToolbar);
+  });
+
+  if (btnBulkDelete) {
+    btnBulkDelete.addEventListener('click', async () => {
+      const checkedRows = document.querySelectorAll('.row-check:checked');
+      const ids = Array.from(checkedRows).map(c => Number((c as HTMLInputElement).dataset.id));
+      if (ids.length === 0) return;
+
+      const confirmMsg = `Are you sure you want to delete the selected ${ids.length} session(s)? This action cannot be undone.`;
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        btnBulkDelete.setAttribute('disabled', 'true');
+        btnBulkDelete.textContent = 'Deleting...';
+
+        const res = await fetch('/api/sessions/bulk-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids }),
+        });
+
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          const errData = await res.json() as { error?: string };
+          alert(`Failed to delete sessions: ${errData.error || 'Unknown error'}`);
+          btnBulkDelete.removeAttribute('disabled');
+          btnBulkDelete.textContent = 'Delete Selected';
+        }
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred while deleting sessions.');
+        btnBulkDelete.removeAttribute('disabled');
+        btnBulkDelete.textContent = 'Delete Selected';
+      }
+    });
+  }
+
   if (typeGroup && levelGroup && table && countLabel && emptyState) {
     let activeType  = 'ALL';
     let activeLevel = 'ALL';
@@ -207,6 +297,15 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
       countLabel!.textContent = `${visible} session${visible !== 1 ? 's' : ''}`;
       emptyState!.style.display = visible === 0 ? '' : 'none';
       table!.style.display = visible === 0 ? 'none' : '';
+
+      // Uncheck non-visible checkboxes on filter change
+      rows.forEach(row => {
+        if (row.style.display === 'none') {
+          const check = row.querySelector('.row-check') as HTMLInputElement | null;
+          if (check) check.checked = false;
+        }
+      });
+      updateBulkToolbar();
     }
 
     function bindPills(group: HTMLElement, onChange: (v: string) => void) {
