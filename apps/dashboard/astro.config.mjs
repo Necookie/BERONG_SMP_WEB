@@ -9,6 +9,7 @@ export default defineConfig({
   // Dashboard uses SSR — needed for auth sessions, protected routes, API proxying
   output: 'server',
   adapter: cloudflare({
+    // @ts-expect-error - platformProxy type may not be exposed correctly in this adapter version
     platformProxy: {
       enabled: true,
     },

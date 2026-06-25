@@ -111,15 +111,15 @@ const total = stats.length || 1;
         <table class="sessions-table roster-table">
           <thead>
             <tr>
-              <th>Student</th>
-              <th>ID</th>
-              <th>Section</th>
-              <th>Sessions</th>
-              <th>Avg score</th>
-              <th>Best score</th>
-              <th>Passed</th>
-              <th>Best level</th>
-              <th>Last active</th>
+              <th class="sortable" data-sort-key="student">Student</th>
+              <th class="sortable" data-sort-key="id">ID</th>
+              <th class="sortable" data-sort-key="section">Section</th>
+              <th class="sortable" data-sort-key="sessions">Sessions</th>
+              <th class="sortable" data-sort-key="avg-score">Avg score</th>
+              <th class="sortable" data-sort-key="best-score">Best score</th>
+              <th class="sortable" data-sort-key="passed">Passed</th>
+              <th class="sortable" data-sort-key="level">Best level</th>
+              <th class="sortable" data-sort-key="last-active">Last active</th>
               <th></th>
             </tr>
           </thead>
@@ -128,10 +128,20 @@ const total = stats.length || 1;
               const lvl = s.best_prep_level
                 ? derivePrepLevel(Number(s.best_score), s.best_prep_level)
                 : 'PENDING';
+              const passRatio = Number(s.session_count) > 0 ? (s.pass_count / s.session_count) : -1;
               return (
                 <tr
                   data-section={s.section ?? ''}
                   data-search={`${s.student_name} ${s.student_id ?? ''} ${s.section ?? ''}`.toLowerCase()}
+                  data-sort-student={s.student_name.toLowerCase()}
+                  data-sort-id={(s.student_id ?? '').toLowerCase()}
+                  data-sort-section={(s.section ?? '').toLowerCase()}
+                  data-sort-sessions={s.session_count}
+                  data-sort-avg-score={s.avg_score}
+                  data-sort-best-score={Number(s.session_count) > 0 ? s.best_score : -1}
+                  data-sort-passed={passRatio}
+                  data-sort-level={lvl === 'HIGH' ? 3 : lvl === 'MODERATE' ? 2 : lvl === 'LOW' ? 1 : 0}
+                  data-sort-last-active={s.latest_start ? new Date(s.latest_start).getTime() : 0}
                   onclick={s.latest_session_id ? `window.location='/sessions/${s.latest_session_id}'` : undefined}
                   style={s.latest_session_id ? 'cursor:pointer;' : ''}
                 >
@@ -188,6 +198,11 @@ const total = stats.length || 1;
 </DashboardLayout>
 
 <script>
+  import { initTableSorting } from '../lib/tableSorter';
+
+  // Initialize sorting
+  initTableSorting();
+
   const secGroup    = document.getElementById('filter-section');
   const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
   const countLabel  = document.getElementById('roster-count');

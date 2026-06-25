@@ -109,21 +109,33 @@ const lowPct      = 100 - highPct - moderatePct;
         <table class="sessions-table">
           <thead>
             <tr>
-              <th>Student</th>
-              <th>Section</th>
-              <th>Scenario</th>
-              <th>Date</th>
-              <th>Duration</th>
-              <th>Score</th>
-              <th>Level</th>
+              <th class="sortable" data-sort-key="student">Student</th>
+              <th class="sortable" data-sort-key="section">Section</th>
+              <th class="sortable" data-sort-key="scenario">Scenario</th>
+              <th class="sortable" data-sort-key="date">Date</th>
+              <th class="sortable" data-sort-key="duration">Duration</th>
+              <th class="sortable" data-sort-key="score">Score</th>
+              <th class="sortable" data-sort-key="level">Level</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {recent.map(s => {
               const level = derivePrepLevel(s.simulation_score, s.prep_level);
+              const durationMs = s.start_time && s.end_time 
+                ? new Date(s.end_time).getTime() - new Date(s.start_time).getTime() 
+                : 0;
               return (
-                <tr onclick={`window.location='/sessions/${s.id}'`}>
+                <tr
+                  data-sort-student={s.student_name.toLowerCase()}
+                  data-sort-section={(s.section ?? '').toLowerCase()}
+                  data-sort-scenario={(s.simulation_type ?? 'UNKNOWN').toLowerCase()}
+                  data-sort-date={s.start_time ? new Date(s.start_time).getTime() : 0}
+                  data-sort-duration={durationMs}
+                  data-sort-score={s.simulation_score}
+                  data-sort-level={level === 'HIGH' ? 3 : level === 'MODERATE' ? 2 : level === 'LOW' ? 1 : 0}
+                  onclick={`window.location='/sessions/${s.id}'`}
+                >
                   <td class="name-cell">{s.student_name}</td>
                   <td class="td-mono-muted">{s.section ?? '—'}</td>
                   <td>
@@ -157,3 +169,8 @@ const lowPct      = 100 - highPct - moderatePct;
   </div>
 
 </DashboardLayout>
+
+<script>
+  import { initTableSorting } from '../lib/tableSorter';
+  initTableSorting();
+</script>

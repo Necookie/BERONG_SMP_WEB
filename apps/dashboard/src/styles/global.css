@@ -639,6 +639,45 @@ td {
 .sessions-table tbody tr:hover td { background: var(--bg-table-hover); cursor: pointer; }
 .sessions-table tbody tr:last-child td { border-bottom: none; }
 
+.sessions-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.sessions-table th.sortable:hover {
+  color: var(--text-brand);
+}
+
+.sessions-table th.sortable::after {
+  content: ' ↕';
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 9px;
+  color: var(--text-muted);
+  opacity: 0.35;
+  transition: opacity 0.15s, color 0.15s;
+  vertical-align: middle;
+}
+
+.sessions-table th.sortable:hover::after {
+  opacity: 0.8;
+  color: var(--text-brand);
+}
+
+.sessions-table th.sortable.sorted-asc::after {
+  content: ' ▲';
+  opacity: 1;
+  color: var(--text-brand);
+}
+
+.sessions-table th.sortable.sorted-desc::after {
+  content: ' ▼';
+  opacity: 1;
+  color: var(--text-brand);
+}
+
 .sessions-table th + th,
 .sessions-table td + td { padding-left: 20px; }
 
