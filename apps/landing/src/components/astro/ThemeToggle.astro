@@ -1,6 +1,7 @@
 ---
 // ThemeToggle.astro — Plain HTML button + vanilla JS for dark/light toggle
-// Zero React, zero hydration delay — works immediately on paint
+// Zero React, zero hydration delay — works immediately on paint.
+// applyTheme logic mirrors src/lib/theme.ts (kept inline for zero-latency).
 ---
 
 <button
@@ -43,6 +44,10 @@
 </button>
 
 <script is:inline>
+  /**
+   * Inline version of src/lib/theme.ts — kept inline so it runs
+   * synchronously without waiting for module hydration.
+   */
   (function () {
     var btn = document.getElementById('theme-toggle-btn');
     var sunIcon = document.getElementById('icon-sun');
@@ -51,22 +56,21 @@
 
     function updateIcons(isDark) {
       if (isDark) {
-        // Dark mode: show sun (to switch to light)
         sunIcon.style.opacity = '1';
         sunIcon.style.transform = 'rotate(0deg) scale(1)';
-        sunIcon.style.color = '#bfcaba';
+        sunIcon.style.color = 'currentColor';
         moonIcon.style.opacity = '0';
         moonIcon.style.transform = 'rotate(-90deg) scale(0.5)';
       } else {
-        // Light mode: show moon (to switch to dark)
         moonIcon.style.opacity = '1';
         moonIcon.style.transform = 'rotate(0deg) scale(1)';
-        moonIcon.style.color = '#4a5240';
+        moonIcon.style.color = 'currentColor';
         sunIcon.style.opacity = '0';
         sunIcon.style.transform = 'rotate(90deg) scale(0.5)';
       }
     }
 
+    // Shared applyTheme logic (mirrors src/lib/theme.ts)
     function applyTheme(isDark) {
       if (isDark) {
         html.classList.add('dark');
@@ -83,9 +87,11 @@
     var currentlyDark = html.classList.contains('dark');
     updateIcons(currentlyDark);
 
-    btn.addEventListener('click', function () {
-      var nowDark = html.classList.contains('dark');
-      applyTheme(!nowDark);
-    });
+    if (btn) {
+      btn.addEventListener('click', function () {
+        var nowDark = html.classList.contains('dark');
+        applyTheme(!nowDark);
+      });
+    }
   })();
 </script>

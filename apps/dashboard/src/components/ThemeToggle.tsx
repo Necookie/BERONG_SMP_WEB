@@ -1,7 +1,8 @@
 // ThemeToggle.tsx — React island for dark/light mode toggle
-// Reads/writes localStorage 'theme' key; syncs to <html> class
+// Uses shared applyTheme utility from lib/theme.ts
 
 import { useState, useEffect } from 'react';
+import { applyTheme, type Theme } from '../lib/theme';
 
 export default function ThemeToggle() {
   // Default to true (dark) so SSR matches the inline script default
@@ -9,28 +10,13 @@ export default function ThemeToggle() {
 
   // On mount, sync React state to whatever the inline script already applied
   useEffect(() => {
-    const html = document.documentElement;
-    const currentlyDark = html.classList.contains('dark');
+    const currentlyDark = document.documentElement.classList.contains('dark');
     setIsDark(currentlyDark);
   }, []);
 
-  function applyTheme(dark: boolean) {
-    const html = document.documentElement;
-    if (dark) {
-      html.classList.add('dark');
-      html.classList.remove('light');
-    } else {
-      html.classList.add('light');
-      html.classList.remove('dark');
-    }
-    try {
-      localStorage.setItem('theme', dark ? 'dark' : 'light');
-    } catch {}
-  }
-
   function toggle() {
-    const next = !isDark;
-    setIsDark(next);
+    const next: Theme = isDark ? 'light' : 'dark';
+    setIsDark(!isDark);
     applyTheme(next);
   }
 
