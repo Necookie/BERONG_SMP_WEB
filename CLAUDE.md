@@ -331,15 +331,27 @@ CREATE TABLE IF NOT EXISTS leads (
 );
 ```
 
-### Task 1 — Auth tables
+### Task 1 — Auth tables (Updated for User Management)
 ```sql
 CREATE TABLE IF NOT EXISTS users (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   username     TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  created_at   TEXT DEFAULT (datetime('now'))
+  created_at   TEXT DEFAULT (datetime('now')),
+  role         TEXT DEFAULT 'admin',
+  status       TEXT DEFAULT 'pending'
 );
 
+-- Migration to add columns to existing table
+ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'admin';
+ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'pending';
+
+-- Make initial admin 'necookie' the owner & active
+UPDATE users SET role = 'owner', status = 'active' WHERE lower(username) = 'necookie';
+```
+
+### Task 1 — Auth sessions table
+```sql
 CREATE TABLE IF NOT EXISTS admin_sessions (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id      INTEGER NOT NULL REFERENCES users(id),
@@ -350,5 +362,5 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
 ```
 
 ### Task 1 — Seed initial admin user
-On first deploy, visit `/login` and the system will detect no users exist. Navigate to `/setup` (only accessible when zero users exist) to create the first admin account.
+On first deploy, visit `/login` and the system will detect no users exist. Navigate to `/setup` (only accessible when zero users exist) to create the first admin account (which will be initialized as `owner` and `active`).
 
