@@ -17,6 +17,13 @@ export default function EnrollForm() {
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Minecraft username: 3-16 chars, letters, digits, underscores only
+  const MC_USERNAME_RE = /^[a-zA-Z0-9_]{3,16}$/;
+  const usernameValid = form.username === '' || MC_USERNAME_RE.test(form.username);
+  const usernameError = form.username !== '' && !usernameValid
+    ? 'Username must be 3–16 characters (letters, digits, underscores only).'
+    : null;
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -26,6 +33,7 @@ export default function EnrollForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!MC_USERNAME_RE.test(form.username)) return; // block invalid usernames
     setStatus('loading');
     setErrorMsg('');
 
@@ -66,10 +74,21 @@ export default function EnrollForm() {
           placeholder="Steve_Researcher"
           value={form.username}
           onChange={handleChange}
-          className={inputBase}
+          className={`${inputBase} ${usernameError ? 'border-error' : ''}`}
           aria-required="true"
+          aria-invalid={usernameError ? 'true' : 'false'}
+          aria-describedby={usernameError ? `${usernameId}-error` : undefined}
           disabled={status === 'loading' || status === 'success'}
         />
+        {usernameError && (
+          <p
+            id={`${usernameId}-error`}
+            role="alert"
+            className="font-mono text-xs text-error mt-1"
+          >
+            ✗ {usernameError}
+          </p>
+        )}
       </div>
 
       {/* Email */}
@@ -119,7 +138,7 @@ export default function EnrollForm() {
       {/* Submit */}
       <button
         type="submit"
-        disabled={status === 'loading' || status === 'success'}
+        disabled={status === 'loading' || status === 'success' || !!usernameError || form.username === ''}
         className="mc-button w-full px-8 py-4 font-mono text-xs font-medium uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
         aria-live="polite"
       >
