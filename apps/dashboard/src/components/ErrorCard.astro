@@ -1,0 +1,65 @@
+---
+/**
+ * ErrorCard.astro — Displayed when a database query fails at SSR time.
+ * Provides a styled, accessible error state without crashing the whole page.
+ */
+interface Props {
+  title?: string;
+  message?: string;
+}
+
+const {
+  title = 'Database Unavailable',
+  message = 'Could not connect to the database. Check your TURSO_URL and TURSO_TOKEN environment variables.',
+} = Astro.props;
+---
+
+<div class="error-card" role="alert" aria-live="assertive">
+  <div class="error-card-icon" aria-hidden="true">⚠</div>
+  <div class="error-card-body">
+    <span class="error-card-title">{title}</span>
+    <p class="error-card-msg">{message}</p>
+  </div>
+</div>
+
+<style>
+  .error-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    border: 1px solid #c45c5c;
+    border-left: 4px solid #c45c5c;
+    background: rgba(196, 92, 92, 0.06);
+    margin: 24px 40px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .error-card-icon {
+    font-size: 18px;
+    color: #c45c5c;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .error-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .error-card-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #c45c5c;
+  }
+
+  .error-card-msg {
+    font-size: 11px;
+    line-height: 1.65;
+    color: var(--text-muted);
+    margin: 0;
+  }
+</style>

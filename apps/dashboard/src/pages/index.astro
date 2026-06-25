@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import ErrorCard from '../components/ErrorCard.astro';
 import {
   getOverviewStats,
   getRecentSessions,
@@ -15,11 +16,17 @@ const hasDb = !!env;
 let stats = { total: 0, avg_score: 0, fire_count: 0, quake_count: 0, this_week: 0, high_count: 0, mod_count: 0, low_count: 0 };
 let recent: Awaited<ReturnType<typeof getRecentSessions>> = [];
 
+let dbError: string | null = null;
+
 if (env) {
-  [stats, recent] = await Promise.all([
-    getOverviewStats(env),
-    getRecentSessions(env, 5),
-  ]);
+  try {
+    [stats, recent] = await Promise.all([
+      getOverviewStats(env),
+      getRecentSessions(env, 5),
+    ]);
+  } catch (err) {
+    dbError = err instanceof Error ? err.message : 'Unknown database error';
+  }
 }
 
 const totalWithLevel = stats.high_count + stats.mod_count + stats.low_count;
@@ -33,9 +40,11 @@ const lowPct      = 100 - highPct - moderatePct;
   <div class="page-header">
     <h1 class="page-title">Overview</h1>
     <p class="page-meta">
-      LSPU DRR Training Programme · {hasDb ? 'live data' : '⚠ no DB configured'}
+      LSPU DRR Training Programme · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB configured'}
     </p>
   </div>
+
+  {dbError && <ErrorCard message={dbError} />}
 
   <div class="kpi-strip">
     <div class="kpi-item">

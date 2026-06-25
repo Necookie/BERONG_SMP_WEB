@@ -1,14 +1,23 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import ErrorCard from '../components/ErrorCard.astro';
 import { getRosterStats, getDistinctSections, formatDate, derivePrepLevel } from '../lib/queries';
 import { getEnv } from '../lib/db';
 
 const env = await getEnv();
 const hasDb = !!env;
 
-const [stats, sections] = env
-  ? await Promise.all([getRosterStats(env), getDistinctSections(env)])
-  : [[], []];
+let stats: Awaited<ReturnType<typeof getRosterStats>> = [];
+let sections: string[] = [];
+let dbError: string | null = null;
+
+if (env) {
+  try {
+    [stats, sections] = await Promise.all([getRosterStats(env), getDistinctSections(env)]);
+  } catch (err) {
+    dbError = err instanceof Error ? err.message : 'Unknown database error';
+  }
+}
 
 const totalSessions = stats.reduce((a, s) => a + Number(s.session_count), 0);
 const withSessions  = stats.filter(s => Number(s.session_count) > 0);
@@ -24,9 +33,11 @@ const total = stats.length || 1;
   <div class="page-header">
     <h1 class="page-title">Roster</h1>
     <p class="page-meta">
-      {stats.length} students · {totalSessions} sessions · cohort avg {cohortAvg}% · {hasDb ? 'live data' : '⚠ no DB'}
+      {stats.length} students · {totalSessions} sessions · cohort avg {cohortAvg}% · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB'}
     </p>
   </div>
+
+  {dbError && <ErrorCard message={dbError} />}
 
   <div class="kpi-strip">
     {(['HIGH', 'MODERATE', 'LOW'] as const).map(lvl => {

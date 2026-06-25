@@ -1,20 +1,32 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import ErrorCard from '../../components/ErrorCard.astro';
 import { getAllSessions, formatDuration, formatDate, derivePrepLevel } from '../../lib/queries';
 import { getEnv } from '../../lib/db';
 
 const env = await getEnv();
 const hasDb = !!env;
 
-const sessions = env ? await getAllSessions(env) : [];
+let sessions: Awaited<ReturnType<typeof getAllSessions>> = [];
+let dbError: string | null = null;
+
+if (env) {
+  try {
+    sessions = await getAllSessions(env);
+  } catch (err) {
+    dbError = err instanceof Error ? err.message : 'Unknown database error';
+  }
+}
 ---
 
 <DashboardLayout title="Sessions" currentPath="/sessions">
 
   <div class="page-header">
     <h1 class="page-title">Sessions</h1>
-    <p class="page-meta">All drill sessions · {sessions.length} records · {hasDb ? 'live data' : '⚠ no DB'}</p>
+    <p class="page-meta">All drill sessions · {sessions.length} records · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB'}</p>
   </div>
+
+  {dbError && <ErrorCard message={dbError} />}
 
   <div class="filter-bar">
     <div class="filter-group">
