@@ -9,7 +9,7 @@ export default defineConfig({
   site: 'https://berongsmp.dev',
   output: 'static',
   adapter: cloudflare({
-    imageService: 'cloudflare'
+    imageService: 'compile'
   }),
   integrations: [
     react(),
