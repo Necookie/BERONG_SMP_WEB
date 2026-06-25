@@ -39,6 +39,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
+    // Check account status
+    if (user.role !== 'owner' && user.status !== 'active') {
+      const msg = user.status === 'pending'
+        ? 'Your account is pending approval by the owner.'
+        : 'Your account has been suspended.';
+      return new Response(JSON.stringify({ ok: false, error: msg }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const token = generateSessionToken();
     const duration = 7 * 24 * 60 * 60 * 1000; // 7 days
     const expiresAt = new Date(Date.now() + duration).toISOString();
