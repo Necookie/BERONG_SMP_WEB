@@ -104,8 +104,15 @@ const lowPct      = 100 - highPct - moderatePct;
   </div>
 
   <div class="sessions-section">
-    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
-      <span class="section-label">Recent sessions</span>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span class="section-label">Recent sessions</span>
+        <span class="live-indicator" id="live-indicator" style="display: none; align-items: center; gap: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #88d982; border: 1px solid rgba(136, 217, 130, 0.3); padding: 2px 6px; border-radius: 4px;">
+          <span class="live-dot" style="width: 5px; height: 5px; background: #88d982; border-radius: 50%; display: inline-block;"></span>
+          LIVE POLLING
+        </span>
+        <span id="last-updated" style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-muted); display: none;"></span>
+      </div>
       <a href="/sessions" class="view-link">View all →</a>
     </div>
 
@@ -182,4 +189,141 @@ const lowPct      = 100 - highPct - moderatePct;
 <script>
   import { initTableSorting } from '../lib/tableSorter';
   initTableSorting();
+
+  const indicator = document.getElementById('live-indicator');
+  const lastUpdatedEl = document.getElementById('last-updated');
+  const tableBody = document.querySelector('.sessions-table tbody');
+
+  // Add styles for live dot pulse
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes live-pulse {
+      0% { transform: scale(0.95); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.5; }
+    }
+    .live-dot {
+      animation: live-pulse 1.5s infinite ease-in-out;
+    }
+  `;
+  document.head.appendChild(style);
+
+  if (indicator && tableBody) {
+    indicator.style.display = 'inline-flex';
+  }
+
+  let lastUpdatedTime = Date.now();
+  
+  function updateTimeLabel() {
+    if (!lastUpdatedEl) return;
+    const diff = Math.round((Date.now() - lastUpdatedTime) / 1000);
+    if (diff < 5) {
+      lastUpdatedEl.textContent = '· Just now';
+    } else if (diff < 60) {
+      lastUpdatedEl.textContent = `· Updated ${diff}s ago`;
+    } else {
+      const mins = Math.floor(diff / 60);
+      lastUpdatedEl.textContent = `· Updated ${mins}m ago`;
+    }
+    lastUpdatedEl.style.display = 'inline';
+  }
+
+  // Formatting helpers for rendering
+  function formatDurationLocal(start, end) {
+    if (!end) return '—';
+    const secs = Math.round((new Date(end).getTime() - new Date(start).getTime()) / 1000);
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}m ${s.toString().padStart(2, '0')}s`;
+  }
+
+  function formatDateLocal(iso) {
+    return new Date(iso).toLocaleDateString('en-PH', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    });
+  }
+
+  function derivePrepLevelLocal(score, stored) {
+    if (stored) return stored;
+    if (score >= 75) return 'HIGH';
+    if (score >= 40) return 'MODERATE';
+    return 'LOW';
+  }
+
+  async function pollLatest() {
+    if (!tableBody) return;
+    try {
+      const res = await fetch('/api/sessions/latest');
+      if (!res.ok) return;
+      const data = await res.json();
+      
+      if (!Array.isArray(data)) return;
+      
+      lastUpdatedTime = Date.now();
+      updateTimeLabel();
+
+      tableBody.innerHTML = '';
+      data.forEach(s => {
+        const level = derivePrepLevelLocal(s.simulation_score, s.prep_level);
+        const tierClass = level !== 'PENDING' ? level.toLowerCase() : 'low';
+        const durationMs = s.start_time && s.end_time 
+          ? new Date(s.end_time).getTime() - new Date(s.start_time).getTime() 
+          : 0;
+
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-sort-student', s.student_name.toLowerCase());
+        tr.setAttribute('data-sort-section', (s.section ?? '').toLowerCase());
+        tr.setAttribute('data-sort-scenario', (s.simulation_type ?? 'UNKNOWN').toLowerCase());
+        tr.setAttribute('data-sort-date', s.start_time ? new Date(s.start_time).getTime().toString() : '0');
+        tr.setAttribute('data-sort-duration', durationMs.toString());
+        tr.setAttribute('data-sort-score', s.simulation_score.toString());
+        tr.setAttribute('data-sort-level', level === 'HIGH' ? '3' : level === 'MODERATE' ? '2' : level === 'LOW' ? '1' : '0');
+        
+        tr.onclick = () => { window.location.href = `/sessions/${s.id}`; };
+        tr.style.cursor = 'pointer';
+
+        tr.innerHTML = `
+          <td class="name-cell">${s.student_name}</td>
+          <td class="td-mono-muted">${s.section ?? '—'}</td>
+          <td>
+            <span class="${s.simulation_type === 'FIRE' ? 'td-type-fire' : 'td-type-quake'}">
+              ${s.simulation_type ?? '—'}
+            </span>
+          </td>
+          <td class="td-mono-muted">${formatDateLocal(s.start_time)}</td>
+          <td class="td-mono-muted">${formatDurationLocal(s.start_time, s.end_time)}</td>
+          <td class="td-score">${s.simulation_score}</td>
+          <td>
+            \${level !== 'PENDING' ? \`
+              <span class="tier-badge \${tierClass}">
+                <span class="dot"></span>
+                \${level}
+              </span>
+            \` : \`
+              <span class="td-pending">PENDING</span>
+            \`}
+          </td>
+          <td class="link-cell">
+            <a href="/sessions/\${s.id}" class="view-link">→</a>
+          </td>
+        `;
+        
+        const a = tr.querySelector('.view-link');
+        if (a) {
+          a.onclick = (e) => { e.stopPropagation(); };
+        }
+
+        tableBody.appendChild(tr);
+      });
+
+    } catch (err) {
+      console.error('Polling error:', err);
+    }
+  }
+
+  if (tableBody) {
+    setInterval(updateTimeLabel, 5000);
+    setInterval(pollLatest, 15000);
+    updateTimeLabel();
+  }
 </script>
