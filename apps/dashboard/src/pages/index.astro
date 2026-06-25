@@ -1,9 +1,12 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 import ErrorCard from '../components/ErrorCard.astro';
+import PrepChart from '../components/PrepChart';
+import ScoreHistogram from '../components/ScoreHistogram';
 import {
   getOverviewStats,
   getRecentSessions,
+  getAllCompletedScores,
   formatDate,
   formatDuration,
   derivePrepLevel,
@@ -15,14 +18,16 @@ const hasDb = !!env;
 
 let stats = { total: 0, avg_score: 0, fire_count: 0, quake_count: 0, this_week: 0, high_count: 0, mod_count: 0, low_count: 0 };
 let recent: Awaited<ReturnType<typeof getRecentSessions>> = [];
+let scores: number[] = [];
 
 let dbError: string | null = null;
 
 if (env) {
   try {
-    [stats, recent] = await Promise.all([
+    [stats, recent, scores] = await Promise.all([
       getOverviewStats(env),
       getRecentSessions(env, 5),
+      getAllCompletedScores(env),
     ]);
   } catch (err) {
     dbError = err instanceof Error ? err.message : 'Unknown database error';
@@ -74,31 +79,43 @@ const lowPct      = 100 - highPct - moderatePct;
     </div>
   </div>
 
-  <div class="dist-section">
-    <div class="dist-head">
-      <span class="section-label">Preparedness distribution</span>
-      <span class="dist-cohort">{totalWithLevel} classified sessions</span>
-    </div>
-    <div class="dist-bar">
-      <div class="dist-seg high"     style={`width: ${highPct}%`}></div>
-      <div class="dist-seg moderate" style={`width: ${moderatePct}%`}></div>
-      <div class="dist-seg low"      style={`width: ${lowPct}%`}></div>
-    </div>
-    <div class="dist-legend">
-      <div class="dist-leg-item">
-        <span class="leg-dot high"></span>
-        <span class="leg-tier high">HIGH</span>
-        <span class="leg-count">{stats.high_count} sessions · {highPct}%</span>
+  <div class="dist-section" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; padding: 24px; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 8px; margin-bottom: 24px;">
+    <div>
+      <div class="dist-head" style="margin-bottom: 12px;">
+        <span class="section-label">Preparedness distribution</span>
+        <span class="dist-cohort">{totalWithLevel} classified sessions</span>
       </div>
-      <div class="dist-leg-item">
-        <span class="leg-dot moderate"></span>
-        <span class="leg-tier moderate">MODERATE</span>
-        <span class="leg-count">{stats.mod_count} sessions · {moderatePct}%</span>
+      <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap; justify-content: center;">
+        <div style="flex-shrink: 0; width: 140px; height: 140px;">
+          <PrepChart client:only="react" high={stats.high_count} moderate={stats.mod_count} low={stats.low_count} />
+        </div>
+        <div class="dist-legend" style="display: flex; flex-direction: column; gap: 12px; margin-top: 0; align-items: flex-start; justify-content: center; min-width: 140px;">
+          <div class="dist-leg-item" style="display: flex; align-items: center; gap: 8px;">
+            <span class="leg-dot high" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #88d982;"></span>
+            <span class="leg-tier high" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: bold; color: #88d982;">HIGH</span>
+            <span class="leg-count" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted);">{stats.high_count} · {highPct}%</span>
+          </div>
+          <div class="dist-leg-item" style="display: flex; align-items: center; gap: 8px;">
+            <span class="leg-dot moderate" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #c9a84c;"></span>
+            <span class="leg-tier moderate" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: bold; color: #c9a84c;">MODERATE</span>
+            <span class="leg-count" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted);">{stats.mod_count} · {moderatePct}%</span>
+          </div>
+          <div class="dist-leg-item" style="display: flex; align-items: center; gap: 8px;">
+            <span class="leg-dot low" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #c45c5c;"></span>
+            <span class="leg-tier low" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: bold; color: #c45c5c;">LOW</span>
+            <span class="leg-count" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted);">{stats.low_count} · {lowPct}%</span>
+          </div>
+        </div>
       </div>
-      <div class="dist-leg-item">
-        <span class="leg-dot low"></span>
-        <span class="leg-tier low">LOW</span>
-        <span class="leg-count">{stats.low_count} sessions · {lowPct}%</span>
+    </div>
+    
+    <div>
+      <div class="dist-head" style="margin-bottom: 12px;">
+        <span class="section-label">Score distribution</span>
+        <span class="dist-cohort">All completed sessions</span>
+      </div>
+      <div style="height: 180px;">
+        <ScoreHistogram client:only="react" scores={scores} />
       </div>
     </div>
   </div>

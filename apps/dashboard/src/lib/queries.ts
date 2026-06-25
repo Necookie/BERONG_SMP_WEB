@@ -321,3 +321,9 @@ export async function getAuditLog(env: Env, sessionId: number): Promise<AuditLog
   return res.rows as unknown as AuditLogEntry[];
 }
 
+export async function getAllCompletedScores(env: Env): Promise<number[]> {
+  const db = getDb(env);
+  const res = await db.execute(`SELECT simulation_score FROM sessions WHERE status = 'completed'`);
+  return res.rows.map(r => Number((r as Record<string, unknown>).simulation_score ?? 0));
+}
+
