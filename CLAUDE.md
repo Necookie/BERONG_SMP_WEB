@@ -271,6 +271,11 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 26 | Edit details & delete session | Added popup modals in detail view, styles in global.css, and API endpoints for edit/delete operations |
 | 27 | Search bar | Added client-side search bars to filter tables in Sessions and Roster views, with styles in global.css |
 | 28 | Sorting system | Added client-side table sorting (tableSorter.ts) with sortable headers, data-sort attributes, and CSS indicators across Overview, Sessions, and Roster tables |
+| 29 | `login.astro` & `setup.astro` | Fix logo image rendering issue by using static `logo.src` instead of Astro `<Image>` optimization. |
+| 30 | `setup.astro` | Redesign first-time setup page with glowing blobs, glassmorphic card, and custom status badge. |
+| 31 | `login.astro` | Redesign admin sign-in page to match setup page visual style. |
+| 32 | `login.astro` & `setup.astro` | Add interactive focus-highlighted Material Symbols Outlined icons inside inputs and button active scale effects. |
+| 33 | `login.astro` & `setup.astro` | Improve layout responsiveness by removing body overflow restrictions, enabling vertical scrolling, adding padding, and floating the theme toggle in the top-right corner. |
 
 ---
 
