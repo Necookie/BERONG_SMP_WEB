@@ -3,6 +3,7 @@
 import { Image } from 'astro:assets';
 import heroBg from '../../assets/images/hero-background.jpg';
 import mascot from '../../assets/images/berong-mascot.png';
+import ServerStatus from '../react/ServerStatus';
 ---
 
 <header
@@ -29,12 +30,7 @@ import mascot from '../../assets/images/berong-mascot.png';
     class="relative z-20 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center flex flex-col items-center"
   >
     <!-- Status badge -->
-    <div
-      class="inline-flex items-center gap-2 px-3 py-1 bg-surface-elevated stone-border mb-6 font-mono text-xs font-medium tracking-widest text-experience-orb"
-    >
-      <span class="w-2 h-2 bg-experience-orb shadow-[0_0_8px_#7cfc00] inline-block"></span>
-      Server Online — Version 1.21 NeoForge
-    </div>
+    <ServerStatus client:load />
 
     <!-- H1 -->
     <h1

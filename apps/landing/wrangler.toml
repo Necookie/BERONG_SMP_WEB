@@ -1,5 +1,8 @@
 name = "berong-smp-landing"
-compatibility_date = "2024-04-03"
+main = "@astrojs/cloudflare/entrypoints/server"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
