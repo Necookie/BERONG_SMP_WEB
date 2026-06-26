@@ -642,7 +642,7 @@ const configs = [
   .command-card {
     background: var(--bg-card);
     border: 1px solid var(--border-card);
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     overflow: hidden;
     transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
@@ -670,20 +670,20 @@ const configs = [
     font-size: 10px;
     letter-spacing: 0.05em;
     padding: 3px 8px;
-    border-radius: 2px;
+    border-radius: var(--radius-badge);
     font-weight: 500;
   }
 
   .perm-badge.player {
-    background: rgba(136, 217, 130, 0.08);
-    color: var(--text-brand);
-    border: 1px solid rgba(136, 217, 130, 0.2);
+    background: var(--bg-success-translucent);
+    color: var(--text-success);
+    border: 1px solid var(--border-success-translucent);
   }
 
   .perm-badge.admin {
-    background: rgba(201, 168, 76, 0.08);
-    color: #c9a84c;
-    border: 1px solid rgba(201, 168, 76, 0.2);
+    background: var(--bg-warning-translucent);
+    color: var(--text-warning);
+    border: 1px solid var(--border-warning-translucent);
   }
 
   .syntax-wrapper {
@@ -692,7 +692,7 @@ const configs = [
     background: var(--bg-log-panel);
     border: 1px solid var(--border-card);
     padding: 4px 6px 4px 12px;
-    border-radius: 2px;
+    border-radius: var(--radius-input);
     justify-content: space-between;
   }
 
@@ -713,7 +713,7 @@ const configs = [
     display: flex;
     align-items: center;
     gap: 4px;
-    border-radius: 2px;
+    border-radius: var(--radius-button);
     transition: all 0.2s;
   }
 
@@ -752,7 +752,7 @@ const configs = [
   .table-container {
     overflow-x: auto;
     border: 1px solid var(--border-table);
-    border-radius: 2px;
+    border-radius: var(--radius-card);
   }
 
   .args-table {
@@ -799,19 +799,19 @@ const configs = [
     font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px;
     padding: 1px 4px;
-    border-radius: 2px;
+    border-radius: var(--radius-badge);
   }
 
   .req-span.yes {
-    background: rgba(196, 92, 92, 0.08);
-    color: #c45c5c;
-    border: 1px solid rgba(196, 92, 92, 0.2);
+    background: var(--bg-danger-translucent);
+    color: var(--text-danger);
+    border: 1px solid var(--border-danger-translucent);
   }
 
   .req-span.no {
-    background: rgba(136, 217, 130, 0.08);
-    color: var(--text-brand);
-    border: 1px solid rgba(136, 217, 130, 0.2);
+    background: var(--bg-success-translucent);
+    color: var(--text-success);
+    border: 1px solid var(--border-success-translucent);
   }
 
   .arg-desc {
@@ -897,7 +897,7 @@ const configs = [
     background: var(--bg-log-panel);
     border: 1px solid var(--border-table);
     padding: 10px 14px;
-    border-radius: 2px;
+    border-radius: var(--radius-card);
     margin-top: 6px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
@@ -925,7 +925,7 @@ const configs = [
   .config-card {
     background: var(--bg-card);
     border: 1px solid var(--border-card);
-    border-radius: 2px;
+    border-radius: var(--radius-card);
   }
 
   .config-header {

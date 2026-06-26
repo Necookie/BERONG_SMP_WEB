@@ -129,7 +129,7 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
     </div>
 
     {stats.length === 0 ? (
-      <p style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#555; padding:24px 0;">
+      <p style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-muted); padding:24px 0;">
         {hasDb ? 'No completed sessions yet.' : 'Configure TURSO_URL and TURSO_TOKEN to see live data.'}
       </p>
     ) : (

@@ -51,7 +51,7 @@ const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
       <span class="header-date">{formatDate(session.start_time)}</span>
     </div>
     <div style="display: flex; gap: 8px; align-items: center; margin-left: 16px; flex-shrink: 0;">
-      <button id="btn-edit-details" class="notes-save-btn" style="margin-top: 0; padding: 5px 12px; font-weight: 500;">Edit Details</button>
+      <button id="btn-edit-details" class="btn-cancel" style="margin-top: 0; padding: 5px 12px; font-weight: 500;">Edit Details</button>
       <button id="btn-delete-session" class="delete-btn" style="padding: 5px 12px; font-weight: 500;">Delete</button>
     </div>
   </div>
@@ -322,7 +322,7 @@ const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
   <div id="modal-delete" class="modal-overlay">
     <div class="modal-container" style="max-width: 400px;">
       <div class="modal-header">
-        <h3 class="modal-title" style="color: #c45c5c;">Delete Session Log</h3>
+        <h3 class="modal-title" style="color: var(--text-danger);">Delete Session Log</h3>
         <button id="delete-close" class="modal-close" type="button">✕</button>
       </div>
       <form method="POST" action={`/api/sessions/${session.id}/delete`}>
@@ -330,7 +330,7 @@ const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
           <p style="font-size: 13px; line-height: 1.6; margin: 0; color: var(--text-primary);">
             Are you sure you want to permanently delete this drill session log for <strong>{session.student_name}</strong>?
           </p>
-          <p style="font-size: 11px; line-height: 1.5; margin: 8px 0 0; color: #c45c5c; font-family: 'JetBrains Mono', monospace;">
+          <p style="font-size: 11px; line-height: 1.5; margin: 8px 0 0; color: var(--text-danger); font-family: 'JetBrains Mono', monospace;">
             Warning: This action is permanent, deletes the record from the database, and cannot be undone.
           </p>
         </div>
