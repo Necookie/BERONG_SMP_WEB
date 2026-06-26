@@ -196,15 +196,19 @@ export function derivePrepLevel(score: number, storedLevel: string | null): 'HIG
   return 'LOW';
 }
 
-export function parseEventLog(eventLogJson: string | null) {
+const VERBOSE_EVENT_TYPES = new Set(['PLAYER_TICK', 'FIRE_SPREAD']);
+
+export function parseEventLog(eventLogJson: string | null, includeVerbose = false) {
   if (!eventLogJson) return [];
   try {
     const events = JSON.parse(eventLogJson) as Array<{type: string; tOffsetMs: number; data: Record<string, unknown>}>;
-    return events.map(e => ({
-      ts:   `+${(e.tOffsetMs / 1000).toFixed(1)}s`.padStart(8),
-      code: e.type.padEnd(16),
-      msg:  Object.entries(e.data).map(([k, v]) => `${k}=${v}`).join(' '),
-    }));
+    return events
+      .filter(e => includeVerbose || !VERBOSE_EVENT_TYPES.has(e.type))
+      .map(e => ({
+        ts:   `+${(e.tOffsetMs / 1000).toFixed(1)}s`.padStart(8),
+        code: e.type.padEnd(16),
+        msg:  Object.entries(e.data).map(([k, v]) => `${k}=${v}`).join(' '),
+      }));
   } catch {
     return [];
   }
