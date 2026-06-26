@@ -46,6 +46,26 @@ html.dark {
   --text-section-cell:  #555;
   --text-pending:       #555;
   --text-no-data:       #555;
+
+  /* Unified border radii */
+  --radius-card:        4px;
+  --radius-button:      4px;
+  --radius-input:       4px;
+  --radius-badge:       2px;
+  --radius-modal:       8px;
+
+  /* Themed status colors */
+  --text-success:               #88d982;
+  --bg-success-translucent:     rgba(136, 217, 130, 0.08);
+  --border-success-translucent: rgba(136, 217, 130, 0.15);
+  
+  --text-warning:               #c9a84c;
+  --bg-warning-translucent:     rgba(201, 168, 76, 0.08);
+  --border-warning-translucent: rgba(201, 168, 76, 0.15);
+  
+  --text-danger:                #c45c5c;
+  --bg-danger-translucent:      rgba(196, 92, 92, 0.08);
+  --border-danger-translucent:  rgba(196, 92, 92, 0.15);
 }
 
 /* Light mode overrides */
@@ -88,6 +108,26 @@ html.light {
   --text-section-cell:  #6b7466;
   --text-pending:       #8a847e;
   --text-no-data:       #8a847e;
+
+  /* Unified border radii */
+  --radius-card:        4px;
+  --radius-button:      4px;
+  --radius-input:       4px;
+  --radius-badge:       2px;
+  --radius-modal:       8px;
+
+  /* Themed status colors */
+  --text-success:               #2e7d32;
+  --bg-success-translucent:     rgba(46, 125, 50, 0.08);
+  --border-success-translucent: rgba(46, 125, 50, 0.15);
+  
+  --text-warning:               #8a6d00;
+  --bg-warning-translucent:     rgba(138, 109, 0, 0.08);
+  --border-warning-translucent: rgba(138, 109, 0, 0.15);
+  
+  --text-danger:                #b33a3a;
+  --bg-danger-translucent:      rgba(179, 58, 58, 0.08);
+  --border-danger-translucent:  rgba(179, 58, 58, 0.15);
 }
 
 /* Theme transitions */
@@ -1285,7 +1325,7 @@ td {
 .modal-container {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 8px;
+  border-radius: var(--radius-modal);
   width: 90%;
   max-width: 480px;
   overflow: hidden;
@@ -1359,7 +1399,7 @@ td {
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: var(--radius-input);
   outline: none;
   width: 100%;
 }
@@ -1384,11 +1424,16 @@ td {
   letter-spacing: 0.08em;
   padding: 6px 16px;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  border-radius: var(--radius-button);
+  transition: color 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .btn-cancel:hover {
   color: var(--text-primary);
   border-color: var(--text-muted);
+  transform: translateY(-1px);
+}
+.btn-cancel:active {
+  transform: translateY(0);
 }
 .btn-save {
   background: var(--text-brand);
@@ -1400,10 +1445,16 @@ td {
   padding: 6px 16px;
   cursor: pointer;
   font-weight: 600;
-  transition: opacity 0.15s;
+  border-radius: var(--radius-button);
+  transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .btn-save:hover {
   opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(136, 217, 130, 0.2);
+}
+.btn-save:active {
+  transform: translateY(0);
 }
 
 /* Destructive Delete Button styling */
@@ -1416,12 +1467,17 @@ td {
   letter-spacing: 0.08em;
   padding: 5px 14px;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+  border-radius: var(--radius-button);
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .delete-btn:hover {
   border-color: #c45c5c;
   background-color: rgba(196, 92, 92, 0.08);
   color: #d46c6c;
+  transform: translateY(-1px);
+}
+.delete-btn:active {
+  transform: translateY(0);
 }
 .btn-delete-confirm {
   background: #c45c5c;
@@ -1433,10 +1489,16 @@ td {
   padding: 6px 16px;
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.15s;
+  border-radius: var(--radius-button);
+  transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .btn-delete-confirm:hover {
   background: #d46c6c;
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(196, 92, 92, 0.25);
+}
+.btn-delete-confirm:active {
+  transform: translateY(0);
 }
 
 /* ── Search Bar styling ──────────────────────────────────────────────── */
@@ -1446,7 +1508,7 @@ td {
   gap: 8px;
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 4px;
+  border-radius: var(--radius-input);
   padding: 4px 10px;
   width: 240px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -1486,7 +1548,7 @@ td {
   padding: 12px 16px;
   background-color: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 8px;
+  border-radius: var(--radius-card);
 }
 
 .pagination-btn {
@@ -1498,7 +1560,7 @@ td {
   color: var(--text-brand);
   background: transparent;
   border: 1px solid var(--border-card);
-  border-radius: 6px;
+  border-radius: var(--radius-button);
   text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1534,7 +1596,7 @@ td {
   gap: 16px;
   background-color: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 6px;
+  border-radius: var(--radius-card);
   padding: 8px 16px;
   margin-bottom: 12px;
   animation: slideDown 0.2s ease;
@@ -1564,7 +1626,7 @@ td {
   font-size: 10px;
   letter-spacing: 0.08em;
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: var(--radius-button);
   cursor: pointer;
   transition: all 0.15s ease;
 }
