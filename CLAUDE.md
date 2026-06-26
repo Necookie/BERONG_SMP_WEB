@@ -278,6 +278,11 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 33 | `login.astro` & `setup.astro` | Improve layout responsiveness by removing body overflow restrictions, enabling vertical scrolling, adding padding, and floating the theme toggle in the top-right corner. |
 | 34 | `astro.config.mjs` (landing) | Fix landing page image rendering by changing imageService to 'compile' for pre-optimized build-time WebP assets. |
 | 35 | `DashboardLayout.astro` | Replace dashboard layout <Image> component with standard <img> using logo.src to prevent dynamic Cloudflare Image Resizing errors. |
+| 36 | `data.astro` | Fix data download card responsiveness and text overflow truncation to prevent card layout blowout and hidden arrows. |
+| 37 | `DashboardLayout.astro` | Stack username, role badge, and logout vertically in sidebar footer to prevent horizontal overlap on narrow screens. |
+| 38 | `users.astro` | Stack User Management owner mode badge vertically on mobile screen headers. |
+| 39 | `login.astro` & `setup.astro` | Adjust authentication card widths to 460px and apply responsive margins/padding for mobile, tablet, and desktop viewports. |
+| 40 | `commands.astro` | Add mobile/tablet media queries to commands grid to adjust responsive padding layout. |
 
 ---
 
