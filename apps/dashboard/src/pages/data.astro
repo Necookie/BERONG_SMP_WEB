@@ -85,7 +85,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   .data-section {
     background: var(--bg-card);
     border: 1px solid var(--border-card);
-    border-radius: 6px;
+    border-radius: var(--radius-card);
     padding: 20px 24px;
     margin-bottom: 16px;
   }
@@ -110,7 +110,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     padding: 2px 7px;
-    border-radius: 3px;
+    border-radius: var(--radius-badge);
     background: var(--bg-filter-pill-active);
     color: var(--text-brand);
     border: 1px solid var(--text-brand);
@@ -149,15 +149,21 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     gap: 14px;
     padding: 12px 16px;
     border: 1px solid var(--border-card);
-    border-radius: 5px;
+    border-radius: var(--radius-button);
     text-decoration: none;
-    transition: border-color 0.15s, background 0.15s;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s;
     background: var(--bg-base);
   }
 
   .download-card:hover {
     border-color: var(--text-brand);
     background: var(--bg-table-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .download-card:active {
+    transform: translateY(0);
   }
 
   .dl-icon {
@@ -165,7 +171,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     font-size: 10px;
     font-weight: 700;
     padding: 4px 6px;
-    border-radius: 3px;
+    border-radius: var(--radius-badge);
     background: rgba(201, 168, 76, 0.1);
     color: #c9a84c;
     border: 1px solid rgba(201, 168, 76, 0.3);
