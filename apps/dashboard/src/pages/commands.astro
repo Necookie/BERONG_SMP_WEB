@@ -500,7 +500,9 @@ const configs = [
           <p class="config-desc mb-4">
             All BerongSMP items and blocks are obtainable via the vanilla <code>/give</code> command using namespaced IDs.
           </p>
-          <table class="config-table">
+
+          <span class="sub-label mb-2">Simulation Items</span>
+          <table class="config-table mb-4">
             <thead>
               <tr>
                 <th>Item / Block</th>
@@ -512,26 +514,112 @@ const configs = [
               <tr>
                 <td><strong>Fire Extinguisher</strong></td>
                 <td><code class="cfg-key">berongsmp:fire_extinguisher</code></td>
-                <td class="cfg-affects">Class A/B extinguisher. Right-click once to pull pin, then hold to spray.</td>
+                <td class="cfg-affects">Class A/B extinguisher. Right-click to pull pin, then hold to spray. Also: <code>/get_extinguisher</code></td>
               </tr>
               <tr>
                 <td><strong>CO2 Extinguisher</strong></td>
                 <td><code class="cfg-key">berongsmp:co2_extinguisher</code></td>
-                <td class="cfg-affects">Class C extinguisher. Targets <code>BURNING</code> computer blocks.</td>
+                <td class="cfg-affects">Class C extinguisher. Targets <code>BURNING</code> computer blocks. Also: <code>/get_co2_extinguisher</code></td>
               </tr>
               <tr>
                 <td><strong>Computer Block</strong></td>
                 <td><code class="cfg-key">berongsmp:computer_block</code></td>
-                <td class="cfg-affects">Placeable; right-click to power ON/OFF; use flint & steel to ignite.</td>
+                <td class="cfg-affects">Placeable; right-click ON/OFF; flint &amp; steel to ignite (BURNING state).</td>
+              </tr>
+              <tr>
+                <td><strong>Fire Alarm</strong></td>
+                <td><code class="cfg-key">berongsmp:fire_alarm</code></td>
+                <td class="cfg-affects">Wall-mounted alarm. Right-click during active FIRE simulation to activate and log a telemetry event.</td>
               </tr>
             </tbody>
           </table>
+
+          <span class="sub-label mb-2">Furniture Blocks</span>
+          <table class="config-table">
+            <thead>
+              <tr>
+                <th>Item / Block</th>
+                <th>Namespaced ID</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Classroom Whiteboard</strong></td>
+                <td><code class="cfg-key">berongsmp:whiteboard</code></td>
+                <td class="cfg-affects">Large wall-mounted whiteboard; FACING-aware thin panel.</td>
+              </tr>
+              <tr>
+                <td><strong>Toilet</strong></td>
+                <td><code class="cfg-key">berongsmp:toilet</code></td>
+                <td class="cfg-affects">FACING-aware bathroom fixture; plays water sound on right-click.</td>
+              </tr>
+              <tr>
+                <td><strong>Sink</strong></td>
+                <td><code class="cfg-key">berongsmp:sink</code></td>
+                <td class="cfg-affects">FACING-aware sink; plays ambient water sound on right-click.</td>
+              </tr>
+              <tr>
+                <td><strong>Office Drawers</strong></td>
+                <td><code class="cfg-key">berongsmp:drawers</code></td>
+                <td class="cfg-affects">FACING-aware wooden drawer cabinet; flammable.</td>
+              </tr>
+              <tr>
+                <td><strong>Computer Table</strong></td>
+                <td><code class="cfg-key">berongsmp:computer_table</code></td>
+                <td class="cfg-affects">Long desk-style table; full-block footprint; flammable oak construction.</td>
+              </tr>
+              <tr>
+                <td><strong>Classroom Chair</strong></td>
+                <td><code class="cfg-key">berongsmp:chair</code></td>
+                <td class="cfg-affects">FACING-aware seat with backrest; flammable wood.</td>
+              </tr>
+              <tr>
+                <td><strong>Filing Cabinet</strong></td>
+                <td><code class="cfg-key">berongsmp:filing_cabinet</code></td>
+                <td class="cfg-affects">Metal filing cabinet; FACING-aware; fire-resistant.</td>
+              </tr>
+              <tr>
+                <td><strong>Locker</strong></td>
+                <td><code class="cfg-key">berongsmp:locker</code></td>
+                <td class="cfg-affects">Metal school/office locker with gold lock detail; FACING-aware.</td>
+              </tr>
+              <tr>
+                <td><strong>Trash Can</strong></td>
+                <td><code class="cfg-key">berongsmp:trash_can</code></td>
+                <td class="cfg-affects">Symmetric cylindrical bin; no FACING needed.</td>
+              </tr>
+              <tr>
+                <td><strong>Bulletin Board</strong></td>
+                <td><code class="cfg-key">berongsmp:bulletin_board</code></td>
+                <td class="cfg-affects">Wall-mounted cork board; FACING-aware full-height panel; flammable.</td>
+              </tr>
+              <tr>
+                <td><strong>Ceiling Fan</strong></td>
+                <td><code class="cfg-key">berongsmp:ceiling_fan</code></td>
+                <td class="cfg-affects">Ceiling-mounted fixture; emits light level 5; symmetric.</td>
+              </tr>
+            </tbody>
+          </table>
+
           <div class="example-box mt-4">
+            <div class="example-item">
+              <code class="example-cmd">/give @s berongsmp:fire_extinguisher</code>
+            </div>
             <div class="example-item">
               <code class="example-cmd">/give @s berongsmp:co2_extinguisher</code>
             </div>
             <div class="example-item">
               <code class="example-cmd">/give @s berongsmp:computer_block</code>
+            </div>
+            <div class="example-item">
+              <code class="example-cmd">/give @s berongsmp:whiteboard</code>
+            </div>
+            <div class="example-item">
+              <code class="example-cmd">/give @s berongsmp:computer_table</code>
+            </div>
+            <div class="example-item">
+              <code class="example-cmd">/give @s berongsmp:chair</code>
             </div>
           </div>
           <p class="font-mono text-[9px] mt-3" style="color: var(--text-muted)">
