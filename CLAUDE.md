@@ -164,31 +164,36 @@ Access in SSR pages via `Astro.locals.runtime.env.TURSO_URL`.
 
 ---
 
-## Current state of the integration (read before assuming anything exists)
+## Current state of the integration
 
-**The mod does not currently send this repo anything.** Per the mod's own
-CLAUDE.md, there is no webhook sender, no HTTP client, and no payload class
-in the mod codebase. Architecture diagrams for this project describe a
-fuller pipeline (behavioral telemetry → Postgres → feature engineering →
-Random Forest preparedness classifier → adaptive feedback → dashboard), but
-that's a target design, not a description of working code on either side.
+**The mod writes directly to Turso via `TursoClient` (HTTP, fire-and-forget).** The `sessions` table is populated live during gameplay. The `event_log` column contains a JSON array of `SimEvent` objects logged by `session.logger.log(...)` in the mod. The dashboard reads this data via `@libsql/client/web`.
 
-Treat any FastAPI routes referenced below as **routes this repo should
-define/build to match what the mod can actually send** — not routes
-confirmed to be in active use. Before building against assumed payload
-shapes, check the mod's `SimulationSession` for what data actually exists:
-- `disasterType` (FIRE / EARTHQUAKE)
-- session duration / timer ticks elapsed
-- `firesExtinguishedCount` (FIRE sessions only)
-- `magnitude`, `aftershockCount`, `aftershockMagnitudeScale`, final
-  `EarthquakePhase` reached (EARTHQUAKE sessions only)
-- player UUID, session start/end
+### event_log JSON schema
 
-There is currently **no per-tick decision/path-selection telemetry** in the
-mod (no evacuation path choice, no panic proxy, no targeting accuracy/pin-
-pull latency). If the ML feature set this repo wants (evacuation time,
-decision delay, path efficiency, panic proxy, etc.) needs that granularity,
-it has to be built as new instrumentation in the mod first.
+Each element in the `event_log` JSON array is a `SimEvent`:
+```json
+{ "type": "<event_type>", "tOffsetMs": <millis since session start>, "data": { ... } }
+```
+
+**Event types written to Turso event_log (from session.logger):**
+
+| type | When | Key data fields |
+|---|---|---|
+| `SIM_START` | Simulation start | `sim_type`, `magnitude`, `x`, `y`, `z` (spawn position) |
+| `SIM_END` | Simulation end | `end_reason`, `score` |
+| `door_open` | Player opens a door | `t` (elapsed s), `x`, `y`, `z`, `target`, `hazard_distance` |
+| `EXT_PIN_PULL` | ABC extinguisher pin pulled | `pulled: true` |
+| `EXT_SPRAY` | ABC extinguisher sprayed | `hit_fire` (bool), `distance_to_fire`, `nearby_player_count` |
+| `extinguisher_use` | CO2 extinguisher sprayed | `hit_target` (bool), `nearby_player_count` |
+| `fire_alarm_activate` | Fire alarm pressed | `t`, `x`, `y`, `z`, `hazard_distance` |
+| `assembly_area_reached` | Player enters assembly zone | `t`, `x`, `y`, `z`, `hazard_distance` |
+| `emergency_exit` | Player crosses exit zone | `t`, `x`, `y`, `z`, `exit` (label), `hazard_distance` |
+| `PLAYER_TICK` | 1 Hz position sample | `x`, `y`, `z`, `room`, `nearest_fire_dist` |
+| `FIRE_SPREAD` | Fire spreads to new block | `x`, `y`, `z`, count |
+
+**Note:** `PLAYER_TICK` and `FIRE_SPREAD` are high-frequency and filtered out by default in `parseEventLog()`. Pass `includeVerbose=true` to include them.
+
+**Separate CSV pipeline (not in Turso):** The mod also writes `gameplay_logs_<YYYYMMDD>.csv` locally to `run/telemetry/`. CSV event types: `session_start`, `move_tick` (10 Hz x/y/z + hazard_distance), `extinguisher_use`, `fire_alarm_activate`, `assembly_area_reached`, `emergency_exit`, `door_open`, `session_end`. The ML Random Forest pipeline reads these CSV files — not Turso — for feature engineering.
 
 ---
 
@@ -283,6 +288,7 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 38 | `users.astro` | Stack User Management owner mode badge vertically on mobile screen headers. |
 | 39 | `login.astro` & `setup.astro` | Adjust authentication card widths to 460px and apply responsive margins/padding for mobile, tablet, and desktop viewports. |
 | 40 | `commands.astro` | Add mobile/tablet media queries to commands grid to adjust responsive padding layout. |
+| 41 | `queries.ts` — rubric extHits + event log filter | `extractRubricSignals` now counts both `EXT_SPRAY` (ABC) and `extinguisher_use` (CO2) as extinguisher hits. `parseEventLog` filters `PLAYER_TICK` and `FIRE_SPREAD` by default (pass `includeVerbose=true` to show). |
 
 ---
 
