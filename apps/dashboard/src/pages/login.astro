@@ -62,12 +62,12 @@ if (sessionToken) {
 
   <div class="login-wrapper w-full max-w-[460px] relative z-10">
     
-    <div class="card p-6 sm:p-8 md:p-10 border border-card bg-card rounded-2xl shadow-2xl relative overflow-hidden">
+    <div class="card p-6 sm:p-8 md:p-10 border border-card bg-card shadow-2xl relative overflow-hidden">
       <!-- Glow border effect -->
-      <div class="absolute inset-0 border border-white/5 rounded-2xl pointer-events-none"></div>
+      <div class="absolute inset-0 border border-white/5 pointer-events-none" style="border-radius: var(--radius-modal);"></div>
 
       <div class="flex flex-col items-center mb-8">
-        <div class="logo-box p-4 rounded-2xl bg-base/50 border border-card/60 mb-4 shadow-inner flex items-center justify-center">
+        <div class="logo-box p-4 bg-base/50 border border-card/60 mb-4 shadow-inner flex items-center justify-center">
           <img
             src={logo.src}
             alt="BERONG SMP logo"
@@ -76,15 +76,15 @@ if (sessionToken) {
             height="48"
           />
         </div>
-        <span class="login-badge px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase mb-3">
+        <span class="login-badge px-3 py-1 text-[10px] font-bold tracking-widest uppercase mb-3">
           Secure Portal
         </span>
         <h1 class="text-3xl font-bold font-display text-heading tracking-tight">BERONG SMP</h1>
         <p class="text-sm text-secondary mt-2 text-center max-w-[280px]">Sign in to access the analytics and telemetries dashboard</p>
       </div>
 
-      <div id="error-message" class="hidden p-3 bg-red-950/40 border border-red-900/60 text-red-400 text-sm rounded-lg mb-4 text-center backdrop-blur-sm"></div>
-      <div id="info-message" class="hidden p-3 bg-emerald-950/40 border border-emerald-900/60 text-emerald-400 text-sm rounded-lg mb-4 text-center backdrop-blur-sm"></div>
+      <div id="error-message" class="hidden p-3 bg-red-950/40 border border-red-900/60 text-red-400 text-sm mb-4 text-center backdrop-blur-sm"></div>
+      <div id="info-message" class="hidden p-3 bg-emerald-950/40 border border-emerald-900/60 text-emerald-400 text-sm mb-4 text-center backdrop-blur-sm"></div>
 
       <form id="login-form" class="space-y-5">
         <div>
@@ -98,7 +98,7 @@ if (sessionToken) {
               required
               autocomplete="username"
               placeholder="Enter your username"
-              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+              class="w-full bg-base border border-card pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
             />
           </div>
         </div>
@@ -113,14 +113,14 @@ if (sessionToken) {
               required
               autocomplete="current-password"
               placeholder="••••••••"
-              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+              class="w-full bg-base border border-card pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
             />
           </div>
         </div>
         
         <button
           type="submit"
-          class="w-full bg-brand text-black font-semibold rounded-lg py-3 hover:shadow-[0_0_20px_rgba(136,217,130,0.35)] transition-all duration-300 active:scale-[0.98] mt-3"
+          class="w-full bg-brand text-black font-semibold py-3 hover:shadow-[0_0_20px_rgba(136,217,130,0.35)] transition-all duration-300 active:scale-[0.98] mt-3"
         >
           Sign In
         </button>
@@ -138,7 +138,7 @@ if (sessionToken) {
               required
               autocomplete="username"
               placeholder="e.g. admin"
-              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+              class="w-full bg-base border border-card pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
             />
           </div>
         </div>
@@ -153,7 +153,7 @@ if (sessionToken) {
               required
               autocomplete="new-password"
               placeholder="••••••••"
-              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+              class="w-full bg-base border border-card pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
             />
           </div>
         </div>
@@ -168,14 +168,14 @@ if (sessionToken) {
               required
               autocomplete="new-password"
               placeholder="••••••••"
-              class="w-full bg-base border border-card rounded-lg pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+              class="w-full bg-base border border-card pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
             />
           </div>
         </div>
         
         <button
           type="submit"
-          class="w-full bg-brand text-black font-semibold rounded-lg py-3 hover:shadow-[0_0_20px_rgba(136,217,130,0.35)] transition-all duration-300 active:scale-[0.98] mt-3"
+          class="w-full bg-brand text-black font-semibold py-3 hover:shadow-[0_0_20px_rgba(136,217,130,0.35)] transition-all duration-300 active:scale-[0.98] mt-3"
         >
           Create Account
         </button>
@@ -218,20 +218,27 @@ if (sessionToken) {
       background-color: rgba(17, 17, 17, 0.75);
       backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-modal);
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.02);
     }
     .logo-box {
       background-color: rgba(13, 13, 13, 0.8);
       border-color: rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-card);
     }
     .login-badge {
       background: rgba(136, 217, 130, 0.08);
       color: var(--text-brand);
       border: 1px solid rgba(136, 217, 130, 0.15);
+      border-radius: var(--radius-badge);
     }
     .bg-base {
       background-color: rgba(13, 13, 13, 0.7);
       border-color: rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-input);
+    }
+    #error-message, #info-message {
+      border-radius: var(--radius-card);
     }
     input:focus {
       border-color: var(--text-brand) !important;
@@ -245,6 +252,7 @@ if (sessionToken) {
       background-color: var(--text-brand);
       color: #0d0d0d;
       border: none;
+      border-radius: var(--radius-button);
     }
     .bg-brand:hover {
       filter: brightness(1.05);
