@@ -238,7 +238,8 @@ export function extractRubricSignals(eventLogJson: string | null): RubricSignals
       if (e.type === 'emergency_exit' && !out.exitUsed) {
         out.exitUsed = String(e.data.exit ?? e.data.interaction_target ?? '');
       }
-      if (e.type === 'EXT_SPRAY' && e.data.hit_fire === true) out.extHits++;
+      if ((e.type === 'EXT_SPRAY' && e.data.hit_fire === true) ||
+          (e.type === 'extinguisher_use' && e.data.hit_target === true)) out.extHits++;
       if (e.type === 'door_open') out.doorOpens++;
     }
   } catch {}
