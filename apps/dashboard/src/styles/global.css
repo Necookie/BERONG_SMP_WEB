@@ -1657,6 +1657,78 @@ td {
   min-height: 140px;
 }
 
+/* ── Motion System ───────────────────────────────────────────────────── */
+:root {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+
+  --dur-instant:  100ms;
+  --dur-fast:     160ms;
+  --dur-base:     220ms;
+  --dur-slow:     320ms;
+}
+
+/* Nav item — upgrade to expo easing, tighter duration */
+.nav-item {
+  transition:
+    color var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart),
+    background-color var(--dur-fast) var(--ease-out-quart) !important;
+}
+
+/* Table rows — subtle lift on hover */
+.sessions-table tbody tr,
+.roster-table tbody tr {
+  transition:
+    background-color var(--dur-fast) var(--ease-out-quart) !important;
+}
+
+/* Buttons — snappier press feedback */
+button,
+.filter-pill,
+.pagination-btn,
+.sort-btn {
+  transition:
+    background-color var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart),
+    color var(--dur-fast) var(--ease-out-quart),
+    box-shadow var(--dur-fast) var(--ease-out-quart),
+    transform var(--dur-instant) var(--ease-out-quart) !important;
+}
+
+button:active,
+.filter-pill:active,
+.pagination-btn:active {
+  transform: scale(0.97);
+}
+
+/* Modal — smooth fade-in entry */
+.modal-backdrop {
+  transition: opacity var(--dur-base) var(--ease-out-quart) !important;
+}
+
+.modal-content {
+  transition:
+    opacity var(--dur-base) var(--ease-out-expo),
+    transform var(--dur-base) var(--ease-out-expo) !important;
+}
+
+/* Sidebar overlay — smooth backdrop */
+.sidebar-overlay {
+  transition: opacity var(--dur-base) var(--ease-out-quart) !important;
+}
+
+/* Reduced motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 
 
 
