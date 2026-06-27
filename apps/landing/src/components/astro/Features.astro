@@ -1,6 +1,8 @@
 ---
-// Features.astro – 6-card grid of Core Systems, verbatim copy from Stitch design
-// Uses inline Tailwind + 'group' on each card (avoids @apply group restriction)
+// Features.astro – Core Systems section
+// Layout: 2 primary scenario cards (large) + 4 supporting systems (compact grouped list)
+// Broke the identical 6-card grid per /impeccable quieter — primary scenarios get
+// prominence, supporting systems get a unified container.
 ---
 
 <section
@@ -10,7 +12,7 @@
 >
   <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
     <!-- Section header -->
-    <div class="text-center mb-16">
+    <div class="text-center mb-16 reveal">
       <h2
         id="features-heading"
         class="font-headline text-2xl md:text-3xl font-semibold text-white mb-4"
@@ -22,87 +24,75 @@
       </p>
     </div>
 
-    <!-- 3-column card grid -->
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Primary scenarios — large cards with full description -->
+    <div class="grid md:grid-cols-2 gap-6 mb-6 reveal-stagger">
 
       <!-- Fire Simulation -->
       <article
-        class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors duration-300 group relative overflow-hidden"
+        class="bg-surface-elevated p-8 stone-border hover:border-primary/50 hover:-translate-y-0.5 transition-all duration-200"
         aria-label="Fire Simulation"
       >
-        <div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top" aria-hidden="true"></div>
         <div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
-          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;" aria-hidden="true">local_fire_department</span>
+          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1; font-size:24px;" aria-hidden="true">local_fire_department</span>
         </div>
         <h3 class="font-headline text-sm font-bold text-white mb-3 uppercase tracking-wide">Fire Simulation</h3>
-        <p class="font-body text-body-sm text-on-surface-variant">Advanced fire propagation physics and interactive extinguisher mechanics requiring proper P.A.S.S. technique.</p>
+        <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">Advanced fire propagation physics and interactive extinguisher mechanics requiring proper P.A.S.S. technique under timed conditions.</p>
       </article>
 
       <!-- Earthquake Engine -->
       <article
-        class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors duration-300 group relative overflow-hidden"
+        class="bg-surface-elevated p-8 stone-border hover:border-primary/50 hover:-translate-y-0.5 transition-all duration-200"
         aria-label="Earthquake Engine"
       >
-        <div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top" aria-hidden="true"></div>
         <div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
-          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;" aria-hidden="true">broken_image</span>
+          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1; font-size:24px;" aria-hidden="true">crisis_alert</span>
         </div>
         <h3 class="font-headline text-sm font-bold text-white mb-3 uppercase tracking-wide">Earthquake Engine</h3>
-        <p class="font-body text-body-sm text-on-surface-variant">Procedural structural degradation, falling debris hazards, and simulated seismic tremors affecting player movement.</p>
-      </article>
-
-      <!-- Lobby System -->
-      <article
-        class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors duration-300 group relative overflow-hidden"
-        aria-label="Lobby System"
-      >
-        <div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top" aria-hidden="true"></div>
-        <div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
-          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;" aria-hidden="true">meeting_room</span>
-        </div>
-        <h3 class="font-headline text-sm font-bold text-white mb-3 uppercase tracking-wide">Lobby System</h3>
-        <p class="font-body text-body-sm text-on-surface-variant">A secure staging area for protocol briefing, equipment loadout, and scenario selection before deployment.</p>
-      </article>
-
-      <!-- Real-Time HUD -->
-      <article
-        class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors duration-300 group relative overflow-hidden"
-        aria-label="Real-Time HUD"
-      >
-        <div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top" aria-hidden="true"></div>
-        <div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
-          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;" aria-hidden="true">timer</span>
-        </div>
-        <h3 class="font-headline text-sm font-bold text-white mb-3 uppercase tracking-wide">Real-Time HUD</h3>
-        <p class="font-body text-body-sm text-on-surface-variant">Customized interface displaying critical mission timers, objective checklists, and environmental hazard warnings.</p>
-      </article>
-
-      <!-- Custom Structures -->
-      <article
-        class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors duration-300 group relative overflow-hidden"
-        aria-label="Custom Structures"
-      >
-        <div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top" aria-hidden="true"></div>
-        <div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
-          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;" aria-hidden="true">location_city</span>
-        </div>
-        <h3 class="font-headline text-sm font-bold text-white mb-3 uppercase tracking-wide">Custom Structures</h3>
-        <p class="font-body text-body-sm text-on-surface-variant">1:1 scale reconstructions of real-world academic facilities, including the intricate LSPU Library layout.</p>
-      </article>
-
-      <!-- Educational Focus -->
-      <article
-        class="bg-surface-elevated p-8 stone-border hover:border-primary/50 transition-colors duration-300 group relative overflow-hidden"
-        aria-label="Educational Focus"
-      >
-        <div class="absolute top-0 left-0 w-1 h-full bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top" aria-hidden="true"></div>
-        <div class="w-12 h-12 bg-surface-container stone-border flex items-center justify-center mb-6">
-          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;" aria-hidden="true">school</span>
-        </div>
-        <h3 class="font-headline text-sm font-bold text-white mb-3 uppercase tracking-wide">Educational Focus</h3>
-        <p class="font-body text-body-sm text-on-surface-variant">Integrated evaluation systems mapping player actions against established institutional safety protocols.</p>
+        <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">Procedural structural degradation, falling debris hazards, and simulated seismic tremors affecting player movement and visibility.</p>
       </article>
 
     </div>
+
+    <!-- Supporting systems — compact grouped container, not individual cards -->
+    <div class="bg-surface-container/40 stone-border reveal">
+      <div class="grid grid-cols-1 sm:grid-cols-2 divide-y divide-border-stone sm:divide-y-0 sm:grid-rows-2">
+
+        <!-- Row 1 -->
+        <div class="p-6 flex gap-4 items-start sm:border-r sm:border-border-stone sm:border-b sm:border-border-stone">
+          <span class="material-symbols-outlined text-primary shrink-0 mt-0.5" style="font-size:20px; font-variation-settings:'FILL' 1;" aria-hidden="true">meeting_room</span>
+          <div>
+            <h3 class="font-mono text-xs font-bold text-white uppercase tracking-wider mb-1">Lobby System</h3>
+            <p class="font-body text-body-sm text-on-surface-variant">Secure staging area for briefing, equipment loadout, and scenario selection.</p>
+          </div>
+        </div>
+
+        <div class="p-6 flex gap-4 items-start sm:border-b sm:border-border-stone">
+          <span class="material-symbols-outlined text-primary shrink-0 mt-0.5" style="font-size:20px; font-variation-settings:'FILL' 1;" aria-hidden="true">timer</span>
+          <div>
+            <h3 class="font-mono text-xs font-bold text-white uppercase tracking-wider mb-1">Real-Time HUD</h3>
+            <p class="font-body text-body-sm text-on-surface-variant">Mission timers, objective checklists, and live environmental hazard warnings.</p>
+          </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="p-6 flex gap-4 items-start sm:border-r sm:border-border-stone">
+          <span class="material-symbols-outlined text-primary shrink-0 mt-0.5" style="font-size:20px; font-variation-settings:'FILL' 1;" aria-hidden="true">location_city</span>
+          <div>
+            <h3 class="font-mono text-xs font-bold text-white uppercase tracking-wider mb-1">Custom Structures</h3>
+            <p class="font-body text-body-sm text-on-surface-variant">1:1 scale reconstructions of real-world academic facilities, including the LSPU Library.</p>
+          </div>
+        </div>
+
+        <div class="p-6 flex gap-4 items-start">
+          <span class="material-symbols-outlined text-primary shrink-0 mt-0.5" style="font-size:20px; font-variation-settings:'FILL' 1;" aria-hidden="true">school</span>
+          <div>
+            <h3 class="font-mono text-xs font-bold text-white uppercase tracking-wider mb-1">Educational Focus</h3>
+            <p class="font-body text-body-sm text-on-surface-variant">Evaluation systems mapping player actions to established institutional safety protocols.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 </section>
