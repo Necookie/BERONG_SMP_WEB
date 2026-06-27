@@ -206,6 +206,30 @@ const lowPct      = 100 - highPct - moderatePct;
   import { initTableSorting } from '../lib/tableSorter';
   initTableSorting();
 
+  // KPI count-up animation
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const els = document.querySelectorAll('.kpi-value');
+    els.forEach(function (el) {
+      const textNode = Array.from(el.childNodes).find(function (n) {
+        return n.nodeType === 3 && n.textContent.trim();
+      });
+      if (!textNode) return;
+      const target = parseFloat(textNode.textContent.trim());
+      if (!Number.isFinite(target) || target === 0) return;
+      const start = performance.now();
+      const duration = 600;
+      textNode.textContent = '0';
+      function tick(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+        textNode.textContent = Math.round(eased * target).toString();
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+  })();
+
   const indicator = document.getElementById('live-indicator');
   const lastUpdatedEl = document.getElementById('last-updated');
   const tableBody = document.querySelector('.sessions-table tbody');

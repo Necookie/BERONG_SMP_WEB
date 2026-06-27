@@ -1779,6 +1779,50 @@ td {
   --dur-slow:     320ms;
 }
 
+/* ── Dashboard entrance animations ─────────────────────────────────── */
+/* Product register: fast (≤220ms), state-conveying, no choreography.
+   'backwards' fill means content is invisible until animation fires —
+   but SSR renders immediately so there's no flash-of-invisible-content. */
+
+@keyframes dash-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dash-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* KPI items slide up in a tight sequence */
+.kpi-item {
+  animation: dash-up 200ms var(--ease-out-expo) backwards;
+}
+.kpi-item:nth-child(1) { animation-delay:   0ms; }
+.kpi-item:nth-child(2) { animation-delay:  50ms; }
+.kpi-item:nth-child(3) { animation-delay:  90ms; }
+.kpi-item:nth-child(4) { animation-delay: 120ms; }
+
+/* Distribution and sessions sections fade in after KPI strip completes */
+.dist-section--grid { animation: dash-fade 240ms var(--ease-out-expo) 120ms backwards; }
+.sessions-section   { animation: dash-fade 240ms var(--ease-out-expo) 160ms backwards; }
+
+/* Chart areas fade in so hydration pop-in is softened */
+.dist-chart-wrap,
+.dist-histogram-wrap { animation: dash-fade 280ms var(--ease-out-expo) 200ms backwards; }
+
+/* Table rows — micro-stagger (first 5 rows only; beyond that no delay) */
+.sessions-table tbody tr,
+.roster-table tbody tr { animation: dash-up 160ms var(--ease-out-expo) 180ms backwards; }
+.sessions-table tbody tr:nth-child(2),
+.roster-table tbody tr:nth-child(2) { animation-delay: 210ms; }
+.sessions-table tbody tr:nth-child(3),
+.roster-table tbody tr:nth-child(3) { animation-delay: 240ms; }
+.sessions-table tbody tr:nth-child(4),
+.roster-table tbody tr:nth-child(4) { animation-delay: 265ms; }
+.sessions-table tbody tr:nth-child(5),
+.roster-table tbody tr:nth-child(5) { animation-delay: 285ms; }
+
 /* Nav item — upgrade to expo easing, tighter duration */
 .nav-item {
   transition:
