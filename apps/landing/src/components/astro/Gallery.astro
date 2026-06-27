@@ -33,7 +33,7 @@ import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
     </div>
 
     <!-- Asymmetric grid: 8 cols large / 4 cols stacked -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 reveal">
 
       <!-- Large featured image (8/12 columns) -->
       <figure class="md:col-span-8 stone-border bg-surface-container p-2 relative overflow-hidden group">
@@ -44,7 +44,8 @@ import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
         <Image
           src={lobbyImg}
           alt="BERONG SMP central staging lobby interface — players spawning and receiving mission briefings"
-          class="w-full h-full object-cover min-h-[300px] md:min-h-[500px]"
+          class="w-full h-full object-cover min-h-[300px] md:min-h-[500px] transition-transform duration-500 group-hover:scale-[1.03]"
+          style="transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);"
           width={960}
           height={500}
           loading="lazy"
@@ -65,7 +66,8 @@ import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
           <Image
             src={seismicImg}
             alt="Structural destruction during a simulated seismic event — collapsing voxel buildings and debris"
-            class="w-full h-full object-cover min-h-[200px]"
+            class="w-full h-full object-cover min-h-[200px] transition-transform duration-500 group-hover:scale-[1.04]"
+            style="transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);"
             width={480}
             height={250}
             loading="lazy"
@@ -82,7 +84,8 @@ import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
           <Image
             src={thermalImg}
             alt="Fire extinguisher mechanics test environment — thermal protocol training in a burning Minecraft room"
-            class="w-full h-full object-cover min-h-[200px]"
+            class="w-full h-full object-cover min-h-[200px] transition-transform duration-500 group-hover:scale-[1.04]"
+            style="transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);"
             width={480}
             height={250}
             loading="lazy"
