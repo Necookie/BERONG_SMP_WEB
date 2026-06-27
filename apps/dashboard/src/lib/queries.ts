@@ -11,7 +11,7 @@ export interface LiveSession {
   status: string;
   tutorial_completed: number;
   tutorial_duration_s: number | null;
-  simulation_type: 'FIRE' | 'EARTHQUAKE' | null;
+  simulation_type: 'FIRE' | 'EARTHQUAKE' | 'CCS_FIRE' | 'CCS_EARTHQUAKE' | null;
   simulation_score: number;
   passed: number;
   event_log: string | null;
@@ -53,8 +53,8 @@ export async function getOverviewStats(env: Env): Promise<OverviewStats> {
     SELECT
       COUNT(*)                                                          AS total,
       COALESCE(AVG(simulation_score), 0)                               AS avg_score,
-      SUM(CASE WHEN simulation_type='FIRE'       THEN 1 ELSE 0 END)   AS fire_count,
-      SUM(CASE WHEN simulation_type='EARTHQUAKE' THEN 1 ELSE 0 END)   AS quake_count,
+      SUM(CASE WHEN simulation_type IN ('FIRE','CCS_FIRE')               THEN 1 ELSE 0 END) AS fire_count,
+      SUM(CASE WHEN simulation_type IN ('EARTHQUAKE','CCS_EARTHQUAKE')   THEN 1 ELSE 0 END) AS quake_count,
       SUM(CASE WHEN date(start_time) >= date('now','-7 days') THEN 1 ELSE 0 END) AS this_week,
       SUM(CASE WHEN prep_level='HIGH'     THEN 1 ELSE 0 END)          AS high_count,
       SUM(CASE WHEN prep_level='MODERATE' THEN 1 ELSE 0 END)          AS mod_count,
@@ -258,7 +258,7 @@ export async function updateSessionDetails(
     student_name: string;
     student_id: string | null;
     section: string | null;
-    simulation_type: 'FIRE' | 'EARTHQUAKE' | null;
+    simulation_type: 'FIRE' | 'EARTHQUAKE' | 'CCS_FIRE' | 'CCS_EARTHQUAKE' | null;
     simulation_score: number;
     prep_level: 'HIGH' | 'MODERATE' | 'LOW' | 'PENDING' | null;
     passed: number;

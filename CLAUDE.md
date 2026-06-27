@@ -152,7 +152,7 @@ Dashboard (CF Workers) ◄──┘  @libsql/client/web reads directly
 ```
 id, student_name, student_id, section, station_account, account_uuid,
 start_time, end_time, status, tutorial_completed, tutorial_duration_s,
-simulation_type (FIRE|EARTHQUAKE), simulation_score, passed,
+simulation_type (FIRE|EARTHQUAKE|CCS_FIRE|CCS_EARTHQUAKE), simulation_score, passed,
 event_log (JSON array of SimEvent),
 prep_level (HIGH|MODERATE|LOW — written by groupmate's RF script),
 confidence (0.0–1.0), bfp_notes, notes

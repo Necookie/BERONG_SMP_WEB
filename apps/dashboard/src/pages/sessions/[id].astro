@@ -16,7 +16,7 @@ if (!session) {
 
 const level = derivePrepLevel(session.simulation_score, session.prep_level);
 const tierClass = level !== 'PENDING' ? level.toLowerCase() : 'low';
-const isFireSession = session.simulation_type === 'FIRE';
+const isFireSession = session.simulation_type === 'FIRE' || session.simulation_type === 'CCS_FIRE';
 const logEntries = parseEventLog(session.event_log);
 const rubric     = extractRubricSignals(session.event_log);
 const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
@@ -313,6 +313,8 @@ const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
               <select id="simulation_type" name="simulation_type" class="form-select">
                 <option value="FIRE" selected={session.simulation_type === 'FIRE'}>FIRE</option>
                 <option value="EARTHQUAKE" selected={session.simulation_type === 'EARTHQUAKE'}>EARTHQUAKE</option>
+                <option value="CCS_FIRE" selected={session.simulation_type === 'CCS_FIRE'}>CCS_FIRE</option>
+                <option value="CCS_EARTHQUAKE" selected={session.simulation_type === 'CCS_EARTHQUAKE'}>CCS_EARTHQUAKE</option>
                 <option value="" selected={session.simulation_type === null}>None</option>
               </select>
             </div>
