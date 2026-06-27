@@ -33,13 +33,7 @@ const rules = [
 >
   <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
     <!-- Section header -->
-    <div class="text-center mb-16">
-      <div class="section-label mx-auto mb-6">
-        <span class="material-symbols-outlined" style="font-size:16px;" aria-hidden="true"
-          >gavel</span
-        >
-        Server Regulations
-      </div>
+    <div class="text-center mb-16 reveal">
       <h2
         id="rules-heading"
         class="font-headline text-2xl md:text-3xl font-semibold text-white mb-4"
@@ -53,7 +47,7 @@ const rules = [
     </div>
 
     <!-- Rules list -->
-    <ol class="space-y-4 max-w-3xl mx-auto list-none">
+    <ol class="space-y-4 max-w-3xl mx-auto list-none reveal-stagger">
       {
         rules.map((rule) => (
           <li class="flex gap-6 bg-surface-elevated stone-border p-6 group hover:border-primary/40 transition-colors duration-200">
