@@ -171,8 +171,8 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
       {/* Building outline */}
       <rect
         x={bx1} y={bz1} width={bx2 - bx1} height={bz2 - bz1}
-        fill="rgba(255,255,255,0.02)"
-        stroke="#2a2a2a"
+        fill="rgba(128,128,128,0.04)"
+        stroke="var(--border-card)"
         strokeWidth={1.5}
       />
 
@@ -184,8 +184,9 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
           <g key={room.name}>
             <rect
               x={rx1} y={rz1} width={rx2 - rx1} height={rz2 - rz1}
-              fill="rgba(255,255,255,0.015)"
-              stroke="rgba(255,255,255,0.07)"
+              fill="rgba(128,128,128,0.03)"
+              stroke="var(--text-muted)"
+              strokeOpacity={0.15}
               strokeWidth={1}
             />
             <text
@@ -194,7 +195,8 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
               textAnchor="middle"
               dominantBaseline="middle"
               fontSize={7}
-              fill="rgba(255,255,255,0.18)"
+              fill="var(--text-muted)"
+              fillOpacity={0.55}
               fontFamily="JetBrains Mono, monospace"
             >
               {room.name}
@@ -208,7 +210,8 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
         <polyline
           points={allMovePts}
           fill="none"
-          stroke="rgba(255,255,255,0.07)"
+          stroke="var(--text-muted)"
+          strokeOpacity={0.3}
           strokeWidth={1.5}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -246,7 +249,7 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
       )}
 
       {/* Compass */}
-      <text x={bounds.padX} y={bounds.padZ - 10} fontSize={8} fill="rgba(255,255,255,0.2)" fontFamily="JetBrains Mono, monospace">
+      <text x={bounds.padX} y={bounds.padZ - 10} fontSize={8} fill="var(--text-muted)" fillOpacity={0.5} fontFamily="JetBrains Mono, monospace">
         N ↑
       </text>
     </svg>
@@ -332,8 +335,8 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
         {/* Building outline */}
         <rect
           x={rx1} y={rz1} width={rx2 - rx1} height={rz2 - rz1}
-          fill="rgba(255,255,255,0.02)"
-          stroke="#2a2a2a"
+          fill="rgba(128,128,128,0.04)"
+          stroke="var(--border-card)"
           strokeWidth={1.5}
         />
 
@@ -342,7 +345,8 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
           <polyline
             points={allMovePts}
             fill="none"
-            stroke="rgba(255,255,255,0.07)"
+            stroke="var(--text-muted)"
+            strokeOpacity={0.3}
             strokeWidth={1.5}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -378,14 +382,15 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
           x={bounds.padX}
           y={bounds.svgHeight - 8}
           fontSize={7}
-          fill="rgba(255,255,255,0.15)"
+          fill="var(--text-muted)"
+          fillOpacity={0.5}
           fontFamily="JetBrains Mono, monospace"
         >
           {floor === 'ground' ? 'Y ≤ −26 (ground)' : 'Y > −26 (upper)'}
         </text>
 
         {/* Compass */}
-        <text x={bounds.padX} y={bounds.padZ - 6} fontSize={8} fill="rgba(255,255,255,0.2)" fontFamily="JetBrains Mono, monospace">
+        <text x={bounds.padX} y={bounds.padZ - 6} fontSize={8} fill="var(--text-muted)" fillOpacity={0.5} fontFamily="JetBrains Mono, monospace">
           N ↑
         </text>
       </svg>
@@ -398,13 +403,13 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
 export function MapPlayer({ moveCsv, simulationType }: Props) {
   const rows = useMemo(() => (moveCsv ? parseCsv(moveCsv) : []), [moveCsv]);
 
-  const [frame, setFrame]       = useState(0);
+  const [frame, setFrame]       = useState(() => Math.max(0, rows.length - 1));
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed]       = useState(2);
 
   const rafRef      = useRef<number>(0);
   const lastTRef    = useRef<number>(0);
-  const frameF      = useRef<number>(0); // fractional frame for smooth advance
+  const frameF      = useRef<number>(Math.max(0, rows.length - 1)); // fractional frame for smooth advance
   const speedRef    = useRef(speed);
 
   useEffect(() => { speedRef.current = speed; }, [speed]);
