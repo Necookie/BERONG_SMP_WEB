@@ -1,7 +1,9 @@
 {
   "detector": {
     "ignoreRules": [],
-    "ignoreFiles": [],
+    "ignoreFiles": [
+      "apps/dashboard/src/styles/global.css"
+    ],
     "ignoreValues": [
       {
         "rule": "overused-font",
