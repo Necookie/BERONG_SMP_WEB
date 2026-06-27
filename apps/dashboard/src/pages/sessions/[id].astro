@@ -1,6 +1,7 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import { EventLog } from '../../components/EventLog.tsx';
+import { MapPlayer } from '../../components/MapPlayer.tsx';
 import { getSessionById, getAuditLog, formatDuration, formatDate, derivePrepLevel, parseEventLog, extractRubricSignals } from '../../lib/queries';
 import { getEnv } from '../../lib/db';
 
@@ -264,6 +265,22 @@ const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
     </div>
 
   </div>
+
+  {session.move_log_csv && (
+    <div style="margin: 0 0 24px; border-top: 1px solid var(--border-card); background: var(--bg-log-panel);">
+      <div class="panel-header" style="padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;">
+        <span class="section-label">Movement map</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-muted);">
+          10 Hz · {session.simulation_type ?? '—'}
+        </span>
+      </div>
+      <MapPlayer
+        client:only="react"
+        moveCsv={session.move_log_csv}
+        simulationType={session.simulation_type}
+      />
+    </div>
+  )}
 
   <!-- Edit Details Modal -->
   <div id="modal-edit" class="modal-overlay">

@@ -81,14 +81,17 @@ Located in `apps/dashboard/src/pages/`:
 
 - `index.astro` — Overview: KPI strip, preparedness distribution bar, recent sessions table (5 rows)
 - `sessions/index.astro` — Sessions list: all 8 sessions with client-side filter pills (scenario type, prep level)
-- `sessions/[id].astro` — Session detail: fullscreen 60/40 split, terminal event log left, stats/classifier signals/result right
+- `sessions/[id].astro` — Session detail: fullscreen split, terminal event log left, stats/classifier signals/result right; full-width `MapPlayer` below when `move_log_csv` is present
 - `roster.astro` — Roster: per-participant aggregated stats, cohort KPI strip, distribution bar, tier breakdown mini-badges
 
 ### Components
 Located in `apps/dashboard/src/components/`:
 
 - `EventLog.tsx` — React island, terminal-style auto-scroll log viewer
+- `MapPlayer.tsx` — React island, animated top-down movement map. Parses `move_log_csv` (10 Hz) client-side; renders Library (FIRE/EARTHQUAKE) or CCS side-by-side floor panels (CCS_FIRE); play/pause/scrub/speed timeline; event markers for alarm, door, extinguisher, assembly, exit.
 - `ThemeToggle.tsx` — React island, sun/moon icon toggle for light/dark mode (reads/writes `localStorage.theme`, syncs to `<html>` class)
+- `PrepChart.tsx` — React island, Chart.js doughnut chart for preparedness distribution
+- `ScoreHistogram.tsx` — React island, Chart.js bar chart for score distribution
 
 ### Layout
 - `layouts/DashboardLayout.astro` — 220px sidebar shell + main slot
@@ -117,9 +120,10 @@ Smooth transitions are applied to all structural elements via a universal transi
 - `src/assets/images/` — contains `berong-elearning-logo.png` (used in sidebar brand), `berong-mascot.png`, and scene images (shared with landing)
 - `public/` — `favicon.ico`, `favicon.png`, `favicon.svg` (copied from landing)
 
-### Data layer
-- `src/lib/mockData.ts` — 8 fictional sessions + 8 participants; all types and helper functions (`getParticipantStats`, `getTierCounts`, etc.)
-- All dashboard pages operate against this mock data contract until real mod telemetry is wired in
+### Data layer & lib
+- `src/lib/db.ts` — `getEnv()` helper; initialises `@libsql/client/web` from Cloudflare env bindings
+- `src/lib/queries.ts` — all Turso read helpers (`getSessionById`, `getAllSessions`, `getAuditLog`, `parseEventLog`, `extractRubricSignals`, etc.); `LiveSession` interface includes `move_log_csv: string | null`
+- `src/lib/floorplans.ts` — static Minecraft world-space room bounds, building coordinate data, and `worldToSvg()` scale helper used by `MapPlayer`
 
 ### Design tokens
 - Fonts: Space Grotesk (KPI/display), Inter (body), JetBrains Mono (labels/terminal)
@@ -193,7 +197,9 @@ Each element in the `event_log` JSON array is a `SimEvent`:
 
 **Note:** `PLAYER_TICK` and `FIRE_SPREAD` are high-frequency and filtered out by default in `parseEventLog()`. Pass `includeVerbose=true` to include them.
 
-**Separate CSV pipeline (not in Turso):** The mod also writes `gameplay_logs_<YYYYMMDD>.csv` locally to `run/telemetry/`. CSV event types: `session_start`, `move_tick` (10 Hz x/y/z + hazard_distance), `extinguisher_use`, `fire_alarm_activate`, `assembly_area_reached`, `emergency_exit`, `door_open`, `session_end`. The ML Random Forest pipeline reads these CSV files — not Turso — for feature engineering.
+**10 Hz move log (in Turso):** The mod buffers all `move_tick` rows in memory during the session and uploads them to `sessions.move_log_csv TEXT` at session end. CSV columns: `player_id,session_id,scenario_type,timestamp,event_type,x,y,z,hazard_distance,interaction_target,nearby_player_count`. Action events (alarm, door, extinguisher, assembly, exit) are interleaved at their real timestamps; extinguisher rows may have empty x/z and should be position-interpolated from the nearest prior `move_tick`. Download endpoint: `GET /api/sessions/[id]/move-log` returns the raw CSV as an attachment.
+
+**Local CSV fallback:** The mod also writes `gameplay_logs_<YYYYMMDD>.csv` to `run/telemetry/` on the server disk. The ML pipeline can read either the local files or query `move_log_csv` from Turso.
 
 ---
 
