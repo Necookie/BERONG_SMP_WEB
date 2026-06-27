@@ -12,12 +12,12 @@ interface Props {
 const { title, currentPath, fullscreen = false } = Astro.props;
 
 const navItems = [
-  { href: '/',         label: 'Overview',  badge: 'SUMMARY'  },
-  { href: '/sessions', label: 'Sessions',  badge: 'LOG'      },
-  { href: '/roster',   label: 'Roster',    badge: 'ROSTER'   },
-  { href: '/data',     label: 'Data',      badge: 'EXPORT'   },
-  { href: '/commands', label: 'Commands',  badge: 'REFERENCE'},
-  { href: '/guide',    label: 'Guide',     badge: 'DOCS'     },
+  { href: '/',         label: 'Overview'  },
+  { href: '/sessions', label: 'Sessions'  },
+  { href: '/roster',   label: 'Roster'    },
+  { href: '/data',     label: 'Data'      },
+  { href: '/commands', label: 'Commands'  },
+  { href: '/guide',    label: 'Guide'     },
 ];
 ---
 
@@ -54,7 +54,7 @@ const navItems = [
   <!-- Mobile top bar (hamburger) — hidden on desktop via CSS -->
   <div class="mobile-topbar" id="mobile-topbar">
     <button class="hamburger-btn" id="hamburger-btn" aria-label="Open navigation menu" aria-expanded="false">
-      <span class="hamburger-icon">☰</span>
+      <span class="material-symbols-outlined" style="font-size: 20px; line-height: 1; color: var(--text-primary);">menu</span>
     </button>
     <span class="mobile-topbar-title">BERONG SMP</span>
     <ThemeToggle client:only="react" />
@@ -90,7 +90,6 @@ const navItems = [
             class={`nav-item${currentPath === item.href ? ' active' : ''}`}
           >
             <span class="nav-label">{item.label}</span>
-            <span class="nav-badge">{item.badge}</span>
           </a>
         ))}
         {Astro.locals.user?.role === 'owner' && (
@@ -99,7 +98,6 @@ const navItems = [
             class={`nav-item${currentPath === '/users' ? ' active' : ''}`}
           >
             <span class="nav-label">Users</span>
-            <span class="nav-badge">ADMIN</span>
           </a>
         )}
       </nav>
