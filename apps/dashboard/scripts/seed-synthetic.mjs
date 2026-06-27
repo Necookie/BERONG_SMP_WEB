@@ -56,7 +56,8 @@ const send   = (ms,reason,score,passed,fires,spread,mag) => {
 
 // ── Scenario builders ─────────────────────────────────────────────────────────
 
-const fireHigh = () => [
+// fireHigh — Ana Dela Cruz (score 88): fast pin pull, alarm early, 7 accurate hits
+const fireHighAna = () => [
   sstart(200,"FIRE",0,38,-32,91),
   ptick(1000,38,-32,91,"MAIN_HALL",14.2), ptick(2000,41,-32,93,"MAIN_HALL",11.8),
   pinpull(2400),
@@ -78,6 +79,56 @@ const fireHigh = () => [
   send(22900,"assembly_reached",88,true,18,72),
 ];
 
+// fireHigh — Miguel Santos (score 82): slower pin pull, alarm at ~9s, 5 accurate hits
+const fireHighMiguel = () => [
+  sstart(200,"FIRE",0,37,-32,90),
+  ptick(1000,37,-32,90,"MAIN_HALL",15.1), ptick(2000,39,-32,92,"MAIN_HALL",12.8),
+  ptick(3000,41,-32,94,"MAIN_HALL",10.4), pinpull(3600),
+  ptick(4000,43,-32,96,"MAIN_HALL",8.6),  spray(4400,false,8.6),
+  ptick(5000,44,-32,97,"MAIN_HALL",7.8),  spray(5600,false,7.8),
+  ptick(6000,45,-32,98,"MAIN_HALL",7.0),  spray(6800,true,6.4),
+  ptick(7000,46,-32,99,"MAIN_HALL",6.1),  spray(7600,true,5.7),
+  alarm(8200,8.0,47.5,-32,100.2,5.2),
+  ptick(8000,46,-32,99,"MAIN_HALL",5.2),  spray(9000,true,4.9),
+  ptick(9000,46,-32,99,"MAIN_HALL",4.9),  spray(9800,true,4.6),
+  ptick(10000,45,-32,98,"MAIN_HALL",5.3), spray(10600,true,5.0),
+  ptick(11000,44,-32,96,"MAIN_HALL",6.6), ptick(12000,43,-32,94,"MAIN_HALL",8.2),
+  dopen(13000,12.8,42.4,-32,93.1,8.9),    ptick(13000,41,-32,91,"MAIN_HALL",10.5),
+  ptick(14000,39,-32,88,"ENTRANCE",13.1), dopen(15200,15.0,37.8,-32,85.2,15.4),
+  ptick(15000,36,-32,85,"ENTRANCE",15.9), ptick(16000,34,-32,82,"ENTRANCE",18.2),
+  ptick(17000,36,-32,79,"OUTSIDE",20.4),  ptick(18000,39,-32,77,"OUTSIDE",22.8),
+  exit_(18600,18.4,40.8,-32,76.1,23.5,"main_exit"),
+  ptick(19000,42,-32,75,"OUTSIDE",25.1),  ptick(20000,46,-32,73,"OUTSIDE",27.9),
+  ptick(21000,49,-32,71,"OUTSIDE",30.6),  ptick(22000,51,-32,69,"OUTSIDE",32.8),
+  ptick(23000,53,-32,68,"OUTSIDE",34.7),  assem(24100,23.9,54.2,-32,67.1),
+  send(24200,"assembly_reached",82,true,14,84),
+];
+
+// fireHigh — Ryan Mendoza (score 91): fastest response, alarm at 5.3s, 9 accurate hits
+const fireHighRyan = () => [
+  sstart(200,"FIRE",0,39,-32,92),
+  ptick(1000,39,-32,92,"MAIN_HALL",13.6), pinpull(1800),
+  ptick(2000,42,-32,95,"MAIN_HALL",10.9), spray(2600,false,10.9),
+  ptick(3000,44,-32,97,"MAIN_HALL",8.4),  spray(3400,true,7.6),
+  ptick(4000,46,-32,99,"MAIN_HALL",5.9),  spray(4200,true,5.2),
+  alarm(4800,4.6,47.6,-32,100.4,4.8),
+  ptick(5000,47,-32,100,"MAIN_HALL",4.8), spray(5400,true,4.3),
+  ptick(6000,48,-32,101,"MAIN_HALL",3.9), spray(6200,true,3.6),
+  ptick(7000,48,-32,101,"MAIN_HALL",3.9), spray(7000,true,3.8),
+  ptick(8000,47,-32,100,"MAIN_HALL",4.2), spray(7800,true,4.0),
+  ptick(9000,46,-32,98,"MAIN_HALL",5.1),  spray(8600,true,4.8),
+  ptick(10000,45,-32,97,"MAIN_HALL",5.8), spray(9400,true,5.5),
+  ptick(11000,43,-32,94,"MAIN_HALL",8.0), dopen(11400,11.2,42.1,-32,93.4,8.7),
+  ptick(12000,40,-32,91,"MAIN_HALL",10.3),dopen(12900,12.7,37.4,-32,86.8,13.6),
+  ptick(13000,37,-32,85,"ENTRANCE",14.2), ptick(14000,35,-32,82,"ENTRANCE",16.8),
+  exit_(14600,14.4,34.2,-32,81.1,17.4,"main_exit"),
+  ptick(15000,37,-32,79,"OUTSIDE",18.5),  ptick(16000,40,-32,77,"OUTSIDE",20.9),
+  ptick(17000,44,-32,75,"OUTSIDE",23.6),  ptick(18000,47,-32,73,"OUTSIDE",26.2),
+  ptick(19000,50,-32,71,"OUTSIDE",28.8),  assem(19800,19.6,52.1,-32,69.4),
+  send(19900,"assembly_reached",91,true,22,68),
+];
+
+// fireMed — Maria Reyes (score 62): no alarm, moderate hits, average speed
 const fireMed = () => [
   sstart(200,"FIRE",0,35,-32,89),
   ptick(1000,35,-32,89,"MAIN_HALL",16.4), ptick(2000,37,-32,91,"MAIN_HALL",13.8),
@@ -96,6 +147,51 @@ const fireMed = () => [
   ptick(20000,47,-32,73,"OUTSIDE",27.2),  ptick(21000,50,-32,71,"OUTSIDE",30.0),
   assem(21500,21.3,51.8,-32,69.4),
   send(21600,"assembly_reached",62,true,8,95),
+];
+
+// fireMed — Jasmine Lim (score 45): no alarm, few hits, hesitant near fire, late assembly
+const fireMedJasmine = () => [
+  sstart(200,"FIRE",0,34,-32,88),
+  ptick(1000,34,-32,88,"MAIN_HALL",17.8), ptick(2000,36,-32,90,"MAIN_HALL",15.2),
+  ptick(3000,38,-32,92,"MAIN_HALL",13.0), ptick(4000,40,-32,93,"MAIN_HALL",11.6),
+  ptick(5000,41,-32,94,"MAIN_HALL",10.9), ptick(6000,42,-32,95,"MAIN_HALL",10.1),
+  pinpull(6800),
+  ptick(7000,43,-32,96,"MAIN_HALL",9.4),  spray(7400,false,9.4),
+  ptick(8000,43,-32,96,"MAIN_HALL",9.4),  spray(8800,false,9.4),
+  ptick(9000,44,-32,97,"MAIN_HALL",8.7),  spray(9600,true,8.2),
+  ptick(10000,44,-32,97,"MAIN_HALL",8.7), ptick(11000,43,-32,96,"MAIN_HALL",9.0),
+  ptick(12000,42,-32,95,"MAIN_HALL",9.8), ptick(13000,41,-32,93,"MAIN_HALL",11.4),
+  ptick(14000,40,-32,91,"MAIN_HALL",12.8),spray(14400,true,12.1),
+  ptick(15000,39,-32,89,"MAIN_HALL",13.5),
+  dopen(15800,15.6,38.2,-32,88.4,14.2),   ptick(16000,37,-32,86,"ENTRANCE",15.8),
+  ptick(17000,35,-32,83,"ENTRANCE",18.2),  ptick(18000,33,-32,81,"ENTRANCE",20.1),
+  ptick(19000,35,-32,78,"OUTSIDE",22.4),   ptick(20000,38,-32,76,"OUTSIDE",24.8),
+  ptick(21000,41,-32,74,"OUTSIDE",27.3),   ptick(22000,44,-32,72,"OUTSIDE",29.9),
+  dopen(22600,22.4,44.9,-32,71.3,30.6),    ptick(23000,47,-32,71,"OUTSIDE",32.4),
+  ptick(24000,49,-32,70,"OUTSIDE",33.8),   assem(24900,24.7,50.6,-32,69.6),
+  send(25000,"assembly_reached",45,true,4,108),
+];
+
+// fireMed — Sofia Aguilar (score 58): no alarm, moderate hits, uses side door early
+const fireMedSofia = () => [
+  sstart(200,"FIRE",0,36,-32,90),
+  ptick(1000,36,-32,90,"MAIN_HALL",15.9), ptick(2000,38,-32,92,"MAIN_HALL",13.6),
+  ptick(3000,40,-32,94,"MAIN_HALL",11.3), pinpull(3800),
+  ptick(4000,42,-32,96,"MAIN_HALL",9.5),  spray(4600,true,8.8),
+  ptick(5000,43,-32,97,"MAIN_HALL",8.6),  spray(5800,true,7.4),
+  ptick(6000,44,-32,98,"MAIN_HALL",7.5),  spray(7000,false,7.5),
+  ptick(7000,45,-32,99,"MAIN_HALL",6.8),  spray(7800,true,6.1),
+  ptick(8000,45,-32,99,"MAIN_HALL",6.1),  spray(8600,false,6.1),
+  ptick(9000,44,-32,97,"MAIN_HALL",7.0),  spray(9600,true,6.5),
+  ptick(10000,43,-32,95,"MAIN_HALL",8.3), ptick(11000,41,-32,93,"MAIN_HALL",10.0),
+  ptick(12000,39,-32,90,"MAIN_HALL",12.1),
+  dopen(12400,12.2,38.6,-32,89.4,12.6),   ptick(13000,37,-32,87,"ENTRANCE",14.3),
+  ptick(14000,35,-32,84,"ENTRANCE",16.7),  ptick(15000,36,-32,81,"OUTSIDE",19.1),
+  ptick(16000,38,-32,79,"OUTSIDE",21.0),   exit_(16800,16.6,39.4,-32,77.8,22.3,"main_exit"),
+  ptick(17000,41,-32,77,"OUTSIDE",23.4),   ptick(18000,44,-32,75,"OUTSIDE",25.9),
+  dopen(18500,18.3,44.8,-32,74.2,26.5),    ptick(19000,47,-32,73,"OUTSIDE",28.3),
+  ptick(20000,49,-32,72,"OUTSIDE",30.1),   assem(20900,20.7,51.2,-32,70.4),
+  send(21000,"assembly_reached",58,true,6,88),
 ];
 
 // fireMed variant that includes a fire alarm activation — for students who activated alarm
@@ -134,7 +230,8 @@ const fireLow = (fires=1) => [
   send(120000,"timeout",fires===2?28:15,false,fires,180),
 ];
 
-const quakeHigh = (mag) => [
+// quakeHigh — Joshua Hernandez (7.2, score 85): perfect drop-cover, no movement during shaking
+const quakeHighJoshua = (mag) => [
   sstart(200,"EARTHQUAKE",mag,38,-32,91),
   ...[1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,55,60].map(s=>
     ptick(s*1000,38,-32,91,"MAIN_HALL",99)),
@@ -142,10 +239,29 @@ const quakeHigh = (mag) => [
   ptick(64000,34,-32,85,"ENTRANCE",99), exit_(65000,65.0,33.2,-32,83.4,99,"main_exit"),
   ptick(66000,32,-32,82,"OUTSIDE",99), ptick(67000,35,-32,79,"OUTSIDE",99),
   ptick(68000,39,-32,76,"OUTSIDE",99), assem(69000,69.0,43.1,-32,74.2),
-  send(69100,"assembly_reached",mag>=7?85:79,true,undefined,undefined,mag),
+  send(69100,"assembly_reached",85,true,undefined,undefined,mag),
 ];
 
-const quakeMed = (mag) => [
+// quakeHigh — Karen Villanueva (6.5, score 79): minor movement during aftershock, self-corrected
+const quakeHighKaren = (mag) => [
+  sstart(200,"EARTHQUAKE",mag,40,-32,93),
+  ...[1,2,3,4,5,6,7,8,9,10].map(s=>ptick(s*1000,40,-32,93,"MAIN_HALL",99)),
+  ptick(11000,40,-32,93,"MAIN_HALL",99), ptick(12000,40,-32,93,"MAIN_HALL",99),
+  // slight drift during aftershock phase then corrects
+  ptick(15000,41,-32,94,"MAIN_HALL",99), ptick(20000,42,-32,95,"MAIN_HALL",99),
+  ptick(25000,41,-32,94,"MAIN_HALL",99), ptick(30000,40,-32,93,"MAIN_HALL",99),
+  ptick(35000,40,-32,93,"MAIN_HALL",99), ptick(40000,40,-32,93,"MAIN_HALL",99),
+  ptick(45000,40,-32,93,"MAIN_HALL",99), ptick(50000,40,-32,93,"MAIN_HALL",99),
+  ptick(55000,40,-32,93,"MAIN_HALL",99),
+  dopen(57000,56.8,39.5,-32,92.1,99), ptick(58000,37,-32,89,"ENTRANCE",99),
+  ptick(59000,35,-32,86,"ENTRANCE",99), exit_(60000,59.8,34.0,-32,84.2,99,"main_exit"),
+  ptick(61000,33,-32,82,"OUTSIDE",99), ptick(62000,36,-32,79,"OUTSIDE",99),
+  ptick(63000,40,-32,77,"OUTSIDE",99), assem(64000,63.8,42.4,-32,75.1),
+  send(64100,"assembly_reached",79,true,undefined,undefined,mag),
+];
+
+// quakeMed — Mark Flores (6.8, score 55): moved too much initially, covered eventually
+const quakeMedMark = (mag) => [
   sstart(200,"EARTHQUAKE",mag,40,-32,93),
   ptick(1000,40,-32,93,"MAIN_HALL",99),   ptick(2000,42,-32,95,"MAIN_HALL",99),
   ptick(3000,44,-32,97,"MAIN_HALL",99),   ptick(4000,46,-32,99,"COMPUTER_LAB",99),
@@ -155,6 +271,23 @@ const quakeMed = (mag) => [
   ptick(58000,38,-32,89,"ENTRANCE",99),   ptick(59000,36,-32,86,"OUTSIDE",99),
   assem(61000,61.0,40.4,-32,80.1),
   send(61100,"assembly_reached",55,true,undefined,undefined,mag),
+];
+
+// quakeMed — Diego Aquino (7.0, score 60): slightly quicker to shelter, evacuated at moderate pace
+const quakeMedDiego = (mag) => [
+  sstart(200,"EARTHQUAKE",mag,41,-32,94),
+  ptick(1000,41,-32,94,"MAIN_HALL",99),  ptick(2000,43,-32,96,"MAIN_HALL",99),
+  ptick(3000,43,-32,96,"MAIN_HALL",99),  // settled faster than Mark
+  ...[4,5,6,7,8,9,10,15,20,25,30,35,40,45].map(s=>
+    ptick(s*1000,43,-32,96,"MAIN_HALL",99)),
+  // some drift after main shock before re-covering
+  ptick(46000,44,-32,97,"MAIN_HALL",99), ptick(47000,43,-32,96,"MAIN_HALL",99),
+  ptick(48000,43,-32,96,"MAIN_HALL",99), ptick(50000,43,-32,96,"MAIN_HALL",99),
+  dopen(51000,50.8,42.2,-32,95.1,99),    ptick(52000,40,-32,92,"ENTRANCE",99),
+  ptick(53000,38,-32,89,"ENTRANCE",99),  ptick(54000,37,-32,86,"OUTSIDE",99),
+  ptick(55000,38,-32,83,"OUTSIDE",99),
+  assem(57000,56.8,40.8,-32,80.6),
+  send(57100,"assembly_reached",60,true,undefined,undefined,mag),
 ];
 
 const quakeLow = (mag) => [
@@ -169,7 +302,8 @@ const quakeLow = (mag) => [
   send(120000,"timeout",mag>=7?20:15,false,undefined,undefined,mag),
 ];
 
-const ccsHigh = () => [
+// ccsHigh — Trisha Pascual (score 80): alarm first, 7 confirmed CO2 hits, textbook protocol
+const ccsHighTrisha = () => [
   sstart(200,"CCS_FIRE",0,125,-32,20),
   ptick(1000,125,-32,20,"CCS_GROUND_FLOOR",8.4), ptick(2000,122,-32,18,"CCS_GROUND_FLOOR",6.2),
   alarm(2600,2.4,120.8,-32,17.4,5.8),
@@ -192,7 +326,32 @@ const ccsHigh = () => [
   send(22700,"assembly_reached",80,true,13,89),
 ];
 
-const ccsMed = () => [
+// ccsHigh — Luis Bautista (score 75): fewer CO2 hits than Trisha, slightly slower
+const ccsHighLuis = () => [
+  sstart(200,"CCS_FIRE",0,126,-32,22),
+  ptick(1000,126,-32,22,"CCS_GROUND_FLOOR",9.8),  ptick(2000,123,-32,19,"CCS_GROUND_FLOOR",7.1),
+  alarm(2700,2.5,121.4,-32,18.1,6.4),
+  pinpull(3100),
+  ptick(3000,121,-32,17,"CCS_GROUND_FLOOR",5.8),  co2(4200,true),
+  ptick(4000,120,-32,16,"CCS_GROUND_FLOOR",5.1),  co2(5400,true),
+  ptick(5000,119,-32,15,"CCS_GROUND_FLOOR",4.6),  co2(6800,false),
+  ptick(6000,119,-32,15,"CCS_GROUND_FLOOR",4.6),  co2(8000,true),
+  ptick(7000,120,-32,16,"CCS_GROUND_FLOOR",5.0),
+  co2(9200,false),  ptick(8000,121,-32,17,"CCS_GROUND_FLOOR",5.7),
+  dopen(9900,9.7,121.8,-32,18.2,6.3),  ptick(9000,122,-32,18,"CCS_GROUND_FLOOR",6.2),
+  ptick(10000,119,-32,14,"CCS_GROUND_FLOOR",4.8), co2(10800,true),
+  ptick(11000,117,-32,12,"CCS_GROUND_FLOOR",3.9), co2(12200,true),
+  ptick(12000,115,-32,10,"CCS_GROUND_FLOOR",5.4), dopen(13000,12.8,114.1,-32,9.2,5.9),
+  ptick(13000,113,-32,9,"CCS_GROUND_FLOOR",6.8),  ptick(14000,109,-32,11,"CCS_GROUND_FLOOR",9.1),
+  ptick(15000,104,-32,20,"OUTSIDE",14.6),  ptick(16000,98,-32,30,"OUTSIDE",21.3),
+  ptick(17000,91,-32,40,"OUTSIDE",28.8),   ptick(18000,84,-32,50,"OUTSIDE",36.4),
+  ptick(19000,77,-32,58,"OUTSIDE",42.1),   ptick(20000,70,-32,64,"OUTSIDE",46.8),
+  ptick(21000,64,-32,68,"OUTSIDE",49.7),   assem(21800,21.6,60.1,-32,69.2),
+  send(21900,"assembly_reached",75,true,8,103),
+];
+
+// ccsMed — Kevin Morales (score 52): missed alarm, moderate CO2, slow evacuation
+const ccsMedKevin = () => [
   sstart(200,"CCS_FIRE",0,128,-32,22),
   ptick(1000,128,-32,22,"CCS_GROUND_FLOOR",10.2), ptick(2000,126,-32,20,"CCS_GROUND_FLOOR",8.4),
   pinpull(2800),
@@ -212,6 +371,31 @@ const ccsMed = () => [
   send(56100,"assembly_reached",52,true,6,134),
 ];
 
+// ccsMed — Nina Ramos (score 45): fewer CO2 hits, missed many, slow path north-west
+const ccsMedNina = () => [
+  sstart(200,"CCS_FIRE",0,131,-32,24),
+  ptick(1000,131,-32,24,"CCS_GROUND_FLOOR",11.8), ptick(2000,129,-32,22,"CCS_GROUND_FLOOR",9.6),
+  pinpull(3200),
+  ptick(3000,127,-32,20,"CCS_GROUND_FLOOR",7.8),  co2(4000,false),
+  ptick(4000,125,-32,18,"CCS_GROUND_FLOOR",6.4),  co2(5200,false),
+  ptick(5000,124,-32,17,"CCS_GROUND_FLOOR",5.9),  co2(6400,true),
+  ptick(6000,124,-32,17,"CCS_GROUND_FLOOR",5.9),  co2(8000,false),
+  ptick(7000,125,-32,18,"CCS_GROUND_FLOOR",6.3),  co2(9600,true),
+  ptick(8000,126,-32,19,"CCS_GROUND_FLOOR",7.0),
+  dopen(10200,10.0,126.5,-32,19.6,7.3),
+  ptick(9000,127,-32,20,"CCS_GROUND_FLOOR",7.5),  ptick(12000,124,-32,17,"CCS_GROUND_FLOOR",6.1),
+  co2(13400,false), ptick(15000,122,-32,15,"CCS_GROUND_FLOOR",5.4),
+  ptick(20000,120,-32,13,"CCS_GROUND_FLOOR",6.0),
+  dopen(22000,21.8,119.4,-32,12.3,6.4),
+  ptick(25000,116,-32,11,"CCS_GROUND_FLOOR",7.4),
+  ptick(30000,112,-32,12,"CCS_GROUND_FLOOR",10.1),
+  ptick(35000,105,-32,22,"OUTSIDE",17.4),  ptick(40000,97,-32,35,"OUTSIDE",25.9),
+  ptick(45000,88,-32,48,"OUTSIDE",34.6),   ptick(50000,79,-32,58,"OUTSIDE",41.1),
+  ptick(55000,71,-32,64,"OUTSIDE",45.8),   ptick(60000,65,-32,67,"OUTSIDE",48.4),
+  assem(61500,61.3,62.8,-32,67.1),
+  send(61600,"assembly_reached",45,true,3,118),
+];
+
 const ccsLow = () => [
   sstart(200,"CCS_FIRE",0,130,-32,25),
   ptick(1000,130,-32,25,"CCS_GROUND_FLOOR",12.4), ptick(2000,130,-32,25,"CCS_GROUND_FLOOR",12.4),
@@ -229,28 +413,28 @@ const ts = (d,t) => `${d}T${t}.000Z`;
 
 const sessions = [
   // FIRE — Library
-  { name:"Ana Dela Cruz",    id:"2024-00101", section:"BSCS3A", simType:"FIRE", score:88, passed:1, prep:"HIGH",     conf:4.8, notes:"Excellent. Pulled pin immediately, alarm in 7s, clean evacuation.",  start:ts("2026-06-20","07:05:10"), end:ts("2026-06-20","07:07:33"), log:fireHigh() },
-  { name:"Miguel Santos",    id:"2024-00102", section:"BSCS3A", simType:"FIRE", score:82, passed:1, prep:"HIGH",     conf:4.5, notes:"Good PASS technique. Alarm before evacuation.",                       start:ts("2026-06-20","07:12:40"), end:ts("2026-06-20","07:14:58"), log:fireHigh() },
+  { name:"Ana Dela Cruz",    id:"2024-00101", section:"BSCS3A", simType:"FIRE", score:88, passed:1, prep:"HIGH",     conf:4.8, notes:"Excellent. Pulled pin immediately, alarm in 7s, clean evacuation.",  start:ts("2026-06-20","07:05:10"), end:ts("2026-06-20","07:07:33"), log:fireHighAna() },
+  { name:"Miguel Santos",    id:"2024-00102", section:"BSCS3A", simType:"FIRE", score:82, passed:1, prep:"HIGH",     conf:4.5, notes:"Good PASS technique. Alarm before evacuation. Slightly slower pin pull.", start:ts("2026-06-20","07:12:40"), end:ts("2026-06-20","07:14:58"), log:fireHighMiguel() },
   { name:"Maria Reyes",      id:"2024-00103", section:"BSIT3A", simType:"FIRE", score:62, passed:1, prep:"MODERATE", conf:3.2, notes:"Skipped alarm. Extinguished some fires but evacuated too early.",     start:ts("2026-06-20","08:30:15"), end:ts("2026-06-20","08:32:46"), log:fireMed() },
   { name:"Carlo Dela Cruz",  id:"2024-00104", section:"BSIT3A", simType:"FIRE", score:54, passed:1, prep:"MODERATE", conf:3.0, notes:"Activated alarm before evacuating — good COMMUNICATE step. Extinguisher technique inconsistent; several missed sprays.",                 start:ts("2026-06-21","09:10:00"), end:ts("2026-06-21","09:12:22"), log:fireMedWithAlarm() },
-  { name:"Jasmine Lim",      id:"2024-00105", section:"BSCS3B", simType:"FIRE", score:45, passed:1, prep:"MODERATE", conf:2.8, notes:"Used exit but forgot alarm. Inconsistent extinguisher use.",          start:ts("2026-06-21","10:05:30"), end:ts("2026-06-21","10:07:52"), log:fireMed() },
+  { name:"Jasmine Lim",      id:"2024-00105", section:"BSCS3B", simType:"FIRE", score:45, passed:1, prep:"MODERATE", conf:2.8, notes:"Forgot alarm. Hesitated near fire — stood at 9 block distance instead of approaching. Only 4 accurate hits.",          start:ts("2026-06-21","10:05:30"), end:ts("2026-06-21","10:07:52"), log:fireMedJasmine() },
   { name:"Patrick Tan",      id:"2024-00106", section:"BSCS3B", simType:"FIRE", score:28, passed:0, prep:"LOW",      conf:1.8, notes:"No alarm, minimal extinguisher use, did not reach assembly.",         start:ts("2026-06-21","11:00:00"), end:ts("2026-06-21","11:03:00"), log:fireLow(2) },
-  { name:"Ryan Mendoza",     id:"2024-00107", section:"BSIT3B", simType:"FIRE", score:91, passed:1, prep:"HIGH",     conf:5.0, notes:"Outstanding. Fastest alarm activation recorded. Near-perfect PASS.",  start:ts("2026-06-22","07:08:00"), end:ts("2026-06-22","07:10:23"), log:fireHigh() },
-  { name:"Sofia Aguilar",    id:"2024-00108", section:"BSCS3A", simType:"FIRE", score:58, passed:1, prep:"MODERATE", conf:3.1, notes:"Moderate. Needs to prioritize alarm before evacuation.",              start:ts("2026-06-22","09:45:00"), end:ts("2026-06-22","09:47:20"), log:fireMed() },
+  { name:"Ryan Mendoza",     id:"2024-00107", section:"BSIT3B", simType:"FIRE", score:91, passed:1, prep:"HIGH",     conf:5.0, notes:"Outstanding. Fastest alarm activation recorded (4.6s). Near-perfect PASS — 9 accurate hits. Assembly in under 20s.",  start:ts("2026-06-22","07:08:00"), end:ts("2026-06-22","07:10:23"), log:fireHighRyan() },
+  { name:"Sofia Aguilar",    id:"2024-00108", section:"BSCS3A", simType:"FIRE", score:58, passed:1, prep:"MODERATE", conf:3.1, notes:"Skipped alarm. 6 accurate hits but 2 misses at close range. Used side door exit. Moderate performance.",              start:ts("2026-06-22","09:45:00"), end:ts("2026-06-22","09:47:20"), log:fireMedSofia() },
   { name:"Chloe Garcia",     id:"2024-00109", section:"BSCS2A", simType:"FIRE", score:12, passed:0, prep:"LOW",      conf:1.5, notes:"Froze after entry. No extinguisher or alarm attempt.",                start:ts("2026-06-23","08:00:00"), end:ts("2026-06-23","08:02:00"), log:fireLow(1) },
   // EARTHQUAKE
-  { name:"Joshua Hernandez", id:"2024-00110", section:"BSCS3A", simType:"EARTHQUAKE", score:85, passed:1, prep:"HIGH",     conf:4.6, notes:"Excellent drop-cover-hold-on. Stayed covered full aftershock.",  start:ts("2026-06-20","13:10:00"), end:ts("2026-06-20","13:11:09"), log:quakeHigh(7.2) },
-  { name:"Karen Villanueva", id:"2024-00111", section:"BSIT3A", simType:"EARTHQUAKE", score:79, passed:1, prep:"HIGH",     conf:4.2, notes:"Good response. Minor movement during aftershock, self-corrected.", start:ts("2026-06-21","13:30:00"), end:ts("2026-06-21","13:31:09"), log:quakeHigh(6.5) },
-  { name:"Mark Flores",      id:"2024-00112", section:"BSCS3B", simType:"EARTHQUAKE", score:55, passed:1, prep:"MODERATE", conf:3.0, notes:"Covered but moved too early before shaking stopped.",             start:ts("2026-06-22","13:15:00"), end:ts("2026-06-22","13:14:01"), log:quakeMed(6.8) },
+  { name:"Joshua Hernandez", id:"2024-00110", section:"BSCS3A", simType:"EARTHQUAKE", score:85, passed:1, prep:"HIGH",     conf:4.6, notes:"Excellent drop-cover-hold-on. Zero movement for 60 seconds during shaking. Textbook evacuation after.",  start:ts("2026-06-20","13:10:00"), end:ts("2026-06-20","13:11:09"), log:quakeHighJoshua(7.2) },
+  { name:"Karen Villanueva", id:"2024-00111", section:"BSIT3A", simType:"EARTHQUAKE", score:79, passed:1, prep:"HIGH",     conf:4.2, notes:"Good drop-cover response. Slight drift during aftershock phase but self-corrected within 5 seconds.", start:ts("2026-06-21","13:30:00"), end:ts("2026-06-21","13:31:09"), log:quakeHighKaren(6.5) },
+  { name:"Mark Flores",      id:"2024-00112", section:"BSCS3B", simType:"EARTHQUAKE", score:55, passed:1, prep:"MODERATE", conf:3.0, notes:"Moved around for 4 seconds before settling into cover. Evacuated successfully after shaking stopped.",             start:ts("2026-06-22","13:15:00"), end:ts("2026-06-22","13:14:01"), log:quakeMedMark(6.8) },
   { name:"Lily Torres",      id:"2024-00113", section:"BSIT3B", simType:"EARTHQUAKE", score:20, passed:0, prep:"LOW",      conf:1.9, notes:"Ran during shaking instead of dropping. No cover found.",         start:ts("2026-06-23","14:00:00"), end:ts("2026-06-23","14:02:00"), log:quakeLow(7.5) },
   { name:"Jerome Castillo",  id:"2024-00114", section:"BSCS3A", simType:"EARTHQUAKE", score:15, passed:0, prep:"LOW",      conf:1.6, notes:"Panicked, moved continuously. No drop-cover attempt.",             start:ts("2026-06-24","09:00:00"), end:ts("2026-06-24","09:02:00"), log:quakeLow(8.1) },
-  { name:"Diego Aquino",     id:"2024-00115", section:"BSIT3A", simType:"EARTHQUAKE", score:60, passed:1, prep:"MODERATE", conf:3.3, notes:"Covered during main shock. Slow to evacuate after shaking.",       start:ts("2026-06-25","10:20:00"), end:ts("2026-06-25","10:21:01"), log:quakeMed(7.0) },
+  { name:"Diego Aquino",     id:"2024-00115", section:"BSIT3A", simType:"EARTHQUAKE", score:60, passed:1, prep:"MODERATE", conf:3.3, notes:"Settled into cover faster than most. Slight drift mid-shaking then re-covered. Evacuated promptly after shaking stopped.",       start:ts("2026-06-25","10:20:00"), end:ts("2026-06-25","10:21:01"), log:quakeMedDiego(7.0) },
   // CCS_FIRE
-  { name:"Trisha Pascual",   id:"2024-00116", section:"BSCS3A", simType:"FIRE", score:80, passed:1, prep:"HIGH",     conf:4.4, notes:"CCS: Alarm first, CO2 on burning computers. Clear Class C protocol.",  start:ts("2026-06-25","13:00:00"), end:ts("2026-06-25","13:00:23"), log:ccsHigh() },
-  { name:"Kevin Morales",    id:"2024-00117", section:"BSIT3A", simType:"FIRE", score:52, passed:1, prep:"MODERATE", conf:3.0, notes:"CCS: Used CO2 but skipped alarm. Good instinct on no-water rule.",     start:ts("2026-06-26","08:00:00"), end:ts("2026-06-26","08:00:52"), log:ccsMed() },
+  { name:"Trisha Pascual",   id:"2024-00116", section:"BSCS3A", simType:"FIRE", score:80, passed:1, prep:"HIGH",     conf:4.4, notes:"CCS: Alarm first, CO2 on burning computers. Clear Class C protocol.",  start:ts("2026-06-25","13:00:00"), end:ts("2026-06-25","13:00:23"), log:ccsHighTrisha() },
+  { name:"Kevin Morales",    id:"2024-00117", section:"BSIT3A", simType:"FIRE", score:52, passed:1, prep:"MODERATE", conf:3.0, notes:"CCS: Used CO2 but skipped alarm. Good instinct on no-water rule. 4 confirmed hits out of 7 attempts.",     start:ts("2026-06-26","08:00:00"), end:ts("2026-06-26","08:00:52"), log:ccsMedKevin() },
   { name:"Aira Santos",      id:"2024-00118", section:"BSCS3B", simType:"FIRE", score:18, passed:0, prep:"LOW",      conf:1.7, notes:"CCS: Confused by electrical fire. No alarm, no evacuation.",           start:ts("2026-06-26","09:30:00"), end:ts("2026-06-26","09:32:00"), log:ccsLow() },
-  { name:"Luis Bautista",    id:"2024-00119", section:"BSIT3B", simType:"FIRE", score:75, passed:1, prep:"HIGH",     conf:4.1, notes:"CCS: Strong CO2 technique. Found all burning workstations.",           start:ts("2026-06-27","07:30:00"), end:ts("2026-06-27","07:30:23"), log:ccsHigh() },
-  { name:"Nina Ramos",       id:"2024-00120", section:"BSCS2A", simType:"FIRE", score:45, passed:1, prep:"MODERATE", conf:2.8, notes:"CCS: Moderate CO2 use. Evacuated but missed some burning stations.",    start:ts("2026-06-27","08:15:00"), end:ts("2026-06-27","08:15:52"), log:ccsMed() },
+  { name:"Luis Bautista",    id:"2024-00119", section:"BSIT3B", simType:"FIRE", score:75, passed:1, prep:"HIGH",     conf:4.1, notes:"CCS: Activated alarm, used CO2 on 6 confirmed computers. Two missed sprays before locating source.",           start:ts("2026-06-27","07:30:00"), end:ts("2026-06-27","07:30:23"), log:ccsHighLuis() },
+  { name:"Nina Ramos",       id:"2024-00120", section:"BSCS2A", simType:"FIRE", score:45, passed:1, prep:"MODERATE", conf:2.8, notes:"CCS: 3 confirmed CO2 hits, 3 misses. Missed alarm. Slow evacuation path but reached assembly zone.",    start:ts("2026-06-27","08:15:00"), end:ts("2026-06-27","08:15:52"), log:ccsMedNina() },
 ];
 
 const INSERT = `INSERT INTO sessions (student_name,station_account,account_uuid,student_id,section,start_time,end_time,status,tutorial_completed,tutorial_duration_s,simulation_type,simulation_score,passed,event_log,prep_level,confidence,bfp_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
