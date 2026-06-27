@@ -15,6 +15,7 @@ export interface LiveSession {
   simulation_score: number;
   passed: number;
   event_log: string | null;
+  move_log_csv: string | null;
   prep_level: 'HIGH' | 'MODERATE' | 'LOW' | null;
   confidence: number | null;
   bfp_notes: string | null;

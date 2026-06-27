@@ -407,6 +407,89 @@ const ccsLow = () => [
   send(120000,"timeout",18,false,0,147),
 ];
 
+// ── 10 Hz CSV builder ─────────────────────────────────────────────────────────
+
+const CSV_HEADER = 'player_id,session_id,scenario_type,timestamp,event_type,x,y,z,hazard_distance,interaction_target,nearby_player_count';
+
+function buildMoveCsv(events, sessionId, playerId, scenarioType) {
+  const rows = [CSV_HEADER];
+
+  // Keyframes from SIM_START + PLAYER_TICK (1 Hz summary)
+  const keyframes = events
+    .filter(e => e.type === 'SIM_START' || e.type === 'PLAYER_TICK')
+    .sort((a, b) => a.tOffsetMs - b.tOffsetMs)
+    .map(e => ({
+      tMs: e.tOffsetMs,
+      x:   Number(e.data.x),
+      y:   Number(e.data.y),
+      z:   Number(e.data.z),
+      hd:  Number(e.type === 'SIM_START' ? 99 : (e.data.nearest_fire_dist ?? 99)),
+    }));
+
+  const simStart = events.find(e => e.type === 'SIM_START');
+  const simEnd   = events.find(e => e.type === 'SIM_END');
+  const endMs    = simEnd ? simEnd.tOffsetMs : (keyframes.at(-1)?.tMs ?? 0);
+
+  // session_start row
+  if (simStart) {
+    rows.push(`${playerId},${sessionId},${scenarioType},0.0,session_start,${simStart.data.x},${simStart.data.y},${simStart.data.z},99.0,,`);
+  }
+
+  // Generate move_tick at 0.1 s resolution by interpolating between keyframes
+  if (keyframes.length >= 2) {
+    let kfIdx = 0;
+    const n = () => (Math.random() - 0.5) * 0.1; // tiny ±0.05 block jitter
+    for (let tMs = keyframes[0].tMs; tMs < endMs; tMs += 100) {
+      while (kfIdx < keyframes.length - 2 && keyframes[kfIdx + 1].tMs <= tMs) kfIdx++;
+      const kf0 = keyframes[kfIdx];
+      const kf1 = keyframes[Math.min(kfIdx + 1, keyframes.length - 1)];
+      let x, z, hd;
+      if (kf1.tMs <= kf0.tMs) {
+        x = kf0.x; z = kf0.z; hd = kf0.hd;
+      } else {
+        const frac = Math.min(1, (tMs - kf0.tMs) / (kf1.tMs - kf0.tMs));
+        x   = kf0.x   + frac * (kf1.x   - kf0.x);
+        z   = kf0.z   + frac * (kf1.z   - kf0.z);
+        hd  = kf0.hd  + frac * (kf1.hd  - kf0.hd);
+      }
+      const tSec = (tMs / 1000).toFixed(1);
+      rows.push(`${playerId},${sessionId},${scenarioType},${tSec},move_tick,${(x+n()).toFixed(2)},${kf0.y},${(z+n()).toFixed(2)},${Math.max(0,hd).toFixed(1)},,`);
+    }
+  }
+
+  // Action events
+  const ACTION = new Set(['door_open','fire_alarm_activate','EXT_SPRAY','extinguisher_use','emergency_exit','assembly_area_reached']);
+  for (const e of events.filter(e => ACTION.has(e.type)).sort((a,b) => a.tOffsetMs - b.tOffsetMs)) {
+    const tSec  = (e.tOffsetMs / 1000).toFixed(1);
+    const ex    = e.data.x ?? '', ey = e.data.y ?? '', ez = e.data.z ?? '';
+    const hd    = e.data.hazard_distance ?? e.data.distance_to_fire ?? 99;
+    let evType = e.type, target = '', nearby = '';
+    if (e.type === 'EXT_SPRAY') {
+      evType = 'extinguisher_use'; target = e.data.hit_fire   ? 'fire_block' : ''; nearby = String(e.data.nearby_player_count ?? 0);
+    } else if (e.type === 'extinguisher_use') {
+      target = e.data.hit_target ? 'computer'   : ''; nearby = String(e.data.nearby_player_count ?? 0);
+    } else if (e.type === 'door_open') {
+      target = e.data.target ?? 'dark_oak_door';
+    } else if (e.type === 'emergency_exit') {
+      target = e.data.exit ?? '';
+    }
+    rows.push(`${playerId},${sessionId},${scenarioType},${tSec},${evType},${ex},${ey},${ez},${hd},${target},${nearby}`);
+  }
+
+  // session_end row
+  if (simEnd) {
+    const tSec = (simEnd.tOffsetMs / 1000).toFixed(1);
+    const lk = keyframes.at(-1) ?? { x:'', y:'', z:'' };
+    rows.push(`${playerId},${sessionId},${scenarioType},${tSec},session_end,${lk.x},${lk.y},${lk.z},99,,`);
+  }
+
+  // Sort data rows by timestamp (header stays first)
+  const hdr = rows.shift();
+  rows.sort((a, b) => parseFloat(a.split(',')[3]) - parseFloat(b.split(',')[3]));
+  rows.unshift(hdr);
+  return rows.join('\n');
+}
+
 // ── Session definitions ───────────────────────────────────────────────────────
 
 const ts = (d,t) => `${d}T${t}.000Z`;
@@ -437,7 +520,7 @@ const sessions = [
   { name:"Nina Ramos",       id:"2024-00120", section:"BSCS2A", simType:"FIRE", score:45, passed:1, prep:"MODERATE", conf:2.8, notes:"CCS: 3 confirmed CO2 hits, 3 misses. Missed alarm. Slow evacuation path but reached assembly zone.",    start:ts("2026-06-27","08:15:00"), end:ts("2026-06-27","08:15:52"), log:ccsMedNina() },
 ];
 
-const INSERT = `INSERT INTO sessions (student_name,station_account,account_uuid,student_id,section,start_time,end_time,status,tutorial_completed,tutorial_duration_s,simulation_type,simulation_score,passed,event_log,prep_level,confidence,bfp_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+const INSERT = `INSERT INTO sessions (student_name,station_account,account_uuid,student_id,section,start_time,end_time,status,tutorial_completed,tutorial_duration_s,simulation_type,simulation_score,passed,event_log,prep_level,confidence,bfp_notes,move_log_csv) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
 async function seed() {
   console.log("Clearing sessions and audit_logs...");
@@ -445,13 +528,16 @@ async function seed() {
   console.log("Cleared.\n");
 
   for (const s of sessions) {
+    const moveCsv = buildMoveCsv(s.log, `synth-${s.id}`, `stu-${s.id}`, s.simType.toLowerCase());
     await pipeline([ex(INSERT, [
       t(s.name), t("station_demo"), t(`synth-${s.id}`), t(s.id), t(s.section),
       t(s.start), t(s.end), t("completed"), i(1), i(90),
       t(s.simType), i(s.score), i(s.passed),
       t(JSON.stringify(s.log)), t(s.prep), f(s.conf), t(s.notes),
+      t(moveCsv),
     ])]);
-    console.log(`✓ ${s.name.padEnd(20)} ${s.prep.padEnd(8)} score=${s.score}`);
+    const csvRows = moveCsv.split('\n').length - 1; // exclude header
+    console.log(`✓ ${s.name.padEnd(20)} ${s.prep.padEnd(8)} score=${s.score}  csv=${csvRows} rows`);
   }
   console.log(`\nDone — ${sessions.length} sessions inserted.`);
 }
