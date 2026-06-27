@@ -26,8 +26,16 @@ async function pipeline(requests) {
     headers: { Authorization: `Bearer ${TURSO_TOKEN}`, "Content-Type": "application/json" },
     body: JSON.stringify({ requests }),
   });
-  if (!res.ok) throw new Error(`Turso ${res.status}: ${await res.text()}`);
-  return res.json();
+  if (!res.ok) throw new Error(`Turso HTTP ${res.status}: ${await res.text()}`);
+  const json = await res.json();
+  for (const r of json.results ?? []) {
+    if (r.type === "error") throw new Error(`Turso SQL error: ${r.error?.message ?? JSON.stringify(r)}`);
+  }
+  return json;
+}
+
+async function silentAlter(sql) {
+  try { await pipeline([ex(sql)]); } catch { /* column may already exist */ }
 }
 
 const t  = v => ({ type: "text",    value: String(v) });
@@ -523,6 +531,9 @@ const sessions = [
 const INSERT = `INSERT INTO sessions (student_name,station_account,account_uuid,student_id,section,start_time,end_time,status,tutorial_completed,tutorial_duration_s,simulation_type,simulation_score,passed,event_log,prep_level,confidence,bfp_notes,move_log_csv) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
 async function seed() {
+  console.log("Ensuring move_log_csv column exists...");
+  await silentAlter("ALTER TABLE sessions ADD COLUMN move_log_csv TEXT");
+
   console.log("Clearing sessions and audit_logs...");
   await pipeline([ex("DELETE FROM audit_logs"), ex("DELETE FROM sessions")]);
   console.log("Cleared.\n");
