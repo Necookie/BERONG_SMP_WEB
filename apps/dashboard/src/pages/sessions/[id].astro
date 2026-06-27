@@ -67,13 +67,22 @@ const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
   <div class="detail-split">
 
     <div class="log-panel">
-      <div class="panel-header">
-        <span class="section-label">Event log</span>
-        <span style="float:right; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-muted);">
-          {logEntries.length} events
-        </span>
+      <!-- Tab bar -->
+      <div style="display:flex; border-bottom:1px solid var(--border-card); background:var(--bg-sidebar);">
+        <button id="tab-log" class="log-tab active" data-tab="log">
+          Event Log
+          <span style="margin-left:6px; font-size:9px; color:var(--text-muted);">{logEntries.length}</span>
+        </button>
+        {session.move_log_csv && (
+          <button id="tab-map" class="log-tab" data-tab="map">
+            Movement Map
+            <span style="margin-left:6px; font-size:9px; color:var(--text-muted);">10 Hz</span>
+          </button>
+        )}
       </div>
-      <div class="event-log-wrap">
+
+      <!-- Event log pane -->
+      <div id="pane-log" class="event-log-wrap">
         {logEntries.length > 0 ? (
           <EventLog client:only="react" entries={logEntries} />
         ) : (
@@ -84,6 +93,17 @@ const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
           </div>
         )}
       </div>
+
+      <!-- Movement map pane (hidden by default) -->
+      {session.move_log_csv && (
+        <div id="pane-map" style="display:none; height:100%; overflow:auto;">
+          <MapPlayer
+            client:only="react"
+            moveCsv={session.move_log_csv}
+            simulationType={session.simulation_type}
+          />
+        </div>
+      )}
     </div>
 
     <div class="stats-panel">
@@ -266,22 +286,6 @@ const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
 
   </div>
 
-  {session.move_log_csv && (
-    <div style="margin: 0 0 24px; border-top: 1px solid var(--border-card); background: var(--bg-log-panel);">
-      <div class="panel-header" style="padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;">
-        <span class="section-label">Movement map</span>
-        <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-muted);">
-          10 Hz · {session.simulation_type ?? '—'}
-        </span>
-      </div>
-      <MapPlayer
-        client:only="react"
-        moveCsv={session.move_log_csv}
-        simulationType={session.simulation_type}
-      />
-    </div>
-  )}
-
   <!-- Edit Details Modal -->
   <div id="modal-edit" class="modal-overlay">
     <div class="modal-container">
@@ -368,7 +372,44 @@ const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
 
 </DashboardLayout>
 
+<style>
+  .log-tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .log-tab:hover { color: var(--text-primary); }
+  .log-tab.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--text-brand);
+  }
+</style>
+
 <script>
+  // Tab switching
+  const paneLog = document.getElementById('pane-log');
+  const paneMap = document.getElementById('pane-map');
+  const tabLog  = document.getElementById('tab-log');
+  const tabMap  = document.getElementById('tab-map');
+
+  function switchTab(tab: string) {
+    const isLog = tab === 'log';
+    if (paneLog) paneLog.style.display = isLog ? '' : 'none';
+    if (paneMap) paneMap.style.display = isLog ? 'none' : '';
+    tabLog?.classList.toggle('active', isLog);
+    tabMap?.classList.toggle('active', !isLog);
+  }
+
+  tabLog?.addEventListener('click', () => switchTab('log'));
+  tabMap?.addEventListener('click', () => switchTab('map'));
+
   const btnEdit = document.getElementById('btn-edit-details');
   const btnDelete = document.getElementById('btn-delete-session');
   
