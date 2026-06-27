@@ -196,7 +196,7 @@ export function derivePrepLevel(score: number, storedLevel: string | null): 'HIG
   return 'LOW';
 }
 
-const VERBOSE_EVENT_TYPES = new Set(['PLAYER_TICK', 'FIRE_SPREAD']);
+const VERBOSE_EVENT_TYPES = new Set(['FIRE_SPREAD']);
 
 export function parseEventLog(eventLogJson: string | null, includeVerbose = false) {
   if (!eventLogJson) return [];
