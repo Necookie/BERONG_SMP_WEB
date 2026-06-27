@@ -289,6 +289,24 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 39 | `login.astro` & `setup.astro` | Adjust authentication card widths to 460px and apply responsive margins/padding for mobile, tablet, and desktop viewports. |
 | 40 | `commands.astro` | Add mobile/tablet media queries to commands grid to adjust responsive padding layout. |
 | 41 | `queries.ts` — rubric extHits + event log filter | `extractRubricSignals` now counts both `EXT_SPRAY` (ABC) and `extinguisher_use` (CO2) as extinguisher hits. `parseEventLog` filters `PLAYER_TICK` and `FIRE_SPREAD` by default (pass `includeVerbose=true` to show). |
+| 42 | `scripts/seed-synthetic.mjs` — 7-issue synthetic dataset quality pass | Fixed: (1) EXT_PIN_PULL missing from all CCS_FIRE logs; (2) Carlo's notes said "alarm" but log had none — added `fireMedWithAlarm()` variant; (3) CCS evacuation path now routes north-west to assembly zone (z=64–82) instead of west at z=14; (4) section format normalised to no-hyphen (BSCS3A); (5) every session now has a unique event log — no more cloned templates; (6) `fire_spread_count` varies per CCS session (was hardcoded 147); (7) confirmed all evacuating sessions have `door_open` before transition to OUTSIDE. Re-seeded Turso with 20 corrected sessions. |
+
+---
+
+## Synthetic Dataset
+
+`apps/dashboard/scripts/seed-synthetic.mjs` — a Node.js script that clears `sessions` + `audit_logs` and inserts 20 realistic synthetic sessions. Reads credentials from `apps/dashboard/.dev.vars` (never committed). Run with `node apps/dashboard/scripts/seed-synthetic.mjs` from the monorepo root.
+
+**Coverage:** 9 FIRE/library (3 HIGH, 4 MODERATE, 2 LOW) · 6 EARTHQUAKE (2 HIGH, 2 MODERATE, 2 LOW) · 5 CCS_FIRE (2 HIGH, 2 MODERATE, 1 LOW)
+
+**Event log invariants this script enforces:**
+- All sessions start with `SIM_START` (includes `x/y/z` spawn pos, `magnitude` for quake)
+- All FIRE/CCS sessions have `EXT_PIN_PULL` before the first extinguisher spray event
+- All CCS sessions route north-west from the building (x decreasing, z increasing) to reach assembly zone `AABB(30,-35,64)→(76,-28,82)` — not due-west along z≈8
+- All evacuating sessions have at least one `door_open` before the first `OUTSIDE` room tick
+- `assembly_area_reached` coordinates verified against assembly AABB; `hazard_distance=99` is correct for earthquake sessions (no fire hazard)
+- Section codes: `BSCS3A`, `BSCS3B`, `BSIT3A`, `BSIT3B`, `BSCS2A` (no hyphens)
+- Each of the 20 sessions has a **unique** event log — no two share the same template
 
 ---
 
