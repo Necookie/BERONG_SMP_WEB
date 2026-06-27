@@ -184,12 +184,12 @@ const ccsHigh = () => [
   ptick(11000,118,-32,13,"CCS_GROUND_FLOOR",4.2), co2(11800,true),
   ptick(12000,116,-32,11,"CCS_GROUND_FLOOR",3.6), co2(13000,true),
   ptick(13000,114,-32,9,"CCS_GROUND_FLOOR",5.1), dopen(13800,13.6,113.2,-32,8.4,5.8),
-  ptick(14000,112,-32,8,"CCS_GROUND_FLOOR",6.4), ptick(15000,108,-32,8,"CCS_GROUND_FLOOR",8.2),
-  ptick(16000,104,-32,8,"CCS_GROUND_FLOOR",10.1), ptick(17000,100,-32,8,"CCS_GROUND_FLOOR",13.5),
-  ptick(18000,96,-32,8,"OUTSIDE",17.2),  ptick(19000,92,-32,8,"OUTSIDE",22.4),
-  ptick(20000,88,-32,8,"OUTSIDE",28.0),  ptick(21000,85,-33,8,"OUTSIDE",32.6),
-  ptick(22000,82,-33,10,"OUTSIDE",36.0), assem(22600,22.4,78.4,-33,14.2),
-  send(22700,"assembly_reached",80,true,13,147),
+  ptick(14000,112,-32,10,"CCS_GROUND_FLOOR",6.4), ptick(15000,107,-32,18,"CCS_GROUND_FLOOR",9.1),
+  ptick(16000,101,-32,28,"OUTSIDE",14.8), ptick(17000,94,-32,38,"OUTSIDE",22.3),
+  ptick(18000,87,-32,48,"OUTSIDE",30.5),  ptick(19000,80,-32,56,"OUTSIDE",37.1),
+  ptick(20000,73,-32,62,"OUTSIDE",41.8),  ptick(21000,67,-32,67,"OUTSIDE",45.2),
+  ptick(22000,61,-32,70,"OUTSIDE",48.4),  assem(22600,22.4,57.2,-32,70.6),
+  send(22700,"assembly_reached",80,true,13,89),
 ];
 
 const ccsMed = () => [
@@ -205,10 +205,11 @@ const ccsMed = () => [
   ptick(10000,126,-32,20,"CCS_GROUND_FLOOR",8.8), ptick(15000,120,-32,14,"CCS_GROUND_FLOOR",5.2),
   co2(15800,false), ptick(20000,118,-32,12,"CCS_GROUND_FLOOR",4.9),
   ptick(25000,116,-32,10,"CCS_GROUND_FLOOR",5.8), dopen(26000,25.8,115.4,-32,9.6,6.4),
-  ptick(30000,112,-32,8,"CCS_GROUND_FLOOR",9.3),  ptick(35000,106,-32,8,"OUTSIDE",14.7),
-  ptick(40000,99,-32,8,"OUTSIDE",21.2),  ptick(45000,92,-32,8,"OUTSIDE",28.8),
-  ptick(50000,86,-33,9,"OUTSIDE",35.4),  assem(51000,50.8,79.2,-33,12.6),
-  send(51100,"assembly_reached",52,true,6,147),
+  ptick(30000,112,-32,10,"CCS_GROUND_FLOOR",9.3), ptick(35000,104,-32,22,"OUTSIDE",18.1),
+  ptick(40000,95,-32,36,"OUTSIDE",26.4),  ptick(45000,86,-32,49,"OUTSIDE",34.7),
+  ptick(50000,76,-32,60,"OUTSIDE",41.2),  ptick(55000,68,-32,66,"OUTSIDE",45.8),
+  assem(56000,55.8,64.1,-32,66.4),
+  send(56100,"assembly_reached",52,true,6,134),
 ];
 
 const ccsLow = () => [
