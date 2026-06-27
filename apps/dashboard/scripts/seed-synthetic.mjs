@@ -98,6 +98,31 @@ const fireMed = () => [
   send(21600,"assembly_reached",62,true,8,95),
 ];
 
+// fireMed variant that includes a fire alarm activation — for students who activated alarm
+// but had weak extinguisher technique (decision_delay shorter; rubric F2 credited)
+const fireMedWithAlarm = () => [
+  sstart(200,"FIRE",0,36,-32,90),
+  ptick(1000,36,-32,90,"MAIN_HALL",15.8), ptick(2000,38,-32,92,"MAIN_HALL",13.4),
+  ptick(3000,40,-32,94,"MAIN_HALL",11.1), ptick(4000,42,-32,96,"MAIN_HALL",9.3),
+  pinpull(4600),
+  ptick(5000,43,-32,97,"MAIN_HALL",8.5),  spray(5400,false,8.5),
+  ptick(6000,44,-32,98,"MAIN_HALL",7.6),  spray(6800,true,6.8),
+  alarm(7200,7.0,45.1,-32,98.8,6.4),
+  ptick(7000,45,-32,99,"MAIN_HALL",6.4),  spray(8000,false,6.4),
+  ptick(8000,45,-32,99,"MAIN_HALL",6.4),  spray(9200,true,5.9),
+  ptick(9000,44,-32,97,"MAIN_HALL",7.1),
+  ptick(10000,43,-32,96,"MAIN_HALL",8.0), ptick(11000,42,-32,94,"MAIN_HALL",9.2),
+  ptick(12000,41,-32,92,"MAIN_HALL",10.8),
+  dopen(12800,12.6,40.3,-32,91.5,11.4),   ptick(13000,38,-32,89,"ENTRANCE",13.2),
+  ptick(14000,36,-32,86,"ENTRANCE",15.4), ptick(15000,34,-32,83,"ENTRANCE",17.8),
+  ptick(16000,36,-32,80,"OUTSIDE",20.2),  ptick(17000,39,-32,77,"OUTSIDE",23.4),
+  dopen(17800,17.6,40.6,-32,76.1,24.0),   ptick(18000,42,-32,75,"OUTSIDE",25.1),
+  ptick(19000,46,-32,73,"OUTSIDE",28.4),  ptick(20000,49,-32,71,"OUTSIDE",31.3),
+  ptick(21000,51,-32,70,"OUTSIDE",33.6),
+  assem(22000,21.8,52.4,-32,69.8),
+  send(22100,"assembly_reached",54,true,5,102),
+];
+
 const fireLow = (fires=1) => [
   sstart(200,"FIRE",0,36,-32,90),
   ptick(1000,36,-32,90,"MAIN_HALL",18.0), ptick(2000,38,-32,92,"MAIN_HALL",15.6),
@@ -206,7 +231,7 @@ const sessions = [
   { name:"Ana Dela Cruz",    id:"2024-00101", section:"BSCS-3A", simType:"FIRE", score:88, passed:1, prep:"HIGH",     conf:4.8, notes:"Excellent. Pulled pin immediately, alarm in 7s, clean evacuation.",  start:ts("2026-06-20","07:05:10"), end:ts("2026-06-20","07:07:33"), log:fireHigh() },
   { name:"Miguel Santos",    id:"2024-00102", section:"BSCS-3A", simType:"FIRE", score:82, passed:1, prep:"HIGH",     conf:4.5, notes:"Good PASS technique. Alarm before evacuation.",                       start:ts("2026-06-20","07:12:40"), end:ts("2026-06-20","07:14:58"), log:fireHigh() },
   { name:"Maria Reyes",      id:"2024-00103", section:"BSIT-3A", simType:"FIRE", score:62, passed:1, prep:"MODERATE", conf:3.2, notes:"Skipped alarm. Extinguished some fires but evacuated too early.",     start:ts("2026-06-20","08:30:15"), end:ts("2026-06-20","08:32:46"), log:fireMed() },
-  { name:"Carlo Dela Cruz",  id:"2024-00104", section:"BSIT-3A", simType:"FIRE", score:54, passed:1, prep:"MODERATE", conf:3.0, notes:"Activated alarm, extinguisher technique needs work.",                 start:ts("2026-06-21","09:10:00"), end:ts("2026-06-21","09:12:22"), log:fireMed() },
+  { name:"Carlo Dela Cruz",  id:"2024-00104", section:"BSIT-3A", simType:"FIRE", score:54, passed:1, prep:"MODERATE", conf:3.0, notes:"Activated alarm before evacuating — good COMMUNICATE step. Extinguisher technique inconsistent; several missed sprays.",                 start:ts("2026-06-21","09:10:00"), end:ts("2026-06-21","09:12:22"), log:fireMedWithAlarm() },
   { name:"Jasmine Lim",      id:"2024-00105", section:"BSCS-3B", simType:"FIRE", score:45, passed:1, prep:"MODERATE", conf:2.8, notes:"Used exit but forgot alarm. Inconsistent extinguisher use.",          start:ts("2026-06-21","10:05:30"), end:ts("2026-06-21","10:07:52"), log:fireMed() },
   { name:"Patrick Tan",      id:"2024-00106", section:"BSCS-3B", simType:"FIRE", score:28, passed:0, prep:"LOW",      conf:1.8, notes:"No alarm, minimal extinguisher use, did not reach assembly.",         start:ts("2026-06-21","11:00:00"), end:ts("2026-06-21","11:03:00"), log:fireLow(2) },
   { name:"Ryan Mendoza",     id:"2024-00107", section:"BSIT-3B", simType:"FIRE", score:91, passed:1, prep:"HIGH",     conf:5.0, notes:"Outstanding. Fastest alarm activation recorded. Near-perfect PASS.",  start:ts("2026-06-22","07:08:00"), end:ts("2026-06-22","07:10:23"), log:fireHigh() },
