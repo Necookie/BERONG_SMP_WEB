@@ -67,9 +67,18 @@ export const CCS_BOUNDS: BuildingBounds = {
 // Whole-building outline rect used as the background for each floor panel.
 export const CCS_OUTER = { xMin: 76, xMax: 136, zMin: 4, zMax: 72 };
 
-// Named 2nd floor rooms — absolute world coords (floor Y=-25, ceiling Y=-22, verified with F3).
-// Ground floor has no named subdivisions yet; only upper floor rooms are defined.
+// Named rooms — absolute world coords, verified with F3.
+// 1st floor: floor Y=-32, ceiling Y=-29. 2nd floor: floor Y=-25, ceiling Y=-22.
 export const CCS_ROOMS: Room[] = [
+  // 1st floor
+  { name: 'Room 105',      xMin:  94, xMax:  99, zMin:  6, zMax: 11, floor: 'ground' },
+  { name: 'Room 106',      xMin: 101, xMax: 105, zMin:  6, zMax: 11, floor: 'ground' },
+  { name: 'Room 107',      xMin: 107, xMax: 112, zMin:  6, zMax: 11, floor: 'ground' },
+  { name: "Dean's Office", xMin: 114, xMax: 119, zMin:  6, zMax: 11, floor: 'ground' },
+  { name: 'Faculty Room',  xMin: 121, xMax: 126, zMin:  6, zMax: 11, floor: 'ground' },
+  { name: 'ICTS',          xMin: 130, xMax: 136, zMin: 17, zMax: 26, floor: 'ground' },
+  { name: 'ICTS 2',        xMin: 131, xMax: 136, zMin: 28, zMax: 31, floor: 'ground' },
+  // 2nd floor
   { name: 'CCS Mini Library', xMin:  94, xMax:  99, zMin:  6, zMax: 11, floor: 'upper' },
   { name: 'Room 202',         xMin: 101, xMax: 105, zMin:  6, zMax: 11, floor: 'upper' },
   { name: 'Room 203',         xMin: 107, xMax: 112, zMin:  6, zMax: 11, floor: 'upper' },
