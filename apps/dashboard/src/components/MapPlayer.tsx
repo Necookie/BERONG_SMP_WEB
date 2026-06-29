@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   LIBRARY_BOUNDS, LIBRARY_ROOMS, LIBRARY_OUTER, ASSEMBLY_ZONE,
-  CCS_BOUNDS, CCS_OUTER, CCS_ROOMS, CCS_FLOOR_Y_BOUNDARY,
+  CCS_BOUNDS, CCS_OUTER, CCS_ROOMS, CCS_ASSEMBLY_ZONE, CCS_FLOOR_Y_BOUNDARY,
   worldToSvg,
   type BuildingBounds,
 } from '../lib/floorplans';
@@ -366,6 +366,8 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
   const floorRooms = CCS_ROOMS.filter(r => r.floor === floor);
   const [ox1, oz1] = worldToSvg(CCS_OUTER.xMin, CCS_OUTER.zMin, bounds);
   const [ox2, oz2] = worldToSvg(CCS_OUTER.xMax, CCS_OUTER.zMax, bounds);
+  const [caz1x, caz1z] = worldToSvg(CCS_ASSEMBLY_ZONE.xMin, CCS_ASSEMBLY_ZONE.zMin, bounds);
+  const [caz2x, caz2z] = worldToSvg(CCS_ASSEMBLY_ZONE.xMax, CCS_ASSEMBLY_ZONE.zMax, bounds);
 
   // Which named room is the player currently standing in?
   const currentRoom = (cur && playerHere)
@@ -406,6 +408,22 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
         preserveAspectRatio="xMidYMid meet"
         style={{ background: 'var(--bg-log-panel)', display: 'block', width: '100%', maxHeight: '65vh' }}
       >
+        {/* Assembly zone (south of building) */}
+        <rect
+          x={caz1x} y={caz1z} width={caz2x - caz1x} height={caz2z - caz1z}
+          fill="rgba(80,200,80,0.09)"
+          stroke="#50c850"
+          strokeWidth={1}
+          strokeDasharray="4 3"
+        />
+        <text
+          x={(caz1x + caz2x) / 2} y={caz1z + 10}
+          textAnchor="middle"
+          fontSize={7}
+          fill="#50c850"
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+        >ASSEMBLY ZONE</text>
+
         {/* Building outline */}
         <rect
           x={ox1} y={oz1} width={ox2 - ox1} height={oz2 - oz1}

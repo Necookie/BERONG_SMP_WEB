@@ -54,18 +54,24 @@ export const LIBRARY_OUTER = { xMin: 30, xMax: 52, zMin: 83, zMax: 111 };
 export const ASSEMBLY_ZONE  = { xMin: 30, xMax: 76, zMin: 64, zMax: 82  };
 
 // ── CCS Admin Building (CCS_FIRE / CCS_EARTHQUAKE) ───────────────────────
-// CCS_POS = (76, -34, 4). 60 × 68 block footprint; two floors.
+// CCS_POS = (76, -34, 4). Building footprint X:76–136, Z:4–72 (two floors).
+// Assembly zone outside south wall: Z:73–90 (immediately beyond Z=72).
+// SVG extends to zMax:93 so the assembly zone is fully visible.
 export const CCS_BOUNDS: BuildingBounds = {
   xMin: 74, xMax: 138,
-  zMin: 2,  zMax: 74,
+  zMin: 2,  zMax: 93,
   svgWidth: 480,
-  svgHeight: 620,
+  svgHeight: 740,
   padX: 20,
   padZ: 20,
 };
 
 // Whole-building outline rect used as the background for each floor panel.
 export const CCS_OUTER = { xMin: 76, xMax: 136, zMin: 4, zMax: 72 };
+
+// Assembly zone outside the south face of the CCS building.
+// PLACEHOLDER coords — verify in-game with F3 (see docs/f3_tuning_todo.md).
+export const CCS_ASSEMBLY_ZONE = { xMin: 76, xMax: 136, zMin: 73, zMax: 90 };
 
 // Named rooms — absolute world coords, verified with F3.
 // 1st floor: floor Y=-32, ceiling Y=-29. 2nd floor: floor Y=-25, ceiling Y=-22.
