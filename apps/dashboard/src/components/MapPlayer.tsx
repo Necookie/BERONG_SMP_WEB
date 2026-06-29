@@ -515,6 +515,18 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
 
   const isCCS = simulationType === 'CCS_FIRE' || simulationType === 'CCS_EARTHQUAKE';
 
+  // Floor tab state for narrow viewports
+  const [ccsFloor, setCcsFloor] = useState<'ground' | 'upper'>('upper');
+  const [viewportW, setViewportW] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 1200,
+  );
+  useEffect(() => {
+    const handler = () => setViewportW(window.innerWidth);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  const useTabLayout = viewportW < 960;
+
   // Animation loop via a ref so closure always reads current speed/totalRows
   const animRef = useRef<(t: number) => void>();
   animRef.current = (time: number) => {
@@ -580,11 +592,46 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
       {/* ── Map canvas ── */}
       <div style={{ display: 'flex', width: '100%', minHeight: 0 }}>
         {isCCS ? (
-          <>
-            <CCSPanel rows={rows} frame={frame} floor="ground" label="Ground Floor" />
-            <div style={{ width: '1px', background: 'var(--border-card)', flexShrink: 0 }} />
-            <CCSPanel rows={rows} frame={frame} floor="upper" label="Upper Floor" />
-          </>
+          useTabLayout ? (
+            /* Narrow: tab switcher, one panel at a time */
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+              <div style={{
+                display: 'flex',
+                borderBottom: '1px solid var(--border-card)',
+                background: 'var(--bg-sidebar)',
+              }}>
+                {(['ground', 'upper'] as const).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setCcsFloor(f)}
+                    style={{
+                      padding: '6px 18px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: ccsFloor === f ? '2px solid #ff8c42' : '2px solid transparent',
+                      color: ccsFloor === f ? 'var(--text-primary)' : 'var(--text-muted)',
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: '9px',
+                      textTransform: 'uppercase' as const,
+                      letterSpacing: '0.08em',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {f === 'ground' ? 'Ground Floor' : 'Upper Floor'}
+                  </button>
+                ))}
+              </div>
+              <CCSPanel rows={rows} frame={frame} floor={ccsFloor}
+                label={ccsFloor === 'ground' ? 'Ground Floor' : 'Upper Floor'} />
+            </div>
+          ) : (
+            /* Wide: side by side */
+            <>
+              <CCSPanel rows={rows} frame={frame} floor="ground" label="Ground Floor" />
+              <div style={{ width: '1px', background: 'var(--border-card)', flexShrink: 0 }} />
+              <CCSPanel rows={rows} frame={frame} floor="upper" label="Upper Floor" />
+            </>
+          )
         ) : (
           <LibraryPanel rows={rows} frame={frame} />
         )}
