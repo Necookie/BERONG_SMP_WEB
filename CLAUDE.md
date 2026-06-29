@@ -296,6 +296,8 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 40 | `commands.astro` | Add mobile/tablet media queries to commands grid to adjust responsive padding layout. |
 | 41 | `queries.ts` — rubric extHits + event log filter | `extractRubricSignals` now counts both `EXT_SPRAY` (ABC) and `extinguisher_use` (CO2) as extinguisher hits. `parseEventLog` filters `PLAYER_TICK` and `FIRE_SPREAD` by default (pass `includeVerbose=true` to show). |
 | 42 | `scripts/seed-synthetic.mjs` — 7-issue synthetic dataset quality pass | Fixed: (1) EXT_PIN_PULL missing from all CCS_FIRE logs; (2) Carlo's notes said "alarm" but log had none — added `fireMedWithAlarm()` variant; (3) CCS evacuation path now routes north-west to assembly zone (z=64–82) instead of west at z=14; (4) section format normalised to no-hyphen (BSCS3A); (5) every session now has a unique event log — no more cloned templates; (6) `fire_spread_count` varies per CCS session (was hardcoded 147); (7) confirmed all evacuating sessions have `door_open` before transition to OUTSIDE. Re-seeded Turso with 20 corrected sessions. |
+| 43 | `src/lib/floorplans.ts` + `MapPlayer.tsx` — CCS assembly zone south of building | `CCS_BOUNDS.zMax` extended 74→93 and `svgHeight` 620→740 to include assembly area in SVG. Added `CCS_ASSEMBLY_ZONE = {xMin:76,xMax:136,zMin:73,zMax:90}`. SVG renders a green dashed assembly zone rect + "ASSEMBLY ZONE" label south of the building outline in both CCS panels. |
+| 44 | `scripts/seed-synthetic.mjs` — full coordinate rewrite | Complete rewrite of all 20 sessions with real building coordinates. 7 Library FIRE (spawn Computer Lab Z:87, fire Main Hall Z:96-103, alarm Stairwell, cross `main_exit AABB(50,-34,93,54,-30,96)`, assembly Z:64-82) + 5 Library EARTHQUAKE + 5 CCS_FIRE (spawn upper floor Y=-24 Z:27, CO2 on computers, south evac, cross `ccs_main_exit AABB(95,-33,68,125,-29,74)`, assembly `AABB(76,-35,73,136,-28,90)`) + 3 CCS_EARTHQUAKE. CSV `move_tick` rows interpolated at 100ms intervals. |
 
 ---
 
@@ -303,14 +305,20 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 
 `apps/dashboard/scripts/seed-synthetic.mjs` — a Node.js script that clears `sessions` + `audit_logs` and inserts 20 realistic synthetic sessions. Reads credentials from `apps/dashboard/.dev.vars` (never committed). Run with `node apps/dashboard/scripts/seed-synthetic.mjs` from the monorepo root.
 
-**Coverage:** 9 FIRE/library (3 HIGH, 4 MODERATE, 2 LOW) · 6 EARTHQUAKE (2 HIGH, 2 MODERATE, 2 LOW) · 5 CCS_FIRE (2 HIGH, 2 MODERATE, 1 LOW)
+**Coverage:** 7 Library FIRE (3 HIGH, 2 MODERATE, 2 LOW) · 5 Library EARTHQUAKE (2 HIGH, 2 MODERATE, 1 LOW) · 5 CCS_FIRE (2 HIGH, 2 MODERATE, 1 LOW) · 3 CCS_EARTHQUAKE (1 HIGH, 1 MODERATE, 1 LOW)
+
+**Building coordinate reference used by this script:**
+- Library: spawn Computer Lab X:30-42 Z:83-93, fire in Main Hall X:30-50 Z:93-108, alarm in Stairwell X:48-52. Assembly zone north of building `AABB(30,-35,64,76,-28,82)`. Exit zone `AABB(50,-34,93,54,-30,96)`.
+- CCS: spawn upper floor Y=-24, Computer Lab X:130-136 Z:24-31, MacLab Z:33-39. Evacuate south (Z increasing). Exit zone `AABB(95,-33,68,125,-29,74)`. Assembly zone south of building `AABB(76,-35,73,136,-28,90)`.
 
 **Event log invariants this script enforces:**
 - All sessions start with `SIM_START` (includes `x/y/z` spawn pos, `magnitude` for quake)
 - All FIRE/CCS sessions have `EXT_PIN_PULL` before the first extinguisher spray event
-- All CCS sessions route north-west from the building (x decreasing, z increasing) to reach assembly zone `AABB(30,-35,64)→(76,-28,82)` — not due-west along z≈8
+- Library sessions evacuate north (Z decreasing toward Z:64-82) to assembly zone `AABB(30,-35,64,76,-28,82)`
+- CCS sessions evacuate south (Z increasing from Z:4-72 toward Z:73-90) to assembly zone `AABB(76,-35,73,136,-28,90)` — outside the south face of the building
 - All evacuating sessions have at least one `door_open` before the first `OUTSIDE` room tick
-- `assembly_area_reached` coordinates verified against assembly AABB; `hazard_distance=99` is correct for earthquake sessions (no fire hazard)
+- `assembly_area_reached` coordinates verified against the building's correct assembly AABB
+- `hazard_distance=99` is correct for earthquake sessions (no fire hazard)
 - Section codes: `BSCS3A`, `BSCS3B`, `BSIT3A`, `BSIT3B`, `BSCS2A` (no hyphens)
 - Each of the 20 sessions has a **unique** event log — no two share the same template
 
