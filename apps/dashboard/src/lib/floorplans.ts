@@ -64,9 +64,21 @@ export const CCS_BOUNDS: BuildingBounds = {
   padZ: 16,
 };
 
+// Whole-building outline rect used as the background for each floor panel.
+export const CCS_OUTER = { xMin: 76, xMax: 136, zMin: 4, zMax: 72 };
+
+// Named 2nd floor rooms — absolute world coords (floor Y=-25, ceiling Y=-22, verified with F3).
+// Ground floor has no named subdivisions yet; only upper floor rooms are defined.
 export const CCS_ROOMS: Room[] = [
-  { name: 'Ground Floor', xMin: 76, xMax: 136, zMin: 4, zMax: 72, floor: 'ground' },
-  { name: 'Upper Floor',  xMin: 76, xMax: 136, zMin: 4, zMax: 72, floor: 'upper'  },
+  { name: 'CCS Mini Library', xMin:  94, xMax:  99, zMin:  6, zMax: 11, floor: 'upper' },
+  { name: 'Room 202',         xMin: 101, xMax: 105, zMin:  6, zMax: 11, floor: 'upper' },
+  { name: 'Room 203',         xMin: 107, xMax: 112, zMin:  6, zMax: 11, floor: 'upper' },
+  { name: 'Room 204',         xMin: 114, xMax: 119, zMin:  6, zMax: 11, floor: 'upper' },
+  { name: 'Room 205',         xMin: 121, xMax: 126, zMin:  6, zMax: 11, floor: 'upper' },
+  { name: 'TESOL',            xMin: 130, xMax: 136, zMin: 17, zMax: 22, floor: 'upper' },
+  { name: 'Computer Lab',     xMin: 130, xMax: 136, zMin: 24, zMax: 31, floor: 'upper' },
+  { name: 'MacLab',           xMin: 130, xMax: 136, zMin: 33, zMax: 39, floor: 'upper' },
+  { name: 'Room 207',         xMin: 132, xMax: 136, zMin: 41, zMax: 49, floor: 'upper' },
 ];
 
 // world Y boundary: y ≤ this → ground floor; y > this → upper floor

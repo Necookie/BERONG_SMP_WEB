@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   LIBRARY_BOUNDS, LIBRARY_ROOMS, LIBRARY_OUTER, ASSEMBLY_ZONE,
-  CCS_BOUNDS, CCS_ROOMS, CCS_FLOOR_Y_BOUNDARY,
+  CCS_BOUNDS, CCS_OUTER, CCS_ROOMS, CCS_FLOOR_Y_BOUNDARY,
   worldToSvg,
   type BuildingBounds,
 } from '../lib/floorplans';
@@ -302,9 +302,9 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
   const playerHere = cur ? isOnThisFloor(cur) : false;
   const [dotX, dotZ] = cur && playerHere ? worldToSvg(cur.x, cur.z, bounds) : [-99, -99];
 
-  const room = CCS_ROOMS.find(r => r.floor === floor);
-  const [rx1, rz1] = room ? worldToSvg(room.xMin, room.zMin, bounds) : [0, 0];
-  const [rx2, rz2] = room ? worldToSvg(room.xMax, room.zMax, bounds) : [0, 0];
+  const floorRooms = CCS_ROOMS.filter(r => r.floor === floor);
+  const [ox1, oz1] = worldToSvg(CCS_OUTER.xMin, CCS_OUTER.zMin, bounds);
+  const [ox2, oz2] = worldToSvg(CCS_OUTER.xMax, CCS_OUTER.zMax, bounds);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -334,11 +334,40 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
       >
         {/* Building outline */}
         <rect
-          x={rx1} y={rz1} width={rx2 - rx1} height={rz2 - rz1}
+          x={ox1} y={oz1} width={ox2 - ox1} height={oz2 - oz1}
           fill="rgba(128,128,128,0.04)"
           stroke="var(--border-card)"
           strokeWidth={1.5}
         />
+
+        {/* Named room subdivisions */}
+        {floorRooms.map(room => {
+          const [rx1, rz1] = worldToSvg(room.xMin, room.zMin, bounds);
+          const [rx2, rz2] = worldToSvg(room.xMax, room.zMax, bounds);
+          return (
+            <g key={room.name}>
+              <rect
+                x={rx1} y={rz1} width={rx2 - rx1} height={rz2 - rz1}
+                fill="rgba(128,128,128,0.03)"
+                stroke="var(--text-muted)"
+                strokeOpacity={0.15}
+                strokeWidth={1}
+              />
+              <text
+                x={(rx1 + rx2) / 2}
+                y={(rz1 + rz2) / 2}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={7}
+                fill="var(--text-muted)"
+                fillOpacity={0.55}
+                fontFamily="JetBrains Mono, monospace"
+              >
+                {room.name}
+              </text>
+            </g>
+          );
+        })}
 
         {/* Full ghost path */}
         {allMovePts && (
