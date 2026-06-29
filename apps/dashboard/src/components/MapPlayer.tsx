@@ -367,6 +367,14 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
   const [ox1, oz1] = worldToSvg(CCS_OUTER.xMin, CCS_OUTER.zMin, bounds);
   const [ox2, oz2] = worldToSvg(CCS_OUTER.xMax, CCS_OUTER.zMax, bounds);
 
+  // Which named room is the player currently standing in?
+  const currentRoom = (cur && playerHere)
+    ? floorRooms.find(r =>
+        cur.x >= r.xMin && cur.x <= r.xMax &&
+        cur.z >= r.zMin && cur.z <= r.zMax,
+      ) ?? null
+    : null;
+
   return (
     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
       {/* Floor label */}
@@ -385,6 +393,11 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
         {label}
         {playerHere && (
           <span style={{ color: '#ff8c42', fontSize: '8px' }}>● here</span>
+        )}
+        {currentRoom && (
+          <span style={{ color: 'var(--text-muted)', fontSize: '8px', marginLeft: '4px' }}>
+            — {currentRoom.name}
+          </span>
         )}
       </div>
 
@@ -405,14 +418,15 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
         {floorRooms.map(room => {
           const [rx1, rz1] = worldToSvg(room.xMin, room.zMin, bounds);
           const [rx2, rz2] = worldToSvg(room.xMax, room.zMax, bounds);
+          const active = room === currentRoom;
           return (
             <g key={room.name}>
               <rect
                 x={rx1} y={rz1} width={rx2 - rx1} height={rz2 - rz1}
-                fill="rgba(128,128,128,0.03)"
-                stroke="var(--text-muted)"
-                strokeOpacity={0.2}
-                strokeWidth={0.8}
+                fill={active ? 'rgba(255,140,66,0.13)' : 'rgba(128,128,128,0.03)'}
+                stroke={active ? '#ff8c42' : 'var(--text-muted)'}
+                strokeOpacity={active ? 0.6 : 0.2}
+                strokeWidth={active ? 1.2 : 0.8}
               />
               <CcsRoomLabel name={room.name} rx1={rx1} rz1={rz1} rx2={rx2} rz2={rz2} />
             </g>
