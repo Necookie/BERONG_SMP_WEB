@@ -143,9 +143,9 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
 
   return (
     <svg
-      width={bounds.svgWidth}
-      height={bounds.svgHeight}
-      style={{ background: 'var(--bg-log-panel)', display: 'block', flexShrink: 0 }}
+      viewBox={`0 0 ${bounds.svgWidth} ${bounds.svgHeight}`}
+      preserveAspectRatio="xMidYMid meet"
+      style={{ background: 'var(--bg-log-panel)', display: 'block', width: '100%', maxHeight: '70vh' }}
     >
       {/* Assembly zone */}
       <rect
@@ -368,7 +368,7 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
   const [ox2, oz2] = worldToSvg(CCS_OUTER.xMax, CCS_OUTER.zMax, bounds);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
       {/* Floor label */}
       <div style={{
         padding: '5px 12px',
@@ -389,9 +389,9 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
       </div>
 
       <svg
-        width={bounds.svgWidth}
-        height={bounds.svgHeight}
-        style={{ background: 'var(--bg-log-panel)', display: 'block' }}
+        viewBox={`0 0 ${bounds.svgWidth} ${bounds.svgHeight}`}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ background: 'var(--bg-log-panel)', display: 'block', width: '100%', maxHeight: '65vh' }}
       >
         {/* Building outline */}
         <rect
@@ -564,7 +564,7 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
   return (
     <div>
       {/* ── Map canvas ── */}
-      <div style={{ display: 'flex', overflowX: 'auto' }}>
+      <div style={{ display: 'flex', width: '100%', minHeight: 0 }}>
         {isCCS ? (
           <>
             <CCSPanel rows={rows} frame={frame} floor="ground" label="Ground Floor" />
