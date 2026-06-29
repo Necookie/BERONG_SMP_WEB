@@ -58,10 +58,10 @@ export const ASSEMBLY_ZONE  = { xMin: 30, xMax: 76, zMin: 64, zMax: 82  };
 export const CCS_BOUNDS: BuildingBounds = {
   xMin: 74, xMax: 138,
   zMin: 2,  zMax: 74,
-  svgWidth: 280,
-  svgHeight: 360,
-  padX: 16,
-  padZ: 16,
+  svgWidth: 480,
+  svgHeight: 620,
+  padX: 20,
+  padZ: 20,
 };
 
 // Whole-building outline rect used as the background for each floor panel.

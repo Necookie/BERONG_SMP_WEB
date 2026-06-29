@@ -256,6 +256,67 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
   );
 }
 
+// ── CCS room label: auto-rotate + multi-line for small rooms ─────────────
+
+function CcsRoomLabel({
+  name, rx1, rz1, rx2, rz2,
+}: { name: string; rx1: number; rz1: number; rx2: number; rz2: number }) {
+  const w  = rx2 - rx1;
+  const h  = rz2 - rz1;
+  const cx = (rx1 + rx2) / 2;
+  const cy = (rz1 + rz2) / 2;
+
+  // Rotate text -90° when room is taller than wide so text runs along the longer axis
+  const shouldRotate = h > w;
+  // Space (px) available along the text direction after a small margin
+  const textSpan = (shouldRotate ? h : w) - 4;
+
+  const CHAR_W = 0.6; // JetBrains Mono width-per-em ratio
+  const BASE   = 6;   // default font size
+
+  const fits = (sz: number, str: string) => str.length * sz * CHAR_W <= textSpan;
+
+  let lines: string[];
+  let fontSize: number;
+
+  if (fits(BASE, name)) {
+    lines    = [name];
+    fontSize = BASE;
+  } else if (name.includes(' ')) {
+    // Split at the word boundary nearest the middle
+    const words = name.split(' ');
+    const mid   = Math.ceil(words.length / 2);
+    const a     = words.slice(0, mid).join(' ');
+    const b     = words.slice(mid).join(' ');
+    lines    = [a, b];
+    fontSize = fits(BASE, a) && fits(BASE, b) ? BASE : 5;
+  } else {
+    lines    = [name];
+    fontSize = Math.max(4, Math.floor(textSpan / (name.length * CHAR_W)));
+  }
+
+  const lineH = fontSize + 2;
+
+  return (
+    <text
+      textAnchor="middle"
+      fontFamily="JetBrains Mono, monospace"
+      fill="var(--text-muted)"
+      fillOpacity={0.75}
+      transform={shouldRotate ? `rotate(-90, ${cx}, ${cy})` : undefined}
+    >
+      {lines.map((line, i) => {
+        const offset = (i - (lines.length - 1) / 2) * lineH;
+        return (
+          <tspan key={i} x={cx} y={cy + offset + fontSize * 0.35} fontSize={fontSize}>
+            {line}
+          </tspan>
+        );
+      })}
+    </text>
+  );
+}
+
 // ── CCS floor panel SVG ───────────────────────────────────────────────────
 
 interface CCSPanelProps {
@@ -350,21 +411,10 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
                 x={rx1} y={rz1} width={rx2 - rx1} height={rz2 - rz1}
                 fill="rgba(128,128,128,0.03)"
                 stroke="var(--text-muted)"
-                strokeOpacity={0.15}
-                strokeWidth={1}
+                strokeOpacity={0.2}
+                strokeWidth={0.8}
               />
-              <text
-                x={(rx1 + rx2) / 2}
-                y={(rz1 + rz2) / 2}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontSize={7}
-                fill="var(--text-muted)"
-                fillOpacity={0.55}
-                fontFamily="JetBrains Mono, monospace"
-              >
-                {room.name}
-              </text>
+              <CcsRoomLabel name={room.name} rx1={rx1} rz1={rz1} rx2={rx2} rz2={rz2} />
             </g>
           );
         })}
