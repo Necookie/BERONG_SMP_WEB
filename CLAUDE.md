@@ -88,7 +88,7 @@ Located in `apps/dashboard/src/pages/`:
 Located in `apps/dashboard/src/components/`:
 
 - `EventLog.tsx` — React island, terminal-style auto-scroll log viewer
-- `MapPlayer.tsx` — React island, animated top-down movement map. Parses `move_log_csv` (10 Hz) client-side; renders Library (FIRE/EARTHQUAKE) or CCS side-by-side floor panels (CCS_FIRE); play/pause/scrub/speed timeline; event markers for alarm, door, extinguisher, assembly, exit. **Theme note:** all SVG ghost-path, room-label, and structural colors use `var(--text-muted)` / `var(--border-card)` so they are visible on both dark (`#090909`) and light (`#ede9e5`) backgrounds. Initialises `frame` to the last row so the full player path is visible immediately on load; click ↺ to replay from the beginning. CCS upper floor panel renders 9 named room labels from `CCS_ROOMS` (same pattern as LibraryPanel); ground floor shows building outline only (no named subdivisions yet).
+- `MapPlayer.tsx` — React island, animated top-down movement map. Parses `move_log_csv` (10 Hz) client-side; renders Library (FIRE/EARTHQUAKE) or CCS side-by-side floor panels (CCS_FIRE); play/pause/scrub/speed timeline; event markers for alarm, door, extinguisher, assembly, exit. **Theme note:** all SVG ghost-path, room-label, and structural colors use `var(--text-muted)` / `var(--border-card)` so they are visible on both dark (`#090909`) and light (`#ede9e5`) backgrounds. Initialises `frame` to the last row so the full player path is visible immediately on load; click ↺ to replay from the beginning. Both CCS floor panels render named room labels via `CCS_ROOMS.filter(r => r.floor === floor).map(...)` — ground floor shows 7 rooms, upper floor shows 9 rooms.
 - `ThemeToggle.tsx` — React island, sun/moon icon toggle for light/dark mode (reads/writes `localStorage.theme`, syncs to `<html>` class)
 - `PrepChart.tsx` — React island, Chart.js doughnut chart for preparedness distribution
 - `ScoreHistogram.tsx` — React island, Chart.js bar chart for score distribution
@@ -123,7 +123,7 @@ Smooth transitions are applied to all structural elements via a universal transi
 ### Data layer & lib
 - `src/lib/db.ts` — `getEnv()` helper; initialises `@libsql/client/web` from Cloudflare env bindings
 - `src/lib/queries.ts` — all Turso read helpers (`getSessionById`, `getAllSessions`, `getAuditLog`, `parseEventLog`, `extractRubricSignals`, etc.); `LiveSession` interface includes `move_log_csv: string | null`
-- `src/lib/floorplans.ts` — static Minecraft world-space room bounds, building coordinate data, and `worldToSvg()` scale helper used by `MapPlayer`. `CCS_ROOMS` holds 9 named 2nd floor rooms (floor `'upper'`, absolute coords, Y floor −25 / ceiling −22): CCS Mini Library, Rooms 202–205, TESOL, Computer Lab, MacLab, Room 207. `CCS_OUTER` is the whole-building outline rect for both floor panels.
+- `src/lib/floorplans.ts` — static Minecraft world-space room bounds, building coordinate data, and `worldToSvg()` scale helper used by `MapPlayer`. `CCS_ROOMS` holds 16 named rooms across both CCS floors: 7 ground floor rooms (floor `'ground'`, Y −32 to −29): Room 105–107, Dean's Office, Faculty Room, ICTS, ICTS 2; and 9 upper floor rooms (floor `'upper'`, Y −25 to −22): CCS Mini Library, Rooms 202–205, TESOL, Computer Lab, MacLab, Room 207. `CCS_OUTER` is the whole-building outline rect for both floor panels.
 
 ### Design tokens
 - Fonts: Space Grotesk (KPI/display), Inter (body), JetBrains Mono (labels/terminal)
