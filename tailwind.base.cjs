@@ -26,36 +26,36 @@ module.exports = {
         'surface-base':              '#121212',
         'surface-elevated':          '#1a1a1a',
         'surface-variant':           '#353534',
-        'surface-tint':              '#88d982',
+        'surface-tint':              '#e53935',
 
         // ── On-surface ────────────────────────────────────────────────────
         'on-surface':            '#e5e2e1',
-        'on-surface-variant':    '#bfcaba',
+        'on-surface-variant':    '#8a9ab8',
         'on-background':         '#e5e2e1',
 
         // ── Inverse ───────────────────────────────────────────────────────
         'inverse-surface':       '#e5e2e1',
         'inverse-on-surface':    '#313030',
 
-        // ── Primary — Forest Green ─────────────────────────────────────────
-        'primary':               '#88d982',
-        'on-primary':            '#003909',
-        'primary-container':     '#2e7d32',
-        'on-primary-container':  '#cbffc2',
-        'inverse-primary':       '#1b6d24',
-        'primary-fixed':         '#a3f69c',
-        'primary-fixed-dim':     '#88d982',
+        // ── Primary — BFP Red ─────────────────────────────────────────────
+        'primary':               '#e53935',
+        'on-primary':            '#ffffff',
+        'primary-container':     '#b71c1c',
+        'on-primary-container':  '#fee2e2',
+        'inverse-primary':       '#991b1b',
+        'primary-fixed':         '#fca5a5',
+        'primary-fixed-dim':     '#e53935',
 
         // ── Secondary ─────────────────────────────────────────────────────
-        'secondary':             '#7ddc7a',
-        'on-secondary':          '#00390a',
-        'secondary-container':   '#03711e',
-        'on-secondary-container':'#92f28e',
+        'secondary':             '#f87171',
+        'on-secondary':          '#7f1d1d',
+        'secondary-container':   '#991b1b',
+        'on-secondary-container':'#fecaca',
 
         // ── Preparedness tier colours (fixed, not themed) ─────────────────
-        'tier-high':             '#88d982',
-        'tier-moderate':         '#c9a84c',
-        'tier-low':              '#c45c5c',
+        'tier-high':             '#22c55e',
+        'tier-moderate':         '#f59e0b',
+        'tier-low':              '#ef4444',
 
         // ── Error ─────────────────────────────────────────────────────────
         'error':                 '#ffb4ab',

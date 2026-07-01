@@ -12,12 +12,12 @@ interface Props {
 const { title, currentPath, fullscreen = false } = Astro.props;
 
 const navItems = [
-  { href: '/',         label: 'Overview'  },
-  { href: '/sessions', label: 'Sessions'  },
-  { href: '/roster',   label: 'Roster'    },
-  { href: '/data',     label: 'Data'      },
-  { href: '/commands', label: 'Commands'  },
-  { href: '/guide',    label: 'Guide'     },
+  { href: '/',         label: 'Overview',  icon: 'space_dashboard' },
+  { href: '/sessions', label: 'Sessions',  icon: 'list_alt'        },
+  { href: '/roster',   label: 'Roster',    icon: 'groups'          },
+  { href: '/data',     label: 'Data',      icon: 'download'        },
+  { href: '/commands', label: 'Commands',  icon: 'terminal'        },
+  { href: '/guide',    label: 'Guide',     icon: 'menu_book'       },
 ];
 ---
 
@@ -34,6 +34,22 @@ const navItems = [
       document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
     })();
   </script>
+  <!-- Inline view-mode script: runs before paint to prevent advanced sections flashing in -->
+  <script is:inline>
+    (function () {
+      if (localStorage.getItem('dashboardView') === 'advanced') {
+        document.documentElement.classList.add('view-advanced');
+      }
+    })();
+  </script>
+  <!-- Inline sidebar-collapse script: runs before paint to prevent the sidebar animating open on load -->
+  <script is:inline>
+    (function () {
+      if (localStorage.getItem('sidebarCollapsed') === 'true') {
+        document.documentElement.classList.add('sidebar-collapsed');
+      }
+    })();
+  </script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title} — BERONG SMP</title>
@@ -47,7 +63,6 @@ const navItems = [
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
     rel="stylesheet"
   />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js" is:inline></script>
 </head>
 <body>
 
@@ -67,6 +82,10 @@ const navItems = [
 
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
+      <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" aria-label="Collapse sidebar" aria-expanded="true" title="Collapse sidebar">
+        <span class="material-symbols-outlined" style="font-size: 16px; line-height: 1;">chevron_left</span>
+      </button>
+
       <div class="sidebar-brand flex items-center gap-3">
         <img
           src={logo.src}
@@ -76,54 +95,56 @@ const navItems = [
           height={36}
           loading="eager"
         />
-        <div>
+        <div class="sidebar-collapsible-text">
           <span class="sidebar-brand-name">BERONG SMP</span>
           <span class="sidebar-brand-sub">Drill Review · BFP / LSPU</span>
         </div>
       </div>
 
       <nav class="sidebar-nav">
-        <span class="nav-group-label">Navigation</span>
         {navItems.map(item => (
           <a
             href={item.href}
             class={`nav-item${currentPath === item.href ? ' active' : ''}`}
+            title={item.label}
           >
-            <span class="nav-label">{item.label}</span>
+            <span class="material-symbols-outlined nav-icon">{item.icon}</span>
+            <span class="nav-label-wrap sidebar-collapsible-text">
+              <span class="nav-label">{item.label}</span>
+            </span>
           </a>
         ))}
         {Astro.locals.user?.role === 'owner' && (
           <a
             href="/users"
             class={`nav-item${currentPath === '/users' ? ' active' : ''}`}
+            title="Users"
           >
-            <span class="nav-label">Users</span>
+            <span class="material-symbols-outlined nav-icon">shield_person</span>
+            <span class="nav-label-wrap sidebar-collapsible-text">
+              <span class="nav-label">Users</span>
+            </span>
           </a>
         )}
       </nav>
 
       <div class="sidebar-footer">
         {Astro.locals.user && (
-          <div class="flex flex-col gap-1.5 w-full border-b pb-2 mb-2" style="border-color: var(--border-table);">
-            <div class="flex items-center justify-between w-full">
-              <span class="text-xs font-semibold flex items-center gap-1.5" style="color: var(--text-secondary);">
-                <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">person</span>
-                <span class="truncate max-w-[100px]" title={Astro.locals.user.username}>{Astro.locals.user.username}</span>
-              </span>
-              <span class="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded" style="background: rgba(128, 128, 128, 0.05); border: 1px solid var(--border-card); color: var(--text-secondary);">
-                {Astro.locals.user.role}
-              </span>
+          <div class="sidebar-account">
+            <span class="material-symbols-outlined sidebar-account-icon">person</span>
+            <div class="sidebar-account-info sidebar-collapsible-text">
+              <span class="sidebar-account-name" title={Astro.locals.user.username}>{Astro.locals.user.username}</span>
+              <span class="sidebar-account-role">{Astro.locals.user.role}</span>
             </div>
-            <a href="/api/auth/logout" class="text-xs flex items-center gap-1 hover:underline self-start" style="color: var(--text-brand);">
-              <span class="material-symbols-outlined" style="font-size: 12px; vertical-align: middle;">logout</span>
-              Logout
+            <a href="/api/auth/logout" class="sidebar-account-logout sidebar-collapsible-text" title="Log out" aria-label="Log out">
+              <span class="material-symbols-outlined" style="font-size: 15px;">logout</span>
             </a>
           </div>
         )}
-        <div class="flex items-center justify-between w-full">
+        <div class="sidebar-footer-row flex items-center justify-between w-full">
           <div class="status-line" style="white-space: nowrap;">
             <span class="status-dot"></span>
-            MOCK DATA · v0.1
+            <span class="sidebar-collapsible-text" style="display: inline-block;">MOCK DATA · v0.1</span>
           </div>
           <ThemeToggle client:only="react" />
         </div>
@@ -177,6 +198,31 @@ const navItems = [
         });
       });
     }
+  })();
+
+  // Desktop sidebar collapse toggle
+  (function () {
+    const collapseBtn = document.getElementById('sidebar-collapse-btn');
+    if (!collapseBtn) return;
+
+    function setCollapsed(collapsed) {
+      document.documentElement.classList.toggle('sidebar-collapsed', collapsed);
+      collapseBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      collapseBtn.setAttribute('title', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+      localStorage.setItem('sidebarCollapsed', collapsed ? 'true' : 'false');
+    }
+
+    // Sync button state with whatever the inline head script already applied.
+    setCollapsed(document.documentElement.classList.contains('sidebar-collapsed'));
+
+    collapseBtn.addEventListener('click', function () {
+      const collapsed = !document.documentElement.classList.contains('sidebar-collapsed');
+      setCollapsed(collapsed);
+      // Nudge chart libraries once the main content area finishes resizing.
+      window.setTimeout(function () {
+        window.dispatchEvent(new Event('resize'));
+      }, 240);
+    });
   })();
 </script>
 

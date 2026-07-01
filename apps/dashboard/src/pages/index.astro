@@ -3,14 +3,29 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 import ErrorCard from '../components/ErrorCard.astro';
 import PrepChart from '../components/PrepChart';
 import ScoreHistogram from '../components/ScoreHistogram';
+import ScoreTrendChart from '../components/ScoreTrendChart';
+import ScenarioComparisonChart from '../components/ScenarioComparisonChart';
+import PrepByScenarioChart from '../components/PrepByScenarioChart';
+import SectionPerformanceChart from '../components/SectionPerformanceChart';
+import SafetyBehaviorChart from '../components/SafetyBehaviorChart';
+import EvacuationTimeChart from '../components/EvacuationTimeChart';
 import {
   getOverviewStats,
   getRecentSessions,
   getAllCompletedScores,
+  getAnalyticsSessions,
   formatDate,
   formatDuration,
   derivePrepLevel,
 } from '../lib/queries';
+import {
+  buildScoreTrend,
+  buildScenarioBreakdown,
+  buildPrepByScenario,
+  buildSectionPerformance,
+  buildSafetyBehavior,
+  buildEvacuationTimeBuckets,
+} from '../lib/analytics';
 import { getEnv } from '../lib/db';
 
 const env = await getEnv();
@@ -19,15 +34,17 @@ const hasDb = !!env;
 let stats = { total: 0, avg_score: 0, fire_count: 0, quake_count: 0, this_week: 0, high_count: 0, mod_count: 0, low_count: 0 };
 let recent: Awaited<ReturnType<typeof getRecentSessions>> = [];
 let scores: number[] = [];
+let analyticsSessions: Awaited<ReturnType<typeof getAnalyticsSessions>> = [];
 
 let dbError: string | null = null;
 
 if (env) {
   try {
-    [stats, recent, scores] = await Promise.all([
+    [stats, recent, scores, analyticsSessions] = await Promise.all([
       getOverviewStats(env),
       getRecentSessions(env, 5),
       getAllCompletedScores(env),
+      getAnalyticsSessions(env),
     ]);
   } catch (err) {
     dbError = err instanceof Error ? err.message : 'Unknown database error';
@@ -38,15 +55,28 @@ const totalWithLevel = stats.high_count + stats.mod_count + stats.low_count;
 const highPct     = totalWithLevel ? Math.round((stats.high_count / totalWithLevel) * 100) : 0;
 const moderatePct = totalWithLevel ? Math.round((stats.mod_count  / totalWithLevel) * 100) : 0;
 const lowPct      = 100 - highPct - moderatePct;
+
+const scoreTrend      = buildScoreTrend(analyticsSessions);
+const scenarioStats   = buildScenarioBreakdown(analyticsSessions);
+const prepByScenario  = buildPrepByScenario(analyticsSessions);
+const sectionStats    = buildSectionPerformance(analyticsSessions);
+const safetyStats     = buildSafetyBehavior(analyticsSessions);
+const evacBuckets     = buildEvacuationTimeBuckets(analyticsSessions);
 ---
 
 <DashboardLayout title="Overview" currentPath="/">
 
-  <div class="page-header">
-    <h1 class="page-title">Overview</h1>
-    <p class="page-meta">
-      LSPU DRR Training Programme · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB configured'}
-    </p>
+  <div class="page-header page-header--split">
+    <div>
+      <h1 class="page-title">Overview</h1>
+      <p class="page-meta">
+        LSPU DRR Training Programme · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB configured'}
+      </p>
+    </div>
+    <div class="view-switch" role="tablist" aria-label="Dashboard comprehensiveness">
+      <button type="button" class="view-switch-btn" data-view="basic">Basic</button>
+      <button type="button" class="view-switch-btn" data-view="advanced">Advanced</button>
+    </div>
   </div>
 
   {dbError && <ErrorCard message={dbError} />}
@@ -115,6 +145,53 @@ const lowPct      = 100 - highPct - moderatePct;
       </div>
       <div class="dist-histogram-wrap">
         <ScoreHistogram client:only="react" scores={scores} />
+      </div>
+    </div>
+  </div>
+
+  <div class="advanced-only">
+    <div class="sessions-section" style="padding-bottom: 0;">
+      <div class="dist-head">
+        <span class="section-label">Advanced analytics</span>
+        <span class="dist-cohort">{analyticsSessions.length} completed sessions analyzed</span>
+      </div>
+    </div>
+
+    <div class="analytics-grid">
+      <div class="analytics-card analytics-card--wide">
+        <span class="section-label">Score trend over time</span>
+        <p class="kpi-split-label" style="margin: 3px 0 12px;">Daily average score (line) and session volume (bars)</p>
+        <ScoreTrendChart client:only="react" points={scoreTrend} />
+      </div>
+
+      <div class="analytics-card">
+        <span class="section-label">Scenario performance</span>
+        <p class="kpi-split-label" style="margin: 3px 0 12px;">Average score by simulation type</p>
+        <ScenarioComparisonChart client:only="react" stats={scenarioStats} />
+      </div>
+
+      <div class="analytics-card">
+        <span class="section-label">Preparedness by scenario</span>
+        <p class="kpi-split-label" style="margin: 3px 0 12px;">HIGH / MODERATE / LOW split per simulation type</p>
+        <PrepByScenarioChart client:only="react" stats={prepByScenario} />
+      </div>
+
+      <div class="analytics-card">
+        <span class="section-label">Section performance</span>
+        <p class="kpi-split-label" style="margin: 3px 0 12px;">Average score by class section</p>
+        <SectionPerformanceChart client:only="react" stats={sectionStats} />
+      </div>
+
+      <div class="analytics-card">
+        <span class="section-label">Safety behavior adoption</span>
+        <p class="kpi-split-label" style="margin: 3px 0 12px;">% of sessions performing each rubric action</p>
+        <SafetyBehaviorChart client:only="react" stats={safetyStats} />
+      </div>
+
+      <div class="analytics-card">
+        <span class="section-label">Evacuation time</span>
+        <p class="kpi-split-label" style="margin: 3px 0 12px;">Time from trigger to assembly point reached</p>
+        <EvacuationTimeChart client:only="react" buckets={evacBuckets} />
       </div>
     </div>
   </div>
@@ -205,6 +282,31 @@ const lowPct      = 100 - highPct - moderatePct;
 <script>
   import { initTableSorting } from '../lib/tableSorter';
   initTableSorting();
+
+  // Basic / Advanced view switch
+  (function () {
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.view-switch-btn');
+    if (!buttons.length) return;
+
+    function syncActiveState() {
+      const isAdvanced = document.documentElement.classList.contains('view-advanced');
+      buttons.forEach(b => b.classList.toggle('active', b.dataset.view === (isAdvanced ? 'advanced' : 'basic')));
+    }
+
+    syncActiveState();
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const view = btn.dataset.view;
+        document.documentElement.classList.toggle('view-advanced', view === 'advanced');
+        localStorage.setItem('dashboardView', view ?? 'basic');
+        syncActiveState();
+        // Nudge chart libraries that size off ResizeObserver/window-resize so
+        // previously display:none charts pick up their real dimensions now.
+        window.dispatchEvent(new Event('resize'));
+      });
+    });
+  })();
 
   // KPI count-up animation
   (function () {

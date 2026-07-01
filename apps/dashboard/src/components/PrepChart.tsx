@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface PrepChartProps {
   high: number;
@@ -6,70 +6,56 @@ interface PrepChartProps {
   low: number;
 }
 
+const COLORS: Record<string, string> = {
+  High: '#22c55e',
+  Moderate: '#f59e0b',
+  Low: '#ef4444',
+};
+
 export default function PrepChart({ high, moderate, low }: PrepChartProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const chartRef = useRef<any>(null);
-
-  useEffect(() => {
-    if (!canvasRef.current) return;
-
-    const ChartClass = (window as any).Chart;
-    if (!ChartClass) {
-      console.error('Chart.js was not loaded');
-      return;
-    }
-
-    if (chartRef.current) {
-      chartRef.current.destroy();
-    }
-
-    const ctx = canvasRef.current.getContext('2d');
-    if (!ctx) return;
-
-    chartRef.current = new ChartClass(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['High', 'Moderate', 'Low'],
-        datasets: [{
-          data: [high, moderate, low],
-          backgroundColor: ['#88d982', '#c9a84c', '#c45c5c'],
-          borderColor: 'transparent',
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context: any) {
-                const value = context.raw || 0;
-                const total = high + moderate + low;
-                const percentage = total ? Math.round((value / total) * 100) : 0;
-                return ` ${context.label}: ${value} (${percentage}%)`;
-              }
-            }
-          }
-        },
-        cutout: '75%'
-      }
-    });
-
-    return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
-        chartRef.current = null;
-      }
-    };
-  }, [high, moderate, low]);
+  const total = high + moderate + low;
+  const data = [
+    { name: 'High', value: high },
+    { name: 'Moderate', value: moderate },
+    { name: 'Low', value: low },
+  ];
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '140px' }}>
-      <canvas ref={canvasRef} />
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            innerRadius="75%"
+            outerRadius="100%"
+            paddingAngle={total ? 2 : 0}
+            stroke="none"
+            isAnimationActive={false}
+          >
+            {data.map(entry => (
+              <Cell key={entry.name} fill={COLORS[entry.name]} />
+            ))}
+          </Pie>
+          <Tooltip
+            contentStyle={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-card)',
+              borderRadius: 'var(--radius-card)',
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '11px',
+              color: 'var(--text-primary)',
+            }}
+            itemStyle={{ color: 'var(--text-primary)' }}
+            labelStyle={{ display: 'none' }}
+            formatter={(value: number, name: string) => {
+              const pct = total ? Math.round((value / total) * 100) : 0;
+              return [`${value} (${pct}%)`, name];
+            }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
     </div>
   );
 }

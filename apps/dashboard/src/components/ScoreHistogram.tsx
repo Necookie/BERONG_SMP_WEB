@@ -1,110 +1,68 @@
-import { useEffect, useRef } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer } from 'recharts';
 
 interface ScoreHistogramProps {
   scores: number[];
 }
 
+const LABELS = [
+  '0-10', '11-20', '21-30', '31-40', '41-50',
+  '51-60', '61-70', '71-80', '81-90', '91-100',
+];
+
+const tickStyle = {
+  fill: 'var(--text-muted)',
+  fontFamily: "'JetBrains Mono', monospace",
+  fontSize: 9,
+};
+
 export default function ScoreHistogram({ scores }: ScoreHistogramProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const chartRef = useRef<any>(null);
+  // Bucket scores into 10 groups: 0-10, 11-20, ..., 91-100
+  const buckets = Array(10).fill(0);
+  scores.forEach(s => {
+    const idx = Math.min(9, Math.floor(s / 10));
+    buckets[idx]++;
+  });
 
-  useEffect(() => {
-    if (!canvasRef.current) return;
-
-    const ChartClass = (window as any).Chart;
-    if (!ChartClass) {
-      console.error('Chart.js was not loaded');
-      return;
-    }
-
-    if (chartRef.current) {
-      chartRef.current.destroy();
-    }
-
-    // Bucket scores into 10 groups: 0-10, 11-20, ..., 91-100
-    const buckets = Array(10).fill(0);
-    scores.forEach(s => {
-      const idx = Math.min(9, Math.floor(s / 10));
-      buckets[idx]++;
-    });
-
-    const labels = [
-      '0-10', '11-20', '21-30', '31-40', '41-50',
-      '51-60', '61-70', '71-80', '81-90', '91-100'
-    ];
-
-    const ctx = canvasRef.current.getContext('2d');
-    if (!ctx) return;
-
-    chartRef.current = new ChartClass(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Sessions',
-          data: buckets,
-          backgroundColor: '#88d982',
-          borderColor: 'transparent',
-          borderWidth: 0,
-          borderRadius: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context: any) {
-                return ` ${context.raw} sessions`;
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: {
-              display: false
-            },
-            ticks: {
-              color: '#888',
-              font: {
-                family: 'JetBrains Mono',
-                size: 9
-              }
-            }
-          },
-          y: {
-            grid: {
-              color: 'rgba(255, 255, 255, 0.05)'
-            },
-            ticks: {
-              color: '#888',
-              font: {
-                family: 'JetBrains Mono',
-                size: 9
-              },
-              precision: 0
-            }
-          }
-        }
-      }
-    });
-
-    return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
-        chartRef.current = null;
-      }
-    };
-  }, [scores]);
+  const data = LABELS.map((label, i) => ({ label, count: buckets[i] }));
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '180px' }}>
-      <canvas ref={canvasRef} />
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+          <CartesianGrid vertical={false} stroke="var(--border-card)" />
+          <XAxis
+            dataKey="label"
+            tick={tickStyle}
+            axisLine={{ stroke: 'var(--border-card)' }}
+            tickLine={false}
+          />
+          <YAxis
+            allowDecimals={false}
+            tick={tickStyle}
+            axisLine={false}
+            tickLine={false}
+          />
+          <Tooltip
+            cursor={{ fill: 'var(--bg-table-hover)' }}
+            contentStyle={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-card)',
+              borderRadius: 'var(--radius-card)',
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '11px',
+              color: 'var(--text-primary)',
+            }}
+            itemStyle={{ color: 'var(--text-primary)' }}
+            labelStyle={{ color: 'var(--text-muted)' }}
+            formatter={(value: number) => [`${value} sessions`, '']}
+          />
+          <Bar dataKey="count" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+            {data.map(entry => (
+              <Cell key={entry.label} fill="var(--text-brand)" />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

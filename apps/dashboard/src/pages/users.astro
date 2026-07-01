@@ -13,218 +13,189 @@ if (!env) {
   return Astro.redirect('/error');
 }
 
-let users = [];
+let users: Awaited<ReturnType<typeof getAllUsers>> = [];
 try {
   users = await getAllUsers(env);
 } catch (err) {
   console.error('Error loading users:', err);
 }
+
+const total     = users.length;
+const active    = users.filter(u => u.status === 'active').length;
+const pending   = users.filter(u => u.status === 'pending').length;
+const suspended = users.filter(u => u.status === 'suspended').length;
 ---
 
 <DashboardLayout title="User Management" currentPath="/users">
-  <div class="page-container">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-      <div>
-        <h1 class="page-title text-heading font-display">User Management</h1>
-        <p class="text-secondary text-sm mt-1">Manage administrator access, approve requests, and suspend accounts.</p>
-      </div>
-      <span class="role-badge px-3 py-1 rounded-full text-xs font-semibold self-start sm:self-auto" style="background: rgba(136, 217, 130, 0.08); color: var(--text-brand); border: 1px solid rgba(136, 217, 130, 0.15);">
-        Owner Mode
-      </span>
+
+  <div class="page-header page-header--split">
+    <div>
+      <h1 class="page-title">User Management</h1>
+      <p class="page-meta">
+        {total} administrator{total !== 1 ? 's' : ''} · {pending} pending approval · manage access and suspensions
+      </p>
     </div>
+    <span class="owner-badge">
+      <span class="material-symbols-outlined" style="font-size: 13px; line-height: 1;">shield_person</span>
+      Owner Mode
+    </span>
+  </div>
 
-    <!-- Alert Message Box -->
-    <div id="action-alert" class="hidden p-4 rounded-lg mb-6 border text-sm backdrop-blur-sm transition-all duration-300"></div>
+  <!-- Alert Message Box -->
+  <div id="action-alert" class="users-alert hidden"></div>
 
-    <div class="card p-6 md:p-8 border border-card bg-card shadow-xl overflow-hidden">
-      {users.length === 0 ? (
-        <div class="py-12 text-center text-secondary">
-          <span class="material-symbols-outlined text-4xl opacity-40 mb-2">group_off</span>
-          <p>No administrator accounts requests found.</p>
-        </div>
-      ) : (
-        <div class="table-scroll-wrapper">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="border-b border-table" style="border-color: var(--border-table);">
-                <th class="py-4 px-4 text-xs font-semibold uppercase tracking-wider text-secondary">Username</th>
-                <th class="py-4 px-4 text-xs font-semibold uppercase tracking-wider text-secondary">Role</th>
-                <th class="py-4 px-4 text-xs font-semibold uppercase tracking-wider text-secondary">Status</th>
-                <th class="py-4 px-4 text-xs font-semibold uppercase tracking-wider text-secondary">Created At</th>
-                <th class="py-4 px-4 text-xs font-semibold uppercase tracking-wider text-secondary text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(u => (
-                <tr class="border-b border-table hover:bg-table-hover transition-colors" style="border-color: var(--border-table);" data-user-id={u.id}>
-                  <td class="py-4 px-4 font-mono text-sm text-primary flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm opacity-60">person</span>
-                    {u.username}
-                  </td>
-                  <td class="py-4 px-4 text-sm text-secondary">
-                    <span class="text-xs uppercase px-2 py-0.5 rounded font-mono" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: var(--text-secondary);">
-                      {u.role}
-                    </span>
-                  </td>
-                  <td class="py-4 px-4 text-sm">
-                    {u.status === 'active' && (
-                      <span class="status-badge px-2.5 py-0.5 text-xs font-semibold" style="background: var(--bg-success-translucent); color: var(--text-success); border: 1px solid var(--border-success-translucent); border-radius: var(--radius-badge);">
-                        Active
-                      </span>
-                    )}
-                    {u.status === 'pending' && (
-                      <span class="status-badge px-2.5 py-0.5 text-xs font-semibold" style="background: var(--bg-warning-translucent); color: var(--text-warning); border: 1px solid var(--border-warning-translucent); border-radius: var(--radius-badge);">
-                        Pending Approval
-                      </span>
-                    )}
-                    {u.status === 'suspended' && (
-                      <span class="status-badge px-2.5 py-0.5 text-xs font-semibold" style="background: var(--bg-danger-translucent); color: var(--text-danger); border: 1px solid var(--border-danger-translucent); border-radius: var(--radius-badge);">
-                        Suspended
-                      </span>
-                    )}
-                  </td>
-                  <td class="py-4 px-4 text-xs font-mono text-muted">
-                    {new Date(u.created_at).toLocaleString()}
-                  </td>
-                  <td class="py-4 px-4 text-right">
-                    <div class="flex items-center justify-end gap-2">
-                      {u.status !== 'active' ? (
-                        <button
-                          class="action-btn approve-btn px-3 py-1.5 text-xs font-semibold flex items-center gap-1 transition-all"
-                          data-id={u.id}
-                          data-action="approve"
-                          style="background: var(--bg-success-translucent); color: var(--text-success); border: 1px solid var(--border-success-translucent);"
-                        >
-                          <span class="material-symbols-outlined" style="font-size: 14px;">check_circle</span>
-                          Approve
-                        </button>
-                      ) : (
-                        <button
-                          class="action-btn suspend-btn px-3 py-1.5 text-xs font-semibold flex items-center gap-1 transition-all"
-                          data-id={u.id}
-                          data-action="suspend"
-                          style="background: var(--bg-warning-translucent); color: var(--text-warning); border: 1px solid var(--border-warning-translucent);"
-                        >
-                          <span class="material-symbols-outlined" style="font-size: 14px;">block</span>
-                          Suspend
-                        </button>
-                      )}
-                      
-                      <button
-                        class="action-btn delete-btn px-3 py-1.5 text-xs font-semibold flex items-center gap-1 transition-all"
-                        data-id={u.id}
-                        data-action="delete"
-                        style="background: var(--bg-danger-translucent); color: var(--text-danger); border: 1px solid var(--border-danger-translucent);"
-                      >
-                        <span class="material-symbols-outlined" style="font-size: 14px;">delete</span>
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+  <div class="kpi-strip">
+    <div class="kpi-item">
+      <span class="kpi-label">Total accounts</span>
+      <span class="kpi-value">{total}</span>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-label">Active</span>
+      <span class="kpi-value" style="color: var(--text-success);">{active}</span>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-label">Pending approval</span>
+      <span class="kpi-value" style="color: var(--text-warning);">{pending}</span>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-label">Suspended</span>
+      <span class="kpi-value" style="color: var(--text-danger);">{suspended}</span>
     </div>
   </div>
 
-  <style>
-    .page-title {
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -0.025em;
-    }
-    .card {
-      background-color: var(--bg-card);
-      border-color: var(--border-card);
-      border-radius: var(--radius-card);
-    }
-    .table-scroll-wrapper {
-      overflow-x: auto;
-      width: 100%;
-    }
-    th {
-      color: var(--text-secondary);
-    }
-    td {
-      color: var(--text-primary);
-    }
-    .action-btn {
-      border-radius: var(--radius-button);
-      transition: all 0.2s ease;
-    }
-    .action-btn:hover {
-      filter: brightness(1.15);
-      transform: translateY(-1px);
-    }
-    .action-btn:active {
-      transform: translateY(0);
-    }
-  </style>
+  <div class="sessions-section">
+    <div class="dist-head">
+      <span class="section-label">Administrator accounts</span>
+      <span class="dist-cohort">{total} total</span>
+    </div>
 
-  <script>
-    const alertBox = document.getElementById('action-alert');
-    const buttons = document.querySelectorAll('.action-btn');
+    {users.length === 0 ? (
+      <div class="sessions-empty">
+        <span class="material-symbols-outlined" style="font-size: 32px; color: var(--text-muted); opacity: 0.4;">group_off</span>
+        <p class="sessions-empty-text" style="margin-top: 8px;">No administrator account requests found.</p>
+      </div>
+    ) : (
+      <div class="table-scroll-wrap">
+        <table class="sessions-table users-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Created at</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map(u => (
+              <tr data-user-id={u.id}>
+                <td class="name-cell">
+                  <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: -2px; opacity: 0.5; margin-right: 4px;">person</span>
+                  {u.username}
+                </td>
+                <td>
+                  <span class={`role-chip ${u.role === 'owner' ? 'owner' : ''}`}>{u.role}</span>
+                </td>
+                <td>
+                  {u.status === 'active' && (
+                    <span class="status-pill active"><span class="dot"></span>Active</span>
+                  )}
+                  {u.status === 'pending' && (
+                    <span class="status-pill pending"><span class="dot"></span>Pending</span>
+                  )}
+                  {u.status === 'suspended' && (
+                    <span class="status-pill suspended"><span class="dot"></span>Suspended</span>
+                  )}
+                </td>
+                <td class="td-mono-id">{new Date(u.created_at).toLocaleString()}</td>
+                <td class="actions-cell">
+                  <div class="user-actions">
+                    {u.status !== 'active' ? (
+                      <button
+                        class="user-action-btn approve"
+                        data-id={u.id}
+                        data-action="approve"
+                      >
+                        <span class="material-symbols-outlined" style="font-size: 13px;">check_circle</span>
+                        Approve
+                      </button>
+                    ) : (
+                      <button
+                        class="user-action-btn suspend"
+                        data-id={u.id}
+                        data-action="suspend"
+                      >
+                        <span class="material-symbols-outlined" style="font-size: 13px;">block</span>
+                        Suspend
+                      </button>
+                    )}
+                    <button
+                      class="user-action-btn delete"
+                      data-id={u.id}
+                      data-action="delete"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 13px;">delete</span>
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
 
-    function showAlert(msg: string, type: 'success' | 'error') {
-      if (!alertBox) return;
-      alertBox.textContent = msg;
-      alertBox.className = ''; // reset classes
-      
-      if (type === 'success') {
-        alertBox.classList.add(
-          'p-4', 'rounded-lg', 'mb-6', 'border', 'text-sm', 'backdrop-blur-sm',
-          'bg-emerald-950/20', 'text-emerald-400', 'border-emerald-900/30'
-        );
-      } else {
-        alertBox.classList.add(
-          'p-4', 'rounded-lg', 'mb-6', 'border', 'text-sm', 'backdrop-blur-sm',
-          'bg-red-950/20', 'text-red-400', 'border-red-900/30'
-        );
+</DashboardLayout>
+
+<script>
+  const alertBox = document.getElementById('action-alert');
+  const buttons = document.querySelectorAll('.user-action-btn');
+
+  function showAlert(msg: string, type: 'success' | 'error') {
+    if (!alertBox) return;
+    alertBox.textContent = msg;
+    alertBox.className = `users-alert ${type}`;
+    setTimeout(() => {
+      alertBox.classList.add('hidden');
+    }, 4000);
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      const action = btn.getAttribute('data-action');
+      if (!id || !action) return;
+
+      if (action === 'delete') {
+        const confirmDelete = confirm('Are you sure you want to permanently delete this administrator account?');
+        if (!confirmDelete) return;
       }
-      alertBox.classList.remove('hidden');
-      setTimeout(() => {
-        alertBox.classList.add('hidden');
-      }, 4000);
-    }
 
-    buttons.forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        const action = btn.getAttribute('data-action');
-        if (!id || !action) return;
+      try {
+        btn.setAttribute('disabled', 'true');
+        const res = await fetch(`/api/auth/users/${id}/${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
 
-        if (action === 'delete') {
-          const confirmDelete = confirm('Are you sure you want to permanently delete this administrator account?');
-          if (!confirmDelete) return;
-        }
+        const data = await res.json() as any;
+        if (res.ok && data.ok) {
+          showAlert(`User successfully ${action}d!`, 'success');
 
-        try {
-          btn.setAttribute('disabled', 'true');
-          const res = await fetch(`/api/auth/users/${id}/${action}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-          });
-
-          const data = await res.json() as any;
-          if (res.ok && data.ok) {
-            showAlert(`User successfully ${action}d!`, 'success');
-            
-            // Reload page after a delay to show updated status
-            setTimeout(() => {
-              window.location.reload();
-            }, 1000);
-          } else {
-            showAlert(data.error || 'Action failed', 'error');
-            btn.removeAttribute('disabled');
-          }
-        } catch (err) {
-          showAlert('A network connection error occurred', 'error');
+          // Reload page after a delay to show updated status
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          showAlert(data.error || 'Action failed', 'error');
           btn.removeAttribute('disabled');
         }
-      });
+      } catch (err) {
+        showAlert('A network connection error occurred', 'error');
+        btn.removeAttribute('disabled');
+      }
     });
-  </script>
-</DashboardLayout>
+  });
+</script>

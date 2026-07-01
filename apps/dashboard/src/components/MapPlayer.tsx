@@ -56,10 +56,10 @@ function parseCsv(csv: string): CsvRow[] {
 // ── Event marker colours ──────────────────────────────────────────────────
 
 const EVENT_META: Record<string, { color: string; label: string }> = {
-  fire_alarm_activate:  { color: '#c45c5c', label: 'Fire alarm' },
+  fire_alarm_activate:  { color: '#ef4444', label: 'Fire alarm' },
   door_open:            { color: '#6b8cff', label: 'Door opened' },
   extinguisher_use:     { color: '#f5c842', label: 'Extinguisher' },
-  assembly_area_reached:{ color: '#88d982', label: 'Assembly zone' },
+  assembly_area_reached:{ color: '#22c55e', label: 'Assembly zone' },
   emergency_exit:       { color: '#42d9d4', label: 'Emergency exit' },
   session_start:        { color: '#ffffff', label: 'Start' },
   session_end:          { color: '#ffffff', label: 'End' },
@@ -150,8 +150,8 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
       {/* Assembly zone */}
       <rect
         x={az1x} y={az1z} width={az2x - az1x} height={az2z - az1z}
-        fill="rgba(136,217,130,0.06)"
-        stroke="#88d982"
+        fill="rgba(34,197,94,0.06)"
+        stroke="#22c55e"
         strokeWidth={1}
         strokeDasharray="5 3"
       />
@@ -161,7 +161,7 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
         textAnchor="middle"
         dominantBaseline="middle"
         fontSize={8}
-        fill="#88d982"
+        fill="#22c55e"
         fillOpacity={0.55}
         fontFamily="JetBrains Mono, monospace"
       >
@@ -411,8 +411,8 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
         {/* Assembly zone (south of building) */}
         <rect
           x={caz1x} y={caz1z} width={caz2x - caz1x} height={caz2z - caz1z}
-          fill="rgba(80,200,80,0.09)"
-          stroke="#50c850"
+          fill="rgba(34,197,94,0.08)"
+          stroke="#22c55e"
           strokeWidth={1}
           strokeDasharray="4 3"
         />
@@ -420,7 +420,7 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
           x={(caz1x + caz2x) / 2} y={caz1z + 10}
           textAnchor="middle"
           fontSize={7}
-          fill="#50c850"
+          fill="#22c55e"
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >ASSEMBLY ZONE</text>
 
