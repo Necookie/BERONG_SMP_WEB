@@ -483,6 +483,7 @@ const commands = [
       'Testing a specific hazard block\'s particle effects and light level.',
       'Placing blocks in normal (hazardous=false) or hazardous (hazardous=true via /setblock) states.'
     ],
+    detailsLabel: 'Available hazard block names (tab-completes in-game):',
     details: [
       'plastic_trash_bin — classroom bin with vape; smoke when hazardous',
       'daisy_chain_extension — overloaded extension cord; electric sparks',
@@ -688,7 +689,7 @@ const configs = [
 
                 {cmd.details && (
                   <div class="detail-block">
-                    <span class="sub-label">Information printed:</span>
+                    <span class="sub-label">{cmd.detailsLabel ?? 'Information printed:'}</span>
                     <ul>
                       {cmd.details.map((item) => (
                         <li>{item}</li>
