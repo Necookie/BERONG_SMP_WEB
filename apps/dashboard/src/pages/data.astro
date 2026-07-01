@@ -9,92 +9,116 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     <p class="page-meta">Download telemetry datasets for ML training and analysis</p>
   </div>
 
-  <!-- Synthetic Dataset -->
-  <div class="data-section">
-    <div class="data-section-header">
-      <span class="data-section-label">Synthetic Dataset</span>
-      <span class="data-badge">250 sessions · 301,288 rows</span>
-    </div>
-    <p class="data-desc">
-      Machine-generated data matching telemetry contract v1.1 exactly. 250 sessions (150 FIRE + 100
-      EARTHQUAKE) across 60 student profiles with individual personality traits — reaction time,
-      panic tendency, procedure adherence, and movement speed — distributed across HIGH / MODERATE /
-      LOW preparedness archetypes over 10 simulated data-collection days. Sessions CSV includes
-      <code>prep_level</code>, <code>simulation_score</code>, and <code>passed</code> labels for direct supervised training.
-    </p>
-    <div class="data-note" style="margin-bottom: 14px;">
-      <strong style="color: var(--text-primary);">Archetype breakdown:</strong>
-      HIGH ≈38% (94) · MODERATE ≈44% (109) · LOW ≈19% (47) &nbsp;|&nbsp;
-      Pass rate 50.0% · Avg score 52.8 &nbsp;|&nbsp;
-      Each student appears in 2–8 sessions with consistent personality traits.
-    </div>
-    <div class="download-grid">
-      <a href="/synthetic/gameplay_logs_synthetic_20260601.csv" download class="download-card">
-        <div class="dl-icon">CSV</div>
-        <div class="dl-info">
-          <span class="dl-name">gameplay_logs_synthetic_20260601.csv</span>
-          <span class="dl-meta">301,288 rows · 10 Hz move + events · ~20.1 MB</span>
-        </div>
-        <span class="dl-arrow">↓</span>
-      </a>
-      <a href="/synthetic/sessions_synthetic_20260601.csv" download class="download-card">
-        <div class="dl-icon">CSV</div>
-        <div class="dl-info">
-          <span class="dl-name">sessions_synthetic_20260601.csv</span>
-          <span class="dl-meta">250 rows · session metadata + labels · ~34 KB</span>
-        </div>
-        <span class="dl-arrow">↓</span>
-      </a>
-    </div>
-    <div class="data-note">
-      Columns match <code>RAW_LOG_SCHEMA</code> and <code>sessions</code> schema from the telemetry contract.
-      Feed directly into <code>build_feature_table()</code> grouped by <code>player_id × scenario_type</code>.
-      Labels (<code>prep_level</code>) are pre-attached for supervised training — no separate labeling step needed for synthetic data.
-    </div>
-  </div>
+  <div class="data-page-content">
 
-  <!-- Live Data Export -->
-  <div class="data-section">
-    <div class="data-section-header">
-      <span class="data-section-label">Live Session Data</span>
-      <span class="data-badge live">from Turso</span>
+    <!-- Synthetic Dataset -->
+    <div class="data-section">
+      <div class="data-section-header">
+        <span class="data-section-label">Synthetic Dataset</span>
+        <span class="data-badge">250 sessions · 301,288 rows</span>
+      </div>
+      <p class="data-desc">
+        Machine-generated data matching telemetry contract v1.1 exactly. 250 sessions (150 FIRE + 100
+        EARTHQUAKE) across 60 student profiles with individual personality traits — reaction time,
+        panic tendency, procedure adherence, and movement speed — distributed across HIGH / MODERATE /
+        LOW preparedness archetypes over 10 simulated data-collection days. Sessions CSV includes
+        <code>prep_level</code>, <code>simulation_score</code>, and <code>passed</code> labels for direct supervised training.
+      </p>
+      <div class="data-note">
+        <strong style="color: var(--text-primary);">Archetype breakdown:</strong>
+        HIGH ≈38% (94) · MODERATE ≈44% (109) · LOW ≈19% (47) &nbsp;|&nbsp;
+        Pass rate 50.0% · Avg score 52.8 &nbsp;|&nbsp;
+        Each student appears in 2–8 sessions with consistent personality traits.
+      </div>
+      <div class="download-grid">
+        <a href="/synthetic/gameplay_logs_synthetic_20260601.csv" download class="download-card">
+          <div class="dl-icon">CSV</div>
+          <div class="dl-info">
+            <span class="dl-name">gameplay_logs_synthetic_20260601.csv</span>
+            <span class="dl-meta">301,288 rows · 10 Hz move + events · ~20.1 MB</span>
+          </div>
+          <span class="dl-arrow">↓</span>
+        </a>
+        <a href="/synthetic/sessions_synthetic_20260601.csv" download class="download-card">
+          <div class="dl-icon">CSV</div>
+          <div class="dl-info">
+            <span class="dl-name">sessions_synthetic_20260601.csv</span>
+            <span class="dl-meta">250 rows · session metadata + labels · ~34 KB</span>
+          </div>
+          <span class="dl-arrow">↓</span>
+        </a>
+      </div>
+      <div class="data-note">
+        Columns match <code>RAW_LOG_SCHEMA</code> and <code>sessions</code> schema from the telemetry contract.
+        Feed directly into <code>build_feature_table()</code> grouped by <code>player_id × scenario_type</code>.
+        Labels (<code>prep_level</code>) are pre-attached for supervised training — no separate labeling step needed for synthetic data.
+      </div>
     </div>
-    <p class="data-desc">
-      Export all completed sessions from the live database. Includes student names, scores,
-      scenario types, timestamps, and full event logs.
-    </p>
-    <div class="download-grid">
-      <a href="/api/export/sessions" download="sessions_live.csv" class="download-card">
-        <div class="dl-icon live">CSV</div>
-        <div class="dl-info">
-          <span class="dl-name">sessions_live.csv</span>
-          <span class="dl-meta">All completed sessions · live query</span>
-        </div>
-        <span class="dl-arrow">↓</span>
-      </a>
+
+    <!-- Live Data Export -->
+    <div class="data-section">
+      <div class="data-section-header">
+        <span class="data-section-label">Live Session Data</span>
+        <span class="data-badge live">from Turso</span>
+      </div>
+      <p class="data-desc">
+        Export all completed sessions from the live database. Includes student names, scores,
+        scenario types, timestamps, and full event logs.
+      </p>
+      <div class="download-grid">
+        <a href="/api/export/sessions" download="sessions_live.csv" class="download-card">
+          <div class="dl-icon live">CSV</div>
+          <div class="dl-info">
+            <span class="dl-name">sessions_live.csv</span>
+            <span class="dl-meta">All completed sessions · live query</span>
+          </div>
+          <span class="dl-arrow">↓</span>
+        </a>
+      </div>
+      <div class="data-note">
+        Gameplay log CSVs (move rows) are stored locally on the Minecraft server under
+        <code>run/telemetry/gameplay_logs_&lt;date&gt;.csv</code> — retrieve them directly from that machine.
+      </div>
     </div>
-    <div class="data-note">
-      Gameplay log CSVs (move rows) are stored locally on the Minecraft server under
-      <code>run/telemetry/gameplay_logs_&lt;date&gt;.csv</code> — retrieve them directly from that machine.
-    </div>
+
   </div>
 
 </DashboardLayout>
 
 <style>
+  .data-page-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px 40px 40px;
+  }
+
+  @media (max-width: 1024px) {
+    .data-page-content {
+      gap: 20px;
+      padding: 22px 28px 28px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .data-page-content {
+      gap: 16px;
+      padding: 16px 20px 20px;
+    }
+  }
+
   .data-section {
     background: var(--bg-card);
     border: 1px solid var(--border-card);
     border-radius: var(--radius-card);
-    padding: 20px 24px;
-    margin-bottom: 16px;
+    padding: 24px 28px;
   }
 
   .data-section-header {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
   }
 
   .data-section-label {
@@ -133,14 +157,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     font-size: 11px;
     color: var(--text-secondary);
     line-height: 1.6;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
   }
 
   .download-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 14px;
+    margin-bottom: 16px;
   }
 
   .download-card {
@@ -151,19 +175,21 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     border: 1px solid var(--border-card);
     border-radius: var(--radius-button);
     text-decoration: none;
-    transition: border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s;
     background: var(--bg-base);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+    transition: border-color 0.15s, background 0.15s, transform 0.1s, box-shadow 0.1s;
   }
 
   .download-card:hover {
     border-color: var(--text-brand);
     background: var(--bg-table-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
   }
 
   .download-card:active {
-    transform: translateY(0);
+    transform: translateY(4px);
+    box-shadow: 0 0px 0 rgba(0, 0, 0, 0.25);
   }
 
   .dl-icon {
@@ -228,6 +254,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     line-height: 1.5;
     padding: 8px 12px;
     border-left: 2px solid var(--border-card);
+    margin-bottom: 16px;
+  }
+
+  .data-note:last-child {
+    margin-bottom: 0;
   }
 
   .data-note code {

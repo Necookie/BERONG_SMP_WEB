@@ -104,8 +104,11 @@ if (usersExist) {
               required
               autocomplete="new-password"
               placeholder="••••••••"
-              class="w-full bg-base border border-card pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+              class="w-full bg-base border border-card pl-11 pr-11 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
             />
+            <button type="button" class="pwd-toggle absolute right-3 top-1/2 -translate-y-1/2" aria-label="Toggle password visibility">
+              <span class="material-symbols-outlined">visibility</span>
+            </button>
           </div>
         </div>
         <div>
@@ -119,14 +122,17 @@ if (usersExist) {
               required
               autocomplete="new-password"
               placeholder="••••••••"
-              class="w-full bg-base border border-card pl-11 pr-4 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
+              class="w-full bg-base border border-card pl-11 pr-11 py-3 text-primary focus:outline-none focus:border-brand transition-all duration-300 placeholder-muted"
             />
+            <button type="button" class="pwd-toggle absolute right-3 top-1/2 -translate-y-1/2" aria-label="Toggle password visibility">
+              <span class="material-symbols-outlined">visibility</span>
+            </button>
           </div>
         </div>
         
         <button
           type="submit"
-          class="w-full bg-brand text-black font-semibold py-3 hover:shadow-[0_0_20px_rgba(136,217,130,0.35)] transition-all duration-300 active:scale-[0.98] mt-3"
+          class="w-full bg-brand text-white font-semibold py-3 shadow-[0_4px_0_#9b1c1c] hover:-translate-y-0.5 hover:shadow-[0_6px_0_#9b1c1c] active:translate-y-1 active:shadow-[0_0px_0_#9b1c1c] transition-all duration-100 mt-3"
         >
           Initialize Administrator
         </button>
@@ -171,9 +177,9 @@ if (usersExist) {
       border-radius: var(--radius-card);
     }
     .setup-badge {
-      background: rgba(136, 217, 130, 0.08);
+      background: rgba(229, 57, 53, 0.08);
       color: var(--text-brand);
-      border: 1px solid rgba(136, 217, 130, 0.15);
+      border: 1px solid rgba(229, 57, 53, 0.15);
       border-radius: var(--radius-badge);
     }
     .bg-base {
@@ -186,20 +192,30 @@ if (usersExist) {
     }
     input:focus {
       border-color: var(--text-brand) !important;
-      box-shadow: 0 0 0 3px rgba(136, 217, 130, 0.15);
+      box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.15);
     }
     .input-wrapper:focus-within span {
       color: var(--text-brand) !important;
       opacity: 0.9 !important;
     }
+    .pwd-toggle {
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s;
+    }
+    .pwd-toggle:hover { color: var(--text-brand); }
+    .pwd-toggle .material-symbols-outlined { font-size: 18px; pointer-events: none; }
     .bg-brand {
       background-color: var(--text-brand);
-      color: #0d0d0d;
+      color: #ffffff;
       border: none;
       border-radius: var(--radius-button);
-    }
-    .bg-brand:hover {
-      filter: brightness(1.05);
     }
     
     /* Light mode adaptations */
@@ -213,9 +229,9 @@ if (usersExist) {
       border-color: rgba(0, 0, 0, 0.06);
     }
     :global(html.light) .setup-badge {
-      background: rgba(46, 125, 50, 0.08);
+      background: rgba(220, 38, 38, 0.06);
       color: var(--text-brand);
-      border: 1px solid rgba(46, 125, 50, 0.15);
+      border: 1px solid rgba(220, 38, 38, 0.15);
     }
     :global(html.light) .bg-base {
       background-color: rgba(244, 241, 238, 0.8);
@@ -224,14 +240,26 @@ if (usersExist) {
     }
     :global(html.light) .bg-brand {
       color: #ffffff;
-      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
-    }
-    :global(html.light) .bg-brand:hover {
-      box-shadow: 0 6px 16px rgba(46, 125, 50, 0.35);
     }
   </style>
 
   <script>
+    // Password visibility toggles
+    document.querySelectorAll<HTMLButtonElement>('.pwd-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = btn.closest('.input-wrapper')?.querySelector('input') as HTMLInputElement | null;
+        const icon = btn.querySelector('.material-symbols-outlined');
+        if (!input || !icon) return;
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.textContent = 'visibility_off';
+        } else {
+          input.type = 'password';
+          icon.textContent = 'visibility';
+        }
+      });
+    });
+
     const form = document.getElementById('setup-form') as HTMLFormElement;
     const errorDiv = document.getElementById('error-message') as HTMLDivElement;
     const successDiv = document.getElementById('success-message') as HTMLDivElement;

@@ -333,6 +333,46 @@ export async function getAllCompletedScores(env: Env): Promise<number[]> {
   return res.rows.map(r => Number((r as Record<string, unknown>).simulation_score ?? 0));
 }
 
+export interface AnalyticsSession {
+  id: number;
+  section: string | null;
+  simulation_type: 'FIRE' | 'EARTHQUAKE' | 'CCS_FIRE' | 'CCS_EARTHQUAKE' | null;
+  simulation_score: number;
+  passed: number;
+  prep_level: 'HIGH' | 'MODERATE' | 'LOW' | null;
+  event_log: string | null;
+  start_time: string;
+  tutorial_completed: number;
+  confidence: number | null;
+}
+
+// Lean projection for cohort-wide analytics — deliberately excludes move_log_csv
+// (can be a large text blob per row) since aggregate charts never need it.
+export async function getAnalyticsSessions(env: Env): Promise<AnalyticsSession[]> {
+  const db = getDb(env);
+  const res = await db.execute(`
+    SELECT id, section, simulation_type, simulation_score, passed, prep_level,
+           event_log, start_time, tutorial_completed, confidence
+    FROM sessions
+    WHERE status = 'completed'
+  `);
+  return res.rows.map(r => {
+    const row = r as Record<string, unknown>;
+    return {
+      id: Number(row.id),
+      section: row.section != null ? String(row.section) : null,
+      simulation_type: (row.simulation_type as AnalyticsSession['simulation_type']) ?? null,
+      simulation_score: Number(row.simulation_score ?? 0),
+      passed: Number(row.passed ?? 0),
+      prep_level: (row.prep_level as AnalyticsSession['prep_level']) ?? null,
+      event_log: row.event_log != null ? String(row.event_log) : null,
+      start_time: String(row.start_time),
+      tutorial_completed: Number(row.tutorial_completed ?? 0),
+      confidence: row.confidence != null ? Number(row.confidence) : null,
+    };
+  });
+}
+
 export interface User {
   id: number;
   username: string;
