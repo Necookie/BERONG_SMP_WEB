@@ -6,57 +6,58 @@ const commands = [
   {
     name: '/sim_fire',
     category: 'simulation',
-    permission: 'Any Player',
-    permissionLevel: 'player',
-    syntax: '/sim_fire',
-    description: 'Starts a Fire simulation for you immediately, bypassing the lobby button.',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/sim_fire <library|ccs>',
+    arguments: [
+      { name: 'target', type: 'string', range: 'library | ccs', required: 'Yes', description: '"library" starts the drill in the LSPU Library (ABC extinguisher given). "ccs" starts in the CCS Admin Building (CO2 extinguisher given).' }
+    ],
+    description: 'Starts a Fire simulation immediately, bypassing the lobby button. Choose the target building.',
     whenToUse: [
       'Testing the fire simulation without walking to the lobby button.',
-      'Admin/instructor wants to drop a specific student directly into a fire drill.'
+      'Admin/instructor drops a student into a fire drill in a specific building.'
     ],
     whatHappens: [
-      'Structures are placed (LSPU Library + SSC Building).',
-      'Player is teleported to the arena entrance.',
-      'Fire extinguisher is given in slot 1 with the pin not yet pulled (PASS protocol: Pull, Aim, Squeeze, Sweep).',
+      'All three structures placed (LSPU Library, SSC Building, CCS Admin Building).',
+      'Player is teleported to a random valid room inside the chosen building.',
+      'ABC extinguisher (library) or CO2 extinguisher (ccs) given in hotbar slot 0.',
       'Fire blocks begin spawning every fireSpawnInterval ticks.',
       'Timer counts down from simDurationTicks.',
-      'HUD displays "SIMULATION STATUS: FIRE" and time remaining.'
+      'HUD displays "SIMULATION STATUS: FIRE" (library) or "SIMULATION STATUS: CCS_FIRE".'
     ],
     notes: [
-      'Fails silently if you already have a simulation running (displays "You already have a simulation in progress!" message).',
+      'Fails if you already have a simulation running.',
       'Cannot be run from the server console.'
     ]
   },
   {
     name: '/sim_earthquake',
     category: 'simulation',
-    permission: 'Any Player',
-    permissionLevel: 'player',
-    syntax: '/sim_earthquake [magnitude]',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/sim_earthquake <library|ccs> [magnitude]',
     arguments: [
-      { name: 'magnitude', type: 'double', range: '0.1 – 10.0', required: 'No', description: 'Intensity of the quake. If omitted, uses quakeMagnitude from config (default 5.0).' }
+      { name: 'target', type: 'string', range: 'library | ccs', required: 'Yes', description: '"library" runs the drill in the LSPU Library; "ccs" runs it in the CCS Admin Building.' },
+      { name: 'magnitude', type: 'double', range: '0.1 – 10.0', required: 'No', description: 'Quake intensity. If omitted, uses quakeMagnitude from config (default 5.0).' }
     ],
-    description: 'Starts an Earthquake simulation for you immediately, bypassing the lobby button.',
+    description: 'Starts an Earthquake simulation immediately. Choose the building and optional magnitude.',
     whenToUse: [
       'Testing the earthquake simulation without the lobby button.',
-      'Running a controlled drill at a specific intensity (e.g. 3.0 for gentle shake, 9.5 for severe).',
-      'Instructors scripting a lesson where they want a predictable magnitude.'
+      'Running a controlled drill at a specific intensity.',
+      'Instructors scripting a lesson with a predictable magnitude.'
     ],
     whatHappens: [
-      'Structures placed (LSPU Library + SSC Building).',
-      'A random epicenter is chosen within the arena.',
-      'Player teleported to arena entrance.',
-      'Earthquake message displayed: "⚠ Magnitude X.X Earthquake has begun! Brace for impact!"',
-      'Phase state machine begins: RUMBLE → PEAK → AFTERSHOCK → END.',
-      'RUMBLE: Low-intensity random block destruction within magnitude x 3 blocks. Camera begins slow oscillation.',
-      'PEAK: Maximum intensity. Unsupported blocks break gradually every tick (cascading collapse). Camera shake is strongest.',
-      'AFTERSHOCK: Half the break count, smaller radius. Camera shake fades.',
-      'END: No more destruction. Phase machine stops.',
-      'Fire that spreads naturally is cleared every second.',
-      'HUD shows "SIMULATION STATUS: EARTHQUAKE", time remaining, and camera shake intensity.'
+      'All structures placed (LSPU Library, SSC Building, CCS Admin Building).',
+      'Epicenter fixed 3–9 blocks from the chosen building interior so destruction stays inside.',
+      'Player teleported to a random valid room inside the target building.',
+      'Chat: "⚠ Magnitude X.X Earthquake has begun!"',
+      'Phase machine: RUMBLE → PEAK → AFTERSHOCK (×2–4 waves) → END.',
+      'Aftershocks use random magnitude scales (0.2–1.1× base) before finally ending.',
+      'Nausea applied per phase; camera shake driven by per-player intensity = magnitude × e^(−decayRate × distance).',
+      'HUD shows "SIMULATION STATUS: EARTHQUAKE" or "CCS_EARTHQUAKE" and intensity bar.'
     ],
     notes: [
-      'The lobby button starts this simulation with a random magnitude between 6.0 and 9.5 (strong range).',
+      'Lobby button starts with a random magnitude 6.0–9.5 (strong range).',
       'Fails if you already have an active simulation.'
     ]
   },
@@ -257,20 +258,256 @@ const commands = [
     ]
   },
   {
+    name: '/sim_status',
+    category: 'simulation',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/sim_status [player]',
+    arguments: [
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller.' }
+    ],
+    description: 'Prints a live snapshot of the target player\'s simulation: type, phase, time remaining, fires extinguished.',
+    whenToUse: ['Instructor monitoring a student\'s session in real time.']
+  },
+  {
+    name: '/sim_list',
+    category: 'simulation',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/sim_list',
+    description: 'Lists all currently active simulations across every online player.',
+    whenToUse: ['Overview of who is in a drill when multiple stations are running simultaneously.']
+  },
+  {
+    name: '/sim_freeze',
+    category: 'simulation',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/sim_freeze [player]',
+    arguments: [
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller.' }
+    ],
+    description: 'Pauses the simulation timer without stopping effects (fire/quake still ticks). Good for pausing to give instruction.',
+    notes: ['Resume with /sim_unfreeze.']
+  },
+  {
+    name: '/sim_unfreeze',
+    category: 'simulation',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/sim_unfreeze [player]',
+    arguments: [
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller.' }
+    ],
+    description: 'Resumes a frozen simulation timer.',
+    whenToUse: ['After /sim_freeze, when ready to continue the timed session.']
+  },
+  {
+    name: '/sim_time',
+    category: 'simulation',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/sim_time set <seconds> | /sim_time add <seconds>',
+    arguments: [
+      { name: 'set/add', type: 'string', range: 'set | add', required: 'Yes', description: '"set" replaces remaining time; "add" adds or subtracts seconds.' },
+      { name: 'seconds', type: 'integer', range: 'any', required: 'Yes', description: 'Seconds to set or offset.' }
+    ],
+    description: 'Adjusts the remaining simulation time on the fly.',
+    examples: [
+      { cmd: '/sim_time set 60', desc: 'Give student exactly 1 minute left' },
+      { cmd: '/sim_time add -30', desc: 'Subtract 30 seconds (urgency drill)' },
+      { cmd: '/sim_time add 120', desc: 'Add 2 minutes for a struggling student' }
+    ]
+  },
+  {
+    name: '/bfp bypass',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp bypass on [player] | /bfp bypass off [player]',
+    arguments: [
+      { name: 'on/off', type: 'string', range: 'on | off', required: 'Yes', description: 'Enable or disable bypass mode.' },
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller.' }
+    ],
+    description: 'Skips lobby gates (registration, session check, tutorial) for quick testing. Resets on server restart.',
+    whenToUse: ['Dev/testing to jump straight into a simulation without going through the tutorial flow.']
+  },
+  {
+    name: '/bfp note',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp note <text>',
+    arguments: [
+      { name: 'text', type: 'string', range: 'N/A', required: 'Yes', description: 'Observation text to append to the session.' }
+    ],
+    description: 'Appends an instructor observation note to the active session\'s bfp_notes column in Turso.',
+    whenToUse: ['Recording on-the-fly behavioural observations during a drill.']
+  },
+  {
+    name: '/bfp confidence',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp confidence <1-5>',
+    arguments: [
+      { name: 'rating', type: 'integer', range: '1–5', required: 'Yes', description: 'Instructor-assessed confidence level (1 = very low, 5 = very high).' }
+    ],
+    description: 'Sets the instructor confidence rating for the active session.',
+    whenToUse: ['After observing a student — rate their perceived readiness/composure.']
+  },
+  {
+    name: '/bfp prep_level',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp prep_level <none|low|moderate|high>',
+    arguments: [
+      { name: 'level', type: 'string', range: 'none | low | moderate | high', required: 'Yes', description: 'Instructor assessment of preparedness level.' }
+    ],
+    description: 'Records the instructor\'s preparedness assessment in the session row.',
+    whenToUse: ['After a drill — qualitative complement to the numeric score.']
+  },
+  {
+    name: '/bfp score',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp score <0-100> [player]',
+    arguments: [
+      { name: 'score', type: 'integer', range: '0–100', required: 'Yes', description: 'Override score to assign.' },
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller.' }
+    ],
+    description: 'Manually overrides the simulation score for a session.',
+    notes: ['The automatic score is calculated from fires extinguished / threshold. Use this to adjust for rubric factors.']
+  },
+  {
+    name: '/bfp pass',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp pass [player]',
+    arguments: [
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller.' }
+    ],
+    description: 'Marks the active session as passed (passed=1) in the database.',
+    whenToUse: ['Override when the auto pass/fail logic does not match instructor judgement.']
+  },
+  {
+    name: '/bfp fail',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp fail [player]',
+    arguments: [
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller.' }
+    ],
+    description: 'Marks the active session as failed (passed=0) in the database.',
+    whenToUse: ['Override pass status when a student fails on non-score criteria.']
+  },
+  {
+    name: '/bfp sessions today',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp sessions today',
+    description: 'Lists all sessions started today from Turso.',
+    whenToUse: ['End-of-day summary or checking who has gone through the drill today.']
+  },
+  {
+    name: '/bfp sessions stats',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp sessions stats',
+    description: 'Prints aggregate statistics: total sessions, pass rate, average score, fire vs earthquake breakdown.',
+    whenToUse: ['Instructor reporting; quick top-line numbers without opening the dashboard.']
+  },
+  {
+    name: '/bfp sessions search',
+    category: 'bfp-admin',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp sessions search <query>',
+    arguments: [
+      { name: 'query', type: 'string', range: 'N/A', required: 'Yes', description: 'Partial student name or station account to search.' }
+    ],
+    description: 'Searches sessions by student name or station account (partial match).',
+    whenToUse: ['Locating a specific student\'s records without knowing their exact station.']
+  },
+  {
     name: '/get_extinguisher',
     category: 'utility',
     permission: 'Any Player',
     permissionLevel: 'player',
     syntax: '/get_extinguisher',
-    description: 'Gives you a Fire Extinguisher item directly into your inventory.',
+    description: 'Gives an ABC dry-chemical Fire Extinguisher directly into your inventory.',
     whenToUse: [
-      'You dropped or lost the extinguisher during a fire simulation and need a replacement.',
-      'Testing the extinguisher mechanics outside of a simulation.',
-      'Instructors demonstrating how the extinguisher works before a drill.'
+      'You dropped or lost the extinguisher during a fire simulation.',
+      'Testing extinguisher mechanics outside of a simulation.',
+      'Demonstrating the PASS technique before a drill.'
     ],
     notes: [
-      'The extinguisher starts with the pin NOT pulled. Right-click once to pull the pin (the "P" in PASS), then right-click again to spray.',
-      'Can be used at any time, simulation or not.'
+      'Pin starts NOT pulled. Right-click to pull the pin (P in PASS), then right-click again to spray.',
+      '300 durability. Can be used any time.'
+    ]
+  },
+  {
+    name: '/get_co2_extinguisher',
+    category: 'utility',
+    permission: 'Any Player',
+    permissionLevel: 'player',
+    syntax: '/get_co2_extinguisher',
+    description: 'Gives a CO2 extinguisher for Class C (electrical) fires directly into your inventory.',
+    whenToUse: [
+      'Testing CO2 extinguisher against a ComputerBlock with BURNING=true during a CCS_FIRE simulation.',
+      'Demonstrating the difference between ABC and CO2 extinguishers.'
+    ],
+    notes: [
+      'Targets ComputerBlock (BURNING→BROKEN). Also suppresses regular fire/soul fire.',
+      '200 durability.'
+    ]
+  },
+  {
+    name: '/item hazard',
+    category: 'utility',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/item hazard <name>',
+    arguments: [
+      { name: 'name', type: 'string', range: 'see list below', required: 'Yes', description: 'Registry name of the hazard prop block to give. Tab-completes all 20 names.' }
+    ],
+    description: 'Gives a hazard prop block item by registry name. Use for building the new LSPU Emergency Response Training Facility scenario.',
+    whenToUse: [
+      'Building or decorating the training facility scenario with realistic hazard props.',
+      'Testing a specific hazard block\'s particle effects and light level.',
+      'Placing blocks in normal (hazardous=false) or hazardous (hazardous=true via /setblock) states.'
+    ],
+    details: [
+      'plastic_trash_bin — classroom bin with vape; smoke when hazardous',
+      'daisy_chain_extension — overloaded extension cord; electric sparks',
+      'woodshop_sawdust_layer — floor sawdust 0–5 accumulation; ash at level 3+',
+      'stage_spotlight — overheating theatre light; flame + smoke; light 10',
+      'archive_box_stack — flammable document boxes; campfire smoke',
+      'dust_choked_pc — PC tower with blocked vents; smoke; light 3',
+      'charging_cart — rolling Chromebook cart; electric sparks; light 5',
+      'frayed_console_wire — floor AV cable with bare copper; sparks + soul flame',
+      'malfunctioning_vending — shorted vending machine; smoke',
+      'ceiling_projector — overheating ceiling projector; smoke + lava; light 7',
+      'swollen_phone_battery — thermally swollen phone; soul flame gas',
+      'damaged_lipo_pack — punctured drone LiPo; campfire smoke',
+      'vape_in_iron_locker — locker with vaping device; sparks + smoke',
+      'pa_system_backup — PA amp rack with faulty caps; lava sparks; light 8',
+      'smartboard_inverter — water-damaged smartboard; water drip particles',
+      'unattended_grease_pan — grease fire on stove; flame + smoke; light 10',
+      'grease_clogged_hood — kitchen range hood; large smoke (ceiling-mounted)',
+      'contaminated_kitchen_bin — oil-rag bin; steam/smoke wisps',
+      'jammed_panini_press — panini press with burning food; smoke',
+      'commercial_deep_fryer — overheated fryer; flame + smoke + lava; light 12'
+    ],
+    notes: [
+      'Set hazardous state with /setblock: e.g. /setblock ~ ~ ~ berongsmp:plastic_trash_bin[hazardous=true]',
+      'All blocks are registered in the "BerongSMP — Hazard Props" creative tab.'
     ]
   },
   {
@@ -279,14 +516,14 @@ const commands = [
     permission: 'Op Level 2+ only',
     permissionLevel: 'admin',
     syntax: '/spawn_lspu',
-    description: 'Spawns the LSPU CCS Building at your current position using the CCSBuildingConstructor.',
+    description: 'Spawns the LSPU Library NBT structure at your current position for inspection.',
     whenToUse: [
-      'Dev/admin use: placing the CCS building at an arbitrary location for inspection or world-building.',
-      'Testing structure generation without running a full simulation.'
+      'Dev/admin: placing the library at an arbitrary location.',
+      'Testing structure generation without a full simulation.'
     ],
     notes: [
-      'Places the building at your exact block position — origin matches where you stand.',
-      'This is a permanent world modification, not restored by /sim_stop.'
+      'Permanent world modification — not restored by /sim_stop.',
+      'Use /sim_fire library for a full session that restores the arena on end.'
     ]
   }
 ];
@@ -305,7 +542,13 @@ const configs = [
   { key: 'tursoUrl', default: '""', affects: 'Turso HTTPS database URL for session tracking' },
   { key: 'tursoToken', default: '""', affects: 'Turso Bearer auth token' },
   { key: 'passThresholdFire', default: '5', affects: 'Fires extinguished required to mark a session as passed' },
-  { key: 'bfpAdminPin', default: '"1234"', affects: 'PIN for /bfp login — change this before going live' }
+  { key: 'bfpAdminPin', default: '""', affects: 'PIN for /bfp login — empty string disables PIN auth (OP-only); set a PIN before going live' },
+  { key: 'quakeDecayRate', default: '0.05', affects: 'Intensity falloff per block of distance from epicenter' },
+  { key: 'quakeRumbleDuration', default: '200', affects: 'Ticks in RUMBLE phase (10 s)' },
+  { key: 'quakePeakDuration', default: '900', affects: 'Ticks in PEAK phase (45 s)' },
+  { key: 'quakeAftershockDuration', default: '300', affects: 'Ticks per aftershock wave (15 s)' },
+  { key: 'simAreaSize', default: '25', affects: 'XZ arena radius for random fire/quake effects' },
+  { key: 'simAreaHeight', default: '10', affects: 'Y arena height for random effects' }
 ];
 ---
 
