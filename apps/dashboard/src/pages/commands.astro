@@ -469,6 +469,22 @@ const commands = [
     ]
   },
   {
+    name: '/get_wet_chemical_extinguisher',
+    category: 'utility',
+    permission: 'Any Player',
+    permissionLevel: 'player',
+    syntax: '/get_wet_chemical_extinguisher',
+    description: 'Gives a yellow wet chemical extinguisher for Class F/K (cooking-oil/grease) fires directly into your inventory.',
+    whenToUse: [
+      'Testing the wet chemical unit against the five cafeteria/kitchen hazard props (deep fryer, grease pan, range hood, panini press, kitchen bin).',
+      'Demonstrating the Philippine BFP yellow colour-coding for kitchen fires alongside the red ABC and CO2 units.'
+    ],
+    notes: [
+      'Also suppresses regular fire/soul fire and defuses any hazard prop, but gives distinct "saponification complete" feedback on kitchen hazard props.',
+      '240 durability. Not auto-issued at simulation start — no dedicated kitchen scenario yet.'
+    ]
+  },
+  {
     name: '/item hazard',
     category: 'utility',
     permission: 'Op Level 2+',
@@ -766,6 +782,11 @@ const configs = [
                 <td class="cfg-affects">Class C extinguisher. Targets <code>BURNING</code> computer blocks. Also: <code>/get_co2_extinguisher</code></td>
               </tr>
               <tr>
+                <td><strong>Wet Chemical Extinguisher</strong></td>
+                <td><code class="cfg-key">berongsmp:wet_chemical_extinguisher</code></td>
+                <td class="cfg-affects">Yellow Class F/K extinguisher for kitchen grease fires. Also: <code>/get_wet_chemical_extinguisher</code></td>
+              </tr>
+              <tr>
                 <td><strong>Computer</strong></td>
                 <td><code class="cfg-key">berongsmp:computer</code></td>
                 <td class="cfg-affects">Placeable; right-click ON/OFF; flint &amp; steel to ignite (BURNING state).</td>
@@ -852,6 +873,9 @@ const configs = [
             </div>
             <div class="example-item">
               <code class="example-cmd">/give @s berongsmp:co2_extinguisher</code>
+            </div>
+            <div class="example-item">
+              <code class="example-cmd">/give @s berongsmp:wet_chemical_extinguisher</code>
             </div>
             <div class="example-item">
               <code class="example-cmd">/give @s berongsmp:computer</code>

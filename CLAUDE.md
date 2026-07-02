@@ -188,7 +188,7 @@ Each element in the `event_log` JSON array is a `SimEvent`:
 | `door_open` | Player opens a door | `t` (elapsed s), `x`, `y`, `z`, `target`, `hazard_distance` |
 | `EXT_PIN_PULL` | ABC extinguisher pin pulled | `pulled: true` |
 | `EXT_SPRAY` | ABC extinguisher sprayed | `hit_fire` (bool), `distance_to_fire`, `nearby_player_count` |
-| `extinguisher_use` | CO2 extinguisher sprayed | `hit_target` (bool), `nearby_player_count` |
+| `extinguisher_use` | CO2 or wet chemical extinguisher sprayed | `hit_target` (bool), `nearby_player_count` |
 | `fire_alarm_activate` | Fire alarm pressed | `t`, `x`, `y`, `z`, `hazard_distance` |
 | `assembly_area_reached` | Player enters assembly zone | `t`, `x`, `y`, `z`, `hazard_distance` |
 | `emergency_exit` | Player crosses exit zone | `t`, `x`, `y`, `z`, `exit` (label), `hazard_distance` |
@@ -294,7 +294,7 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 38 | `users.astro` | Stack User Management owner mode badge vertically on mobile screen headers. |
 | 39 | `login.astro` & `setup.astro` | Adjust authentication card widths to 460px and apply responsive margins/padding for mobile, tablet, and desktop viewports. |
 | 40 | `commands.astro` | Add mobile/tablet media queries to commands grid to adjust responsive padding layout. |
-| 41 | `queries.ts` — rubric extHits + event log filter | `extractRubricSignals` now counts both `EXT_SPRAY` (ABC) and `extinguisher_use` (CO2) as extinguisher hits. `parseEventLog` filters `PLAYER_TICK` and `FIRE_SPREAD` by default (pass `includeVerbose=true` to show). |
+| 41 | `queries.ts` — rubric extHits + event log filter | `extractRubricSignals` now counts both `EXT_SPRAY` (ABC) and `extinguisher_use` (CO2, and now wet chemical — same event type, no dashboard code change needed) as extinguisher hits. `parseEventLog` filters `PLAYER_TICK` and `FIRE_SPREAD` by default (pass `includeVerbose=true` to show). |
 | 42 | `scripts/seed-synthetic.mjs` — 7-issue synthetic dataset quality pass | Fixed: (1) EXT_PIN_PULL missing from all CCS_FIRE logs; (2) Carlo's notes said "alarm" but log had none — added `fireMedWithAlarm()` variant; (3) CCS evacuation path now routes north-west to assembly zone (z=64–82) instead of west at z=14; (4) section format normalised to no-hyphen (BSCS3A); (5) every session now has a unique event log — no more cloned templates; (6) `fire_spread_count` varies per CCS session (was hardcoded 147); (7) confirmed all evacuating sessions have `door_open` before transition to OUTSIDE. Re-seeded Turso with 20 corrected sessions. |
 | 43 | `src/lib/floorplans.ts` + `MapPlayer.tsx` — CCS assembly zone south of building | `CCS_BOUNDS.zMax` extended 74→93 and `svgHeight` 620→740 to include assembly area in SVG. Added `CCS_ASSEMBLY_ZONE = {xMin:76,xMax:136,zMin:73,zMax:90}`. SVG renders a green dashed assembly zone rect + "ASSEMBLY ZONE" label south of the building outline in both CCS panels. |
 | 44 | `scripts/seed-synthetic.mjs` — full coordinate rewrite | Complete rewrite of all 20 sessions with real building coordinates. 7 Library FIRE (spawn Computer Lab Z:87, fire Main Hall Z:96-103, alarm Stairwell, cross `main_exit AABB(50,-34,93,54,-30,96)`, assembly Z:64-82) + 5 Library EARTHQUAKE + 5 CCS_FIRE (spawn upper floor Y=-24 Z:27, CO2 on computers, south evac, cross `ccs_main_exit AABB(95,-33,68,125,-29,74)`, assembly `AABB(76,-35,73,136,-28,90)`) + 3 CCS_EARTHQUAKE. CSV `move_tick` rows interpolated at 100ms intervals. |
