@@ -61,6 +61,7 @@ const EVENT_META: Record<string, { color: string; label: string }> = {
   extinguisher_use:     { color: '#f5c842', label: 'Extinguisher' },
   assembly_area_reached:{ color: '#22c55e', label: 'Assembly zone' },
   emergency_exit:       { color: '#42d9d4', label: 'Emergency exit' },
+  duck_cover_hold:      { color: '#a855f7', label: 'Duck, cover & hold' },
   session_start:        { color: '#ffffff', label: 'Start' },
   session_end:          { color: '#ffffff', label: 'End' },
 };
@@ -81,6 +82,7 @@ function EventMarker({ x, y, type }: { x: number; y: number; type: string }) {
       {type === 'extinguisher_use'      && <polygon points="0,-5 5,0 0,5 -5,0" fill={c} fillOpacity={0.9} stroke="#000" strokeWidth={0.5} />}
       {type === 'assembly_area_reached' && <polygon points="0,-6 1.4,-2 6,-2 2.5,1 3.5,6 0,3.5 -3.5,6 -2.5,1 -6,-2 -1.4,-2" fill={c} fillOpacity={0.9} stroke="#000" strokeWidth={0.5} />}
       {type === 'emergency_exit'        && <polygon points="0,-5 -4,3 4,3" fill={c} fillOpacity={0.9} stroke="#000" strokeWidth={0.5} />}
+      {type === 'duck_cover_hold'       && <polygon points="0,-6 4,-4 4,1 0,6 -4,1 -4,-4" fill={c} fillOpacity={0.9} stroke="#000" strokeWidth={0.5} />}
       {(type === 'session_start' || type === 'session_end') && (
         <circle r={4} fill="transparent" stroke={c} strokeWidth={1.5} />
       )}
