@@ -1,0 +1,19 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import ErrorCard from '../components/ErrorCard.astro';
+
+Astro.response.status = 404;
+---
+
+<DashboardLayout title="Not Found" currentPath="/404">
+  <ErrorCard
+    title="Page Not Found"
+    message={`No page or session exists at "${Astro.url.pathname}". Check the URL, or use the sidebar to navigate back to a known page.`}
+  />
+  <a
+    href="/"
+    style="display: inline-block; margin: 8px 40px 0; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-brand); text-decoration: none;"
+  >
+    ← Back to Overview
+  </a>
+</DashboardLayout>

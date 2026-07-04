@@ -11,10 +11,14 @@ import { getEnv } from '../../lib/db';
 const { id } = Astro.params;
 const env = await getEnv();
 
-const session = (env && id) ? await getSessionById(env, Number(id)) : null;
+// `id` comes straight from the URL — a non-numeric segment (e.g. /sessions/wedwed)
+// must never reach the DB layer: Number("wedwed") is NaN, and the libSQL driver
+// throws an uncaught "Only finite numbers can be passed" error trying to bind it.
+const numericId = id ? Number(id) : NaN;
+const session = (env && Number.isFinite(numericId)) ? await getSessionById(env, numericId) : null;
 
 if (!session) {
-  return new Response(null, { status: 404, statusText: 'Session not found' });
+  return Astro.rewrite('/404');
 }
 
 const level = derivePrepLevel(session.simulation_score, session.prep_level);
