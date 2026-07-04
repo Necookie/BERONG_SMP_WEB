@@ -9,7 +9,7 @@ This repo hosts:
 1. The public landing page (`apps/landing`) — Astro + React islands, green/black pixel aesthetic, deployed as a Cloudflare Worker (static assets)
 2. The Web Analytics Dashboard (`apps/dashboard`) — SSR Astro app with React islands, deployed as a Cloudflare Worker with Assets
 
-> **Note:** A FastAPI DRR API service was originally planned as a third entry point but has not been implemented in this repo. See the ML/pipeline section below.
+> **Note:** A FastAPI DRR API service was originally planned as a third entry point but has not been implemented in this repo. The dashboard now integrates with an external **MiDRR API** (separate repo, deployed on Render) as a consumer — see "MiDRR ML API integration" below.
 
 ---
 
@@ -298,6 +298,7 @@ The typical quick-test loop: `/bfp bypass on` → click lobby button → simulat
 | 42 | `scripts/seed-synthetic.mjs` — 7-issue synthetic dataset quality pass | Fixed: (1) EXT_PIN_PULL missing from all CCS_FIRE logs; (2) Carlo's notes said "alarm" but log had none — added `fireMedWithAlarm()` variant; (3) CCS evacuation path now routes north-west to assembly zone (z=64–82) instead of west at z=14; (4) section format normalised to no-hyphen (BSCS3A); (5) every session now has a unique event log — no more cloned templates; (6) `fire_spread_count` varies per CCS session (was hardcoded 147); (7) confirmed all evacuating sessions have `door_open` before transition to OUTSIDE. Re-seeded Turso with 20 corrected sessions. |
 | 43 | `src/lib/floorplans.ts` + `MapPlayer.tsx` — CCS assembly zone south of building | `CCS_BOUNDS.zMax` extended 74→93 and `svgHeight` 620→740 to include assembly area in SVG. Added `CCS_ASSEMBLY_ZONE = {xMin:76,xMax:136,zMin:73,zMax:90}`. SVG renders a green dashed assembly zone rect + "ASSEMBLY ZONE" label south of the building outline in both CCS panels. |
 | 44 | `scripts/seed-synthetic.mjs` — full coordinate rewrite | Complete rewrite of all 20 sessions with real building coordinates. 7 Library FIRE (spawn Computer Lab Z:87, fire Main Hall Z:96-103, alarm Stairwell, cross `main_exit AABB(50,-34,93,54,-30,96)`, assembly Z:64-82) + 5 Library EARTHQUAKE + 5 CCS_FIRE (spawn upper floor Y=-24 Z:27, CO2 on computers, south evac, cross `ccs_main_exit AABB(95,-33,68,125,-29,74)`, assembly `AABB(76,-35,73,136,-28,90)`) + 3 CCS_EARTHQUAKE. CSV `move_tick` rows interpolated at 100ms intervals. |
+| 45 | `lib/midrr.ts`, `api/sessions/[id]/predict.ts`, `queries.ts`, `sessions/[id].astro`, `global.css` — MiDRR ML API integration | Added on-demand "Run MiDRR Assessment" button on the session detail page. Server-to-server route replays `event_log` through the external MiDRR API (`/session/{id}/events` → `/predict`), persists `midrr_prep_level/prep_score/result_text/feature_importance/predicted_at` to Turso, and renders a tier meter + signed SHAP bars + result text + synthetic-model disclaimer. Verified end-to-end against the live Render API (real session replayed, got a genuine MODERATE/53% result) and in-browser (login, click, persistence across reload, light/dark legibility). |
 
 ---
 
@@ -408,4 +409,50 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
 
 ### Task 1 — Seed initial admin user
 On first deploy, visit `/login` and the system will detect no users exist. Navigate to `/setup` (only accessible when zero users exist) to create the first admin account (which will be initialized as `owner` and `active`).
+
+### MiDRR result columns
+```sql
+ALTER TABLE sessions ADD COLUMN midrr_prep_level        TEXT;
+ALTER TABLE sessions ADD COLUMN midrr_prep_score        REAL;
+ALTER TABLE sessions ADD COLUMN midrr_result_text       TEXT;
+ALTER TABLE sessions ADD COLUMN midrr_feature_importance TEXT;  -- JSON: {feature, weight}[]
+ALTER TABLE sessions ADD COLUMN midrr_predicted_at      TEXT;
+```
+Applied via `node apps/dashboard/scripts/migrate-add-midrr-columns.mjs` (idempotent — safe to re-run).
+
+---
+
+## MiDRR ML API integration
+
+The dashboard calls the external **MiDRR API** (`https://midrr-api.onrender.com`,
+separate repo — see `WEB_INTEGRATION_GUIDE.md` at the monorepo root for the full
+cross-repo contract) to get a real ML-driven preparedness assessment for a
+finished session, on demand.
+
+**⚠️ The deployed MiDRR model is trained on synthetic/fabricated sessions, not
+real students.** Every rendered result carries a visible disclaimer — do not
+present `midrr_*` values as a real assessment.
+
+### Why this is separate from `prep_level` / `confidence`
+Those two columns are hand-authored (seeded) or written by a planned
+groupmate RF script (see `guide.astro`). The new `midrr_*` columns are a
+distinct, later ML integration and are deliberately never overwritten by it —
+both can be displayed side by side on the session detail page.
+
+### The flow (server-to-server only — the API has no CORS)
+1. Admin clicks **"Run MiDRR Assessment"** on `sessions/[id].astro`.
+2. Browser POSTs to the dashboard's own `/api/sessions/[id]/predict.ts` (same-origin, no CORS issue).
+3. That route (`src/lib/midrr.ts` `runPrediction()`):
+   - Maps the stored `event_log` JSON to the MiDRR wire vocabulary (`mapEventType()` — Turso's `SIM_START`/`EXT_SPRAY`/etc. → the API's `session_start`/`ext_spray`/etc.) and POSTs it to `POST /session/{id}/events`. The API always returns all 9 keys, most with zero-event defaults — **except** `path_efficiency_ratio` and `situational_awareness`, which come back JSON `null` whenever `is_complete` is false (session never reached the assembly area — confirmed empirically across all 21 synthetic sessions). These two are coalesced to `0` before the next step so `/predict` doesn't 422; this hits exactly the LOW-tier/incomplete sessions, so it matters for the demo.
+   - Feeds those 9 features straight to `POST /predict` for `prepLevel` / `prepScore` / signed SHAP `featureImportance` / `resultText`.
+   - `DELETE /session/{id}` to release the API's in-memory buffer.
+4. Result is persisted via `updateSessionPrediction()` in `queries.ts`, then the page reloads to show it (persisted result skips the API on future views).
+
+### Config
+`MIDRR_API_URL` — set in `apps/dashboard/.dev.vars` for local dev and `wrangler.toml [vars]` for the deployed default; override per-environment in the Cloudflare dashboard if needed. Defaults to the Render URL if unset.
+
+### Known limitation carried over from the API
+Render free-tier cold starts mean the first call after ~15 min idle can take
+several seconds — the UI shows a "Running…" state and a friendly timeout
+message rather than failing silently.
 

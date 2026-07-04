@@ -3,6 +3,7 @@
 type CloudflareEnv = {
   TURSO_URL: string;
   TURSO_TOKEN: string;
+  MIDRR_API_URL?: string;
   ASSETS: Fetcher;
 };
 

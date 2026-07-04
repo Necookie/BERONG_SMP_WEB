@@ -19,6 +19,14 @@ export interface LiveSession {
   prep_level: 'HIGH' | 'MODERATE' | 'LOW' | null;
   confidence: number | null;
   bfp_notes: string | null;
+  // Populated by the MiDRR ML API (synthetic demo model) — kept separate from
+  // prep_level/confidence above, which are hand-authored/seeded values.
+  midrr_prep_level: 'HIGH' | 'MODERATE' | 'LOW' | null;
+  midrr_prep_score: number | null;
+  midrr_result_text: string | null;
+  midrr_feature_importance: string | null; // JSON: { feature, weight }[]
+  midrr_features: string | null; // JSON: Record<feature, value> — the 9 engineered features
+  midrr_predicted_at: string | null;
 }
 
 export interface RosterRow {
@@ -286,6 +294,34 @@ export async function updateSessionDetails(
 export async function deleteSession(env: Env, id: number): Promise<void> {
   const db = getDb(env);
   await db.execute(`DELETE FROM sessions WHERE id = ?`, [id]);
+}
+
+export async function updateSessionPrediction(
+  env: Env,
+  id: number,
+  prediction: {
+    prepLevel: 'HIGH' | 'MODERATE' | 'LOW';
+    prepScore: number;
+    featureImportance: { feature: string; weight: number }[];
+    resultText: string;
+    features: Record<string, number>;
+  }
+): Promise<void> {
+  const db = getDb(env);
+  await db.execute(
+    `UPDATE sessions
+     SET midrr_prep_level = ?, midrr_prep_score = ?, midrr_result_text = ?,
+         midrr_feature_importance = ?, midrr_features = ?, midrr_predicted_at = datetime('now')
+     WHERE id = ?`,
+    [
+      prediction.prepLevel,
+      prediction.prepScore,
+      prediction.resultText,
+      JSON.stringify(prediction.featureImportance),
+      JSON.stringify(prediction.features),
+      id,
+    ]
+  );
 }
 
 export interface AuditLogEntry {
