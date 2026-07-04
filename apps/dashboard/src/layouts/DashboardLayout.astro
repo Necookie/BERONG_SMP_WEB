@@ -157,6 +157,25 @@ const navItems = [
     </main>
 
   </div>
+
+  <!-- Mobile screen-size notice -->
+  <div class="modal-overlay" id="modal-mobile-notice">
+    <div class="modal-container" style="max-width: 380px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Screen Size Notice</h3>
+        <button id="mobile-notice-close" class="modal-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" style="align-items: center; text-align: center;">
+        <span class="material-symbols-outlined" style="font-size: 32px; color: var(--text-brand-sub);">desktop_windows</span>
+        <p style="font-size: 13px; line-height: 1.6; margin: 0; color: var(--text-primary);">
+          You're viewing this on a mobile device. The dashboard works here, but a desktop or larger screen is recommended for clearer charts and a better overall experience.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button id="mobile-notice-dismiss" class="btn-save" type="button">Got it</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
 
@@ -222,6 +241,29 @@ const navItems = [
       window.setTimeout(function () {
         window.dispatchEvent(new Event('resize'));
       }, 240);
+    });
+  })();
+
+  // Mobile screen-size notice — shown once per browser (localStorage), mobile only
+  (function () {
+    const overlay = document.getElementById('modal-mobile-notice');
+    const closeBtn = document.getElementById('mobile-notice-close');
+    const dismissBtn = document.getElementById('mobile-notice-dismiss');
+    if (!overlay || !closeBtn || !dismissBtn) return;
+
+    function dismiss() {
+      overlay.classList.remove('open');
+      localStorage.setItem('mobileNoticeDismissed', 'true');
+    }
+
+    if (window.innerWidth <= 768 && localStorage.getItem('mobileNoticeDismissed') !== 'true') {
+      overlay.classList.add('open');
+    }
+
+    closeBtn.addEventListener('click', dismiss);
+    dismissBtn.addEventListener('click', dismiss);
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) dismiss();
     });
   })();
 </script>
