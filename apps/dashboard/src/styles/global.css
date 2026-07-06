@@ -2269,6 +2269,41 @@ html.view-advanced .advanced-only {
 }
 
 /* ── User management ─────────────────────────────────────────────────── */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-add-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: var(--radius-button);
+  background: var(--text-brand);
+  color: #ffffff;
+  border: 1px solid var(--text-brand);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 0 #9b1c1c;
+  transition: box-shadow 0.15s, transform 0.1s;
+}
+.btn-add-user:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #9b1c1c;
+}
+.btn-add-user:active {
+  transform: translateY(4px);
+  box-shadow: 0 0px 0 #9b1c1c;
+}
+
 .owner-badge {
   display: inline-flex;
   align-items: center;
