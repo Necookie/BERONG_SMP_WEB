@@ -1412,35 +1412,7 @@ html.sidebar-collapsed .sidebar-footer-row {
   background: var(--text-brand);
 }
 
-/* ── Result block ────────────────────────────────────────────────────── */
-.result-block {
-  border-left: 4px solid transparent;
-  padding: 18px 18px 18px 14px;
-  background: var(--bg-result-block);
-}
-
-.result-block.high     { border-left-color: #22c55e; }
-.result-block.moderate { border-left-color: #f59e0b; }
-.result-block.low      { border-left-color: #ef4444; }
-
-.result-top {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  margin-bottom: 4px;
-}
-
-.result-tier {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-}
-
-.result-block.high     .result-tier { color: #22c55e; }
-.result-block.moderate .result-tier { color: #f59e0b; }
-.result-block.low      .result-tier { color: #ef4444; }
-
+/* ── Preparedness Assessment (drill completion + tier comparison) ────── */
 .result-score {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 26px;
@@ -1455,21 +1427,51 @@ html.sidebar-collapsed .sidebar-footer-row {
   color: var(--text-kpi-unit);
 }
 
-.result-sublabel {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-brand-sub);
-  display: block;
-  margin-bottom: 10px;
+.drill-completion-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: 10px;
+  flex-wrap: wrap;
 }
 
-.result-text {
+.drill-pass-text {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  color: var(--text-result-desc);
-  line-height: 1.75;
 }
+
+.drill-pass-text.pass { color: var(--text-success); }
+.drill-pass-text.fail { color: var(--text-danger); }
+
+.tier-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+@media (max-width: 480px) {
+  .tier-compare-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tier-compare-card {
+  display: flex;
+  flex-direction: column;
+  border-left: 3px solid transparent;
+  background: var(--bg-result-block);
+  padding: 12px 14px;
+}
+
+.tier-compare-card .midrr-badge {
+  align-self: flex-start;
+  margin-bottom: 8px;
+}
+
+.tier-compare-high     { border-left-color: #22c55e; }
+.tier-compare-moderate { border-left-color: #f59e0b; }
+.tier-compare-low      { border-left-color: #ef4444; }
 
 .retake-flag {
   display: inline-flex;
@@ -1482,6 +1484,141 @@ html.sidebar-collapsed .sidebar-footer-row {
   border: 1px solid var(--border-card);
   padding: 4px 9px;
   margin-top: 12px;
+}
+
+/* ── MiDRR assessment ────────────────────────────────────────────────── */
+.midrr-card {
+  border-left: 4px solid transparent;
+  padding: 16px 18px 18px 14px;
+  background: var(--bg-result-block);
+}
+
+.midrr-card-high     { border-left-color: #22c55e; }
+.midrr-card-moderate { border-left-color: #f59e0b; }
+.midrr-card-low      { border-left-color: #ef4444; }
+
+.midrr-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.midrr-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--text-brand-sub);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-badge);
+  padding: 3px 8px;
+}
+
+.midrr-disclaimer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--text-warning);
+  background: var(--bg-warning-translucent);
+  border: 1px solid var(--border-warning-translucent);
+  border-radius: var(--radius-badge);
+  padding: 8px 10px;
+  margin: 10px 0 12px;
+}
+
+.midrr-run-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-button);
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.midrr-run-btn:hover:not(:disabled) {
+  border-color: var(--text-brand);
+}
+
+.midrr-run-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.midrr-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+.midrr-status.error {
+  color: var(--text-danger);
+}
+
+.midrr-tier-high     { color: var(--text-success); font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; letter-spacing: 0.1em; }
+.midrr-tier-moderate { color: var(--text-warning); font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; letter-spacing: 0.1em; }
+.midrr-tier-low      { color: var(--text-danger);  font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; letter-spacing: 0.1em; }
+
+.midrr-fill-high     { background: var(--text-success); }
+.midrr-fill-moderate { background: var(--text-warning); }
+.midrr-fill-low      { background: var(--text-danger); }
+
+.midrr-score-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.midrr-score-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.midrr-score-sublabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-brand-sub);
+}
+
+.midrr-chart-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.midrr-chart-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 18px;
+}
+
+.midrr-result-text {
+  font-size: 12px;
+  color: var(--text-result-desc);
+  line-height: 1.75;
+  margin-top: 14px;
+}
+
+.midrr-timestamp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 4px;
 }
 
 /* ── Filter bar ──────────────────────────────────────────────────────── */
@@ -2132,6 +2269,41 @@ html.view-advanced .advanced-only {
 }
 
 /* ── User management ─────────────────────────────────────────────────── */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-add-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: var(--radius-button);
+  background: var(--text-brand);
+  color: #ffffff;
+  border: 1px solid var(--text-brand);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 0 #9b1c1c;
+  transition: box-shadow 0.15s, transform 0.1s;
+}
+.btn-add-user:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #9b1c1c;
+}
+.btn-add-user:active {
+  transform: translateY(4px);
+  box-shadow: 0 0px 0 #9b1c1c;
+}
+
 .owner-badge {
   display: inline-flex;
   align-items: center;

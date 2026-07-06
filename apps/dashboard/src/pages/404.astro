@@ -1,0 +1,137 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+
+Astro.response.status = 404;
+const requestedPath = Astro.url.pathname;
+---
+
+<DashboardLayout title="Not Found" currentPath="/404">
+  <div class="notfound-wrap">
+    <img
+      src="/berong_404.png"
+      alt="Berong the BFP mascot holding a 404 sign"
+      class="notfound-mascot"
+      width="220"
+      height="295"
+    />
+
+    <span class="notfound-eyebrow">ERROR 404</span>
+    <h1 class="notfound-title">Page Not Found</h1>
+    <p class="notfound-message">
+      Even Berong couldn't track this one down. The page or session you're looking for doesn't exist, may have been deleted, or the URL is mistyped.
+    </p>
+    <span class="notfound-path" title={requestedPath}>{requestedPath}</span>
+
+    <div class="notfound-actions">
+      <a href="/" class="notfound-btn-primary">← Back to Overview</a>
+      <a href="/sessions" class="notfound-btn-secondary">View Sessions</a>
+    </div>
+  </div>
+</DashboardLayout>
+
+<style>
+  .notfound-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 56px 24px 64px;
+  }
+
+  .notfound-mascot {
+    width: 220px;
+    height: auto;
+    filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.25));
+    margin-bottom: 8px;
+  }
+
+  .notfound-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: var(--text-brand);
+  }
+
+  .notfound-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin: 8px 0 0;
+  }
+
+  .notfound-message {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-muted);
+    margin: 12px 0 0;
+  }
+
+  .notfound-path {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-table-cell);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-badge);
+    padding: 5px 12px;
+    margin-top: 16px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .notfound-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .notfound-btn-primary {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: #ffffff;
+    background: var(--text-brand);
+    border: 1px solid var(--text-brand);
+    border-radius: var(--radius-button);
+    padding: 9px 18px;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 0 #9b1c1c;
+  }
+
+  .notfound-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #9b1c1c;
+  }
+
+  .notfound-btn-primary:active {
+    transform: translateY(4px);
+    box-shadow: 0 0px 0 #9b1c1c;
+  }
+
+  .notfound-btn-secondary {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .notfound-btn-secondary:hover {
+    color: var(--text-primary);
+    border-color: var(--border-card);
+  }
+</style>

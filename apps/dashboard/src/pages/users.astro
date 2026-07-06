@@ -35,10 +35,16 @@ const suspended = users.filter(u => u.status === 'suspended').length;
         {total} administrator{total !== 1 ? 's' : ''} · {pending} pending approval · manage access and suspensions
       </p>
     </div>
-    <span class="owner-badge">
-      <span class="material-symbols-outlined" style="font-size: 13px; line-height: 1;">shield_person</span>
-      Owner Mode
-    </span>
+    <div class="header-actions">
+      <span class="owner-badge">
+        <span class="material-symbols-outlined" style="font-size: 13px; line-height: 1;">shield_person</span>
+        Owner Mode
+      </span>
+      <button id="btn-add-user" type="button" class="btn-add-user">
+        <span class="material-symbols-outlined" style="font-size: 15px;">person_add</span>
+        Add Admin
+      </button>
+    </div>
   </div>
 
   <!-- Alert Message Box -->
@@ -147,6 +153,41 @@ const suspended = users.filter(u => u.status === 'suspended').length;
     )}
   </div>
 
+  <!-- Add Admin Modal -->
+  <div id="modal-add-user" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Administrator Account</h3>
+        <button id="add-user-close" class="modal-close" type="button">✕</button>
+      </div>
+      <form id="add-user-form">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label" for="new_username">Username</label>
+              <input type="text" id="new_username" name="username" class="form-input" minlength="3" required autocomplete="off" />
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label" for="new_password">Password</label>
+              <input type="password" id="new_password" name="password" class="form-input" minlength="6" required autocomplete="new-password" />
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label" for="new_password_confirm">Confirm password</label>
+              <input type="password" id="new_password_confirm" name="password_confirm" class="form-input" minlength="6" required autocomplete="new-password" />
+            </div>
+          </div>
+          <p style="font-size: 11px; line-height: 1.5; margin: 12px 0 0; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">
+            The account is created with the <strong>admin</strong> role and is active immediately — no approval step needed.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button id="add-user-cancel" type="button" class="btn-cancel">Cancel</button>
+          <button type="submit" class="btn-save">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </DashboardLayout>
 
 <script>
@@ -197,5 +238,63 @@ const suspended = users.filter(u => u.status === 'suspended').length;
         btn.removeAttribute('disabled');
       }
     });
+  });
+
+  // Add Admin modal
+  const modalAddUser = document.getElementById('modal-add-user');
+  const btnAddUser = document.getElementById('btn-add-user');
+  const addUserForm = document.getElementById('add-user-form') as HTMLFormElement | null;
+
+  const openAddUser = () => modalAddUser?.classList.add('open');
+  const closeAddUser = () => {
+    modalAddUser?.classList.remove('open');
+    addUserForm?.reset();
+  };
+
+  btnAddUser?.addEventListener('click', openAddUser);
+  document.getElementById('add-user-close')?.addEventListener('click', closeAddUser);
+  document.getElementById('add-user-cancel')?.addEventListener('click', closeAddUser);
+  modalAddUser?.addEventListener('click', (e) => {
+    if (e.target === modalAddUser) closeAddUser();
+  });
+
+  addUserForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(addUserForm);
+    const username = String(formData.get('username') || '').trim();
+    const password = String(formData.get('password') || '');
+    const passwordConfirm = String(formData.get('password_confirm') || '');
+
+    if (password !== passwordConfirm) {
+      showAlert('Passwords do not match', 'error');
+      return;
+    }
+
+    const submitBtn = addUserForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+
+    try {
+      submitBtn?.setAttribute('disabled', 'true');
+      const res = await fetch('/api/auth/users/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json() as any;
+      if (res.ok && data.ok) {
+        showAlert(`Administrator account "${username}" created successfully!`, 'success');
+        closeAddUser();
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        showAlert(data.error || 'Failed to create account', 'error');
+        submitBtn?.removeAttribute('disabled');
+      }
+    } catch (err) {
+      showAlert('A network connection error occurred', 'error');
+      submitBtn?.removeAttribute('disabled');
+    }
   });
 </script>

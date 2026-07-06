@@ -13,6 +13,8 @@ export default defineConfig({
     // @ts-expect-error - platformProxy type may not be exposed correctly in this adapter version
     platformProxy: {
       enabled: true,
+      // Distinct from landing's default (9229) so both dev servers can run in parallel
+      inspectorPort: 9230,
     },
   }),
 
