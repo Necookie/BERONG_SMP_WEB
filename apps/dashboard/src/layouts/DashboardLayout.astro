@@ -131,11 +131,13 @@ const navItems = [
       <div class="sidebar-footer">
         {Astro.locals.user && (
           <div class="sidebar-account">
-            <span class="material-symbols-outlined sidebar-account-icon">person</span>
-            <div class="sidebar-account-info sidebar-collapsible-text">
-              <span class="sidebar-account-name" title={Astro.locals.user.username}>{Astro.locals.user.username}</span>
-              <span class="sidebar-account-role">{Astro.locals.user.role}</span>
-            </div>
+            <a href="/profile" class="sidebar-account-link" title="Edit profile">
+              <span class="material-symbols-outlined sidebar-account-icon">person</span>
+              <div class="sidebar-account-info sidebar-collapsible-text">
+                <span class="sidebar-account-name" title={Astro.locals.user.username}>{Astro.locals.user.username}</span>
+                <span class="sidebar-account-role">{Astro.locals.user.role}</span>
+              </div>
+            </a>
             <a href="/api/auth/logout" class="sidebar-account-logout sidebar-collapsible-text" title="Log out" aria-label="Log out">
               <span class="material-symbols-outlined" style="font-size: 15px;">logout</span>
             </a>

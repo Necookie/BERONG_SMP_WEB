@@ -1,0 +1,242 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/login');
+}
+
+const createdAt = new Date(user.created_at).toLocaleDateString('en-PH', {
+  month: 'long', day: 'numeric', year: 'numeric'
+});
+const initial = user.username.charAt(0).toUpperCase();
+---
+
+<DashboardLayout title="My Profile" currentPath="/profile">
+
+  <div class="page-header">
+    <h1 class="page-title">My Profile</h1>
+    <p class="page-meta">Manage your own account details and password</p>
+  </div>
+
+  <!-- Alert Message Box -->
+  <div id="action-alert" class="users-alert hidden"></div>
+
+  <div class="profile-hero">
+    <div class="profile-avatar">{initial}</div>
+    <div class="profile-hero-info">
+      <h2 class="profile-hero-name">{user.username}</h2>
+      <div class="profile-hero-meta">
+        <span class={`role-chip ${user.role === 'owner' ? 'owner' : ''}`}>{user.role}</span>
+        {user.status === 'active' && <span class="status-pill active"><span class="dot"></span>Active</span>}
+        {user.status === 'pending' && <span class="status-pill pending"><span class="dot"></span>Pending</span>}
+        {user.status === 'suspended' && <span class="status-pill suspended"><span class="dot"></span>Suspended</span>}
+        <span class="profile-hero-joined">Member since {createdAt}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-grid">
+    <div class="sessions-section">
+      <div class="dist-head">
+        <span class="dist-head-title">
+          <span class="material-symbols-outlined section-icon">badge</span>
+          <span class="section-label">Account details</span>
+        </span>
+      </div>
+      <p class="profile-section-desc">
+        Your username identifies you across the dashboard, audit logs, and session records.
+      </p>
+      <form id="username-form" class="modal-body" style="padding: 0;">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label class="form-label" for="profile_username">Username</label>
+            <div class="input-icon-wrap">
+              <span class="material-symbols-outlined input-icon">person</span>
+              <input
+                type="text"
+                id="profile_username"
+                name="username"
+                class="form-input has-icon"
+                minlength="3"
+                required
+                autocomplete="username"
+                value={user.username}
+              />
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Save Username</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="sessions-section">
+      <div class="dist-head">
+        <span class="dist-head-title">
+          <span class="material-symbols-outlined section-icon">lock</span>
+          <span class="section-label">Change password</span>
+        </span>
+      </div>
+      <p class="profile-section-desc">
+        Choose a strong password you don't reuse elsewhere. At least 6 characters.
+      </p>
+      <form id="password-form" class="modal-body" style="padding: 0;">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label class="form-label" for="current_password">Current password</label>
+            <div class="input-icon-wrap">
+              <span class="material-symbols-outlined input-icon">lock</span>
+              <input
+                type="password"
+                id="current_password"
+                name="current_password"
+                class="form-input has-icon has-toggle"
+                required
+                autocomplete="current-password"
+              />
+              <button type="button" class="pwd-toggle-btn" aria-label="Toggle password visibility">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label" for="new_password">New password</label>
+            <div class="input-icon-wrap">
+              <span class="material-symbols-outlined input-icon">password</span>
+              <input
+                type="password"
+                id="new_password"
+                name="new_password"
+                class="form-input has-icon has-toggle"
+                minlength="6"
+                required
+                autocomplete="new-password"
+              />
+              <button type="button" class="pwd-toggle-btn" aria-label="Toggle password visibility">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label" for="new_password_confirm">Confirm new password</label>
+            <div class="input-icon-wrap">
+              <span class="material-symbols-outlined input-icon">lock_reset</span>
+              <input
+                type="password"
+                id="new_password_confirm"
+                name="new_password_confirm"
+                class="form-input has-icon has-toggle"
+                minlength="6"
+                required
+                autocomplete="new-password"
+              />
+              <button type="button" class="pwd-toggle-btn" aria-label="Toggle password visibility">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</DashboardLayout>
+
+<script>
+  const alertBox = document.getElementById('action-alert');
+
+  function showAlert(msg: string, type: 'success' | 'error') {
+    if (!alertBox) return;
+    alertBox.textContent = msg;
+    alertBox.className = `users-alert ${type}`;
+    setTimeout(() => {
+      alertBox.classList.add('hidden');
+    }, 4000);
+  }
+
+  // Password visibility toggles
+  document.querySelectorAll<HTMLButtonElement>('.pwd-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = btn.closest('.input-icon-wrap')?.querySelector('input') as HTMLInputElement | null;
+      const icon = btn.querySelector('.material-symbols-outlined');
+      if (!input || !icon) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility_off';
+      } else {
+        input.type = 'password';
+        icon.textContent = 'visibility';
+      }
+    });
+  });
+
+  const usernameForm = document.getElementById('username-form') as HTMLFormElement | null;
+  usernameForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(usernameForm);
+    const username = String(formData.get('username') || '').trim();
+    const submitBtn = usernameForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+
+    try {
+      submitBtn?.setAttribute('disabled', 'true');
+      const res = await fetch('/api/auth/profile/username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username }),
+      });
+      const data = await res.json() as { ok: boolean; error?: string };
+      if (res.ok && data.ok) {
+        showAlert('Username updated successfully!', 'success');
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        showAlert(data.error || 'Failed to update username', 'error');
+        submitBtn?.removeAttribute('disabled');
+      }
+    } catch (err) {
+      showAlert('A network connection error occurred', 'error');
+      submitBtn?.removeAttribute('disabled');
+    }
+  });
+
+  const passwordForm = document.getElementById('password-form') as HTMLFormElement | null;
+  passwordForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(passwordForm);
+    const currentPassword = String(formData.get('current_password') || '');
+    const newPassword = String(formData.get('new_password') || '');
+    const newPasswordConfirm = String(formData.get('new_password_confirm') || '');
+
+    if (newPassword !== newPasswordConfirm) {
+      showAlert('New passwords do not match', 'error');
+      return;
+    }
+
+    const submitBtn = passwordForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+
+    try {
+      submitBtn?.setAttribute('disabled', 'true');
+      const res = await fetch('/api/auth/profile/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json() as { ok: boolean; error?: string };
+      if (res.ok && data.ok) {
+        showAlert('Password updated successfully!', 'success');
+        passwordForm.reset();
+        submitBtn?.removeAttribute('disabled');
+      } else {
+        showAlert(data.error || 'Failed to update password', 'error');
+        submitBtn?.removeAttribute('disabled');
+      }
+    } catch (err) {
+      showAlert('A network connection error occurred', 'error');
+      submitBtn?.removeAttribute('disabled');
+    }
+  });
+</script>

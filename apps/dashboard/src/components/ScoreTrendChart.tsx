@@ -1,7 +1,7 @@
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
-import type { ScoreTrendPoint } from '../lib/analytics';
+import type { ScoreTrendPoint } from '../lib/queries';
 
 interface ScoreTrendChartProps {
   points: ScoreTrendPoint[];

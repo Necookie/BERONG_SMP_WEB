@@ -1,5 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer } from 'recharts';
-import type { ScenarioStat } from '../lib/analytics';
+import type { ScenarioStat } from '../lib/queries';
 
 interface ScenarioComparisonChartProps {
   stats: ScenarioStat[];

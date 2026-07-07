@@ -1,5 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import type { PrepByScenario } from '../lib/analytics';
+import type { PrepByScenario } from '../lib/queries';
 
 interface PrepByScenarioChartProps {
   stats: PrepByScenario[];

@@ -1,5 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import type { SectionStat } from '../lib/analytics';
+import type { SectionStat } from '../lib/queries';
 
 interface SectionPerformanceChartProps {
   stats: SectionStat[];

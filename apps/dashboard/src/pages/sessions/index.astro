@@ -1,33 +1,56 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import ErrorCard from '../../components/ErrorCard.astro';
-import { getAllSessions, getSessionCount, formatDuration, formatDate, derivePrepLevel } from '../../lib/queries';
+import { getSessionsPage, getSessionCount, formatDuration, formatDate, derivePrepLevel } from '../../lib/queries';
 import { getEnv } from '../../lib/db';
 
 const env = await getEnv();
 const hasDb = !!env;
 
-const pageParam = Astro.url.searchParams.get('page');
+const sp = Astro.url.searchParams;
+
+const pageParam = sp.get('page');
 let page = pageParam ? parseInt(pageParam, 10) : 1;
 if (isNaN(page) || page < 1) page = 1;
+
+const q     = sp.get('q') ?? '';
+const type  = sp.get('type') ?? 'ALL';
+const level = sp.get('level') ?? 'ALL';
+const sort  = sp.get('sort') ?? 'date';
+const dir: 'asc' | 'desc' = sp.get('dir') === 'asc' ? 'asc' : 'desc';
 
 const limit = 25;
 const offset = (page - 1) * limit;
 
-let sessions: Awaited<ReturnType<typeof getAllSessions>> = [];
+function pageHref(p: number): string {
+  const next = new URLSearchParams(sp);
+  next.set('page', String(p));
+  return `?${next.toString()}`;
+}
+
+let sessions: Awaited<ReturnType<typeof getSessionsPage>>['rows'] = [];
+let matchedTotal = 0;
 let totalSessions = 0;
 let dbError: string | null = null;
 
 if (env) {
   try {
     totalSessions = await getSessionCount(env);
-    sessions = await getAllSessions(env, limit, offset);
+    const result = await getSessionsPage(env, { q, type, level, sort, dir }, limit, offset);
+    sessions = result.rows;
+    matchedTotal = result.total;
   } catch (err) {
     dbError = err instanceof Error ? err.message : 'Unknown database error';
   }
 }
 
-const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
+const totalPages = Math.max(1, Math.ceil(matchedTotal / limit));
+const isFiltered = q.trim() !== '' || type !== 'ALL' || level !== 'ALL';
+
+function sortClass(key: string): string {
+  if (key !== sort) return '';
+  return dir === 'asc' ? 'sorted-asc' : 'sorted-desc';
+}
 ---
 
 <DashboardLayout title="Sessions" currentPath="/sessions">
@@ -43,33 +66,37 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
     <div class="filter-group">
       <span class="filter-label">Scenario</span>
       <div class="filter-pills" id="filter-type">
-        <button class="filter-pill active" data-value="ALL">All</button>
-        <button class="filter-pill" data-value="FIRE">Fire</button>
-        <button class="filter-pill" data-value="EARTHQUAKE">Earthquake</button>
+        <button class={`filter-pill ${type === 'ALL' ? 'active' : ''}`} data-value="ALL">All</button>
+        <button class={`filter-pill ${type === 'FIRE' ? 'active' : ''}`} data-value="FIRE">Fire</button>
+        <button class={`filter-pill ${type === 'EARTHQUAKE' ? 'active' : ''}`} data-value="EARTHQUAKE">Earthquake</button>
       </div>
     </div>
     <div class="filter-group">
       <span class="filter-label">Level</span>
       <div class="filter-pills" id="filter-level">
-        <button class="filter-pill active" data-value="ALL">All</button>
-        <button class="filter-pill" data-value="HIGH">High</button>
-        <button class="filter-pill" data-value="MODERATE">Moderate</button>
-        <button class="filter-pill" data-value="LOW">Low</button>
+        <button class={`filter-pill ${level === 'ALL' ? 'active' : ''}`} data-value="ALL">All</button>
+        <button class={`filter-pill ${level === 'HIGH' ? 'active' : ''}`} data-value="HIGH">High</button>
+        <button class={`filter-pill ${level === 'MODERATE' ? 'active' : ''}`} data-value="MODERATE">Moderate</button>
+        <button class={`filter-pill ${level === 'LOW' ? 'active' : ''}`} data-value="LOW">Low</button>
       </div>
     </div>
     <div class="filter-group" style="margin-left: auto;">
       <div class="search-wrapper">
         <span class="material-symbols-outlined search-icon" style="font-size: 15px; line-height: 1;">search</span>
-        <input type="text" id="search-input" placeholder="Search student, ID, section..." class="search-input" />
+        <input type="text" id="search-input" placeholder="Search student, ID, section..." class="search-input" value={q} />
       </div>
     </div>
-    <span class="filter-count" id="session-count">{sessions.length} sessions</span>
+    <span class="filter-count" id="session-count">{matchedTotal} session{matchedTotal !== 1 ? 's' : ''}</span>
   </div>
 
   <div class="sessions-section">
     {sessions.length === 0 ? (
       <p class="td-no-data" style="padding:24px 0; text-align:center;">
-        {hasDb ? 'No sessions yet.' : 'Configure TURSO_URL and TURSO_TOKEN to see live data.'}
+        {!hasDb
+          ? 'Configure TURSO_URL and TURSO_TOKEN to see live data.'
+          : isFiltered
+            ? 'No sessions match the selected filters.'
+            : 'No sessions yet.'}
       </p>
     ) : (
       <>
@@ -83,38 +110,22 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
             <thead>
               <tr>
                 <th class="checkbox-col"><input type="checkbox" id="check-all" /></th>
-                <th class="sortable" data-sort-key="id">ID</th>
-                <th class="sortable" data-sort-key="student">Student</th>
-                <th class="sortable" data-sort-key="section">Section</th>
-                <th class="sortable" data-sort-key="scenario">Scenario</th>
-                <th class="sortable" data-sort-key="date">Date</th>
-                <th class="sortable" data-sort-key="duration">Duration</th>
-                <th class="sortable" data-sort-key="score">Score</th>
-                <th class="sortable" data-sort-key="level">Level</th>
+                <th class={`sortable ${sortClass('id')}`} data-sort-key="id">ID</th>
+                <th class={`sortable ${sortClass('student')}`} data-sort-key="student">Student</th>
+                <th class={`sortable ${sortClass('section')}`} data-sort-key="section">Section</th>
+                <th class={`sortable ${sortClass('scenario')}`} data-sort-key="scenario">Scenario</th>
+                <th class={`sortable ${sortClass('date')}`} data-sort-key="date">Date</th>
+                <th class={`sortable ${sortClass('duration')}`} data-sort-key="duration">Duration</th>
+                <th class={`sortable ${sortClass('score')}`} data-sort-key="score">Score</th>
+                <th class={`sortable ${sortClass('level')}`} data-sort-key="level">Level</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {sessions.map(s => {
-                const level = derivePrepLevel(s.simulation_score, s.prep_level);
-                const durationMs = s.start_time && s.end_time 
-                  ? new Date(s.end_time).getTime() - new Date(s.start_time).getTime() 
-                  : 0;
+                const lvl = derivePrepLevel(s.simulation_score, s.prep_level);
                 return (
-                  <tr
-                    data-type={s.simulation_type ?? 'UNKNOWN'}
-                    data-level={level}
-                    data-search={`${s.student_name} ${s.student_id ?? ''} ${s.section ?? ''}`.toLowerCase()}
-                    data-sort-id={s.id}
-                    data-sort-student={s.student_name.toLowerCase()}
-                    data-sort-section={(s.section ?? '').toLowerCase()}
-                    data-sort-scenario={(s.simulation_type ?? 'UNKNOWN').toLowerCase()}
-                    data-sort-date={s.start_time ? new Date(s.start_time).getTime() : 0}
-                    data-sort-duration={durationMs}
-                    data-sort-score={s.simulation_score}
-                    data-sort-level={level === 'HIGH' ? 3 : level === 'MODERATE' ? 2 : level === 'LOW' ? 1 : 0}
-                    onclick={`window.location='/sessions/${s.id}'`}
-                  >
+                  <tr onclick={`window.location='/sessions/${s.id}'`}>
                     <td class="checkbox-col" onclick="event.stopPropagation()">
                       <input type="checkbox" class="row-check" data-id={s.id} />
                     </td>
@@ -134,10 +145,10 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
                       {s.simulation_score}
                     </td>
                     <td>
-                      {level !== 'PENDING' ? (
-                        <span class={`tier-badge ${level.toLowerCase()}`}>
+                      {lvl !== 'PENDING' ? (
+                        <span class={`tier-badge ${lvl.toLowerCase()}`}>
                           <span class="dot"></span>
-                          {level}
+                          {lvl}
                         </span>
                       ) : (
                         <span class="td-pending">PENDING</span>
@@ -156,7 +167,7 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
         {totalPages > 1 && (
           <div class="pagination">
             <a
-              href={page > 1 ? `?page=${page - 1}` : '#'}
+              href={page > 1 ? pageHref(page - 1) : '#'}
               class={`pagination-btn ${page <= 1 ? 'disabled' : ''}`}
               aria-disabled={page <= 1}
             >
@@ -166,7 +177,7 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
               Page <strong>{page}</strong> of <strong>{totalPages}</strong>
             </span>
             <a
-              href={page < totalPages ? `?page=${page + 1}` : '#'}
+              href={page < totalPages ? pageHref(page + 1) : '#'}
               class={`pagination-btn ${page >= totalPages ? 'disabled' : ''}`}
               aria-disabled={page >= totalPages}
             >
@@ -174,10 +185,6 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
             </a>
           </div>
         )}
-
-        <div id="empty-state" class="sessions-empty" style="display:none;">
-          <span class="sessions-empty-text">No sessions match the selected filters.</span>
-        </div>
       </>
     )}
   </div>
@@ -185,17 +192,31 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
 </DashboardLayout>
 
 <script>
-  import { initTableSorting } from '../../lib/tableSorter';
+  import { initServerSort, updateQueryParams, debounce } from '../../lib/tableQueryParams';
 
-  // Initialize sorting
-  initTableSorting();
+  initServerSort('date', 'desc');
 
   const typeGroup   = document.getElementById('filter-type');
   const levelGroup  = document.getElementById('filter-level');
   const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
-  const table       = document.getElementById('sessions-table');
-  const countLabel  = document.getElementById('session-count');
-  const emptyState  = document.getElementById('empty-state');
+
+  function bindPills(group: HTMLElement, paramKey: string) {
+    group.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        updateQueryParams({ [paramKey]: pill.dataset.value! });
+      });
+    });
+  }
+
+  if (typeGroup)  bindPills(typeGroup, 'type');
+  if (levelGroup) bindPills(levelGroup, 'level');
+
+  if (searchInput) {
+    const debouncedSearch = debounce((value: string) => {
+      updateQueryParams({ q: value.trim() || null });
+    }, 400);
+    searchInput.addEventListener('input', () => debouncedSearch(searchInput.value));
+  }
 
   // Bulk Actions
   const checkAll = document.getElementById('check-all') as HTMLInputElement | null;
@@ -225,14 +246,8 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
 
   if (checkAll) {
     checkAll.addEventListener('change', () => {
-      const rows = table!.querySelectorAll<HTMLTableRowElement>('tbody tr');
-      rows.forEach(row => {
-        if (row.style.display !== 'none') {
-          const check = row.querySelector('.row-check') as HTMLInputElement | null;
-          if (check) {
-            check.checked = checkAll.checked;
-          }
-        }
+      rowChecks.forEach(check => {
+        (check as HTMLInputElement).checked = checkAll.checked;
       });
       updateBulkToolbar();
     });
@@ -276,54 +291,5 @@ const totalPages = Math.max(1, Math.ceil(totalSessions / limit));
         btnBulkDelete.textContent = 'Delete Selected';
       }
     });
-  }
-
-  if (typeGroup && levelGroup && table && countLabel && emptyState) {
-    let activeType  = 'ALL';
-    let activeLevel = 'ALL';
-
-    function applyFilters() {
-      const rows = table!.querySelectorAll<HTMLTableRowElement>('tbody tr');
-      const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-      let visible = 0;
-      rows.forEach(row => {
-        const typeMatch  = activeType  === 'ALL' || row.dataset.type  === activeType;
-        const levelMatch = activeLevel === 'ALL' || row.dataset.level === activeLevel;
-        const searchMatch = !query || (row.dataset.search && row.dataset.search.includes(query));
-        const show = typeMatch && levelMatch && searchMatch;
-        row.style.display = show ? '' : 'none';
-        if (show) visible++;
-      });
-      countLabel!.textContent = `${visible} session${visible !== 1 ? 's' : ''}`;
-      emptyState!.style.display = visible === 0 ? '' : 'none';
-      table!.style.display = visible === 0 ? 'none' : '';
-
-      // Uncheck non-visible checkboxes on filter change
-      rows.forEach(row => {
-        if (row.style.display === 'none') {
-          const check = row.querySelector('.row-check') as HTMLInputElement | null;
-          if (check) check.checked = false;
-        }
-      });
-      updateBulkToolbar();
-    }
-
-    function bindPills(group: HTMLElement, onChange: (v: string) => void) {
-      group.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-          group.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-          onChange(pill.dataset.value!);
-          applyFilters();
-        });
-      });
-    }
-
-    bindPills(typeGroup,  v => { activeType  = v; });
-    bindPills(levelGroup, v => { activeLevel = v; });
-    
-    if (searchInput) {
-      searchInput.addEventListener('input', applyFilters);
-    }
   }
 </script>

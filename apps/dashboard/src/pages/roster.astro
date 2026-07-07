@@ -1,46 +1,63 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 import ErrorCard from '../components/ErrorCard.astro';
-import { getRosterStats, getRosterCount, getDistinctSections, formatDate, derivePrepLevel } from '../lib/queries';
+import { getRosterStats, getRosterCount, getRosterCohortSummary, getDistinctSections, formatDate, derivePrepLevel } from '../lib/queries';
 import { getEnv } from '../lib/db';
 
 const env = await getEnv();
 const hasDb = !!env;
 
-const pageParam = Astro.url.searchParams.get('page');
+const sp = Astro.url.searchParams;
+
+const pageParam = sp.get('page');
 let page = pageParam ? parseInt(pageParam, 10) : 1;
 if (isNaN(page) || page < 1) page = 1;
+
+const q       = sp.get('q') ?? '';
+const section = sp.get('section') ?? 'ALL';
+const sort    = sp.get('sort') ?? 'avg-score';
+const dir: 'asc' | 'desc' = sp.get('dir') === 'asc' ? 'asc' : 'desc';
 
 const limit = 25;
 const offset = (page - 1) * limit;
 
-let allStats: Awaited<ReturnType<typeof getRosterStats>> = [];
+function pageHref(p: number): string {
+  const next = new URLSearchParams(sp);
+  next.set('page', String(p));
+  return `?${next.toString()}`;
+}
+
 let stats: Awaited<ReturnType<typeof getRosterStats>> = [];
 let sections: string[] = [];
 let dbError: string | null = null;
-let totalRoster = 0;
+let matchedTotal = 0;
+let cohort = { totalStudents: 0, totalSessions: 0, cohortAvg: 0, highCount: 0, modCount: 0, lowCount: 0 };
 
 if (env) {
   try {
-    totalRoster = await getRosterCount(env);
-    [allStats, stats, sections] = await Promise.all([
-      getRosterStats(env),
-      getRosterStats(env, limit, offset),
-      getDistinctSections(env)
+    const filters = { q, section, sort, dir };
+    [matchedTotal, stats, sections, cohort] = await Promise.all([
+      getRosterCount(env, filters),
+      getRosterStats(env, filters, limit, offset),
+      getDistinctSections(env),
+      getRosterCohortSummary(env),
     ]);
   } catch (err) {
     dbError = err instanceof Error ? err.message : 'Unknown database error';
   }
 }
 
-const totalSessions = allStats.reduce((a, s) => a + Number(s.session_count), 0);
-const withSessions  = allStats.filter(s => Number(s.session_count) > 0);
-const cohortAvg = withSessions.length
-  ? Math.round(withSessions.reduce((a, s) => a + Number(s.avg_score), 0) / withSessions.length)
-  : 0;
+const totalTiers = cohort.highCount + cohort.modCount + cohort.lowCount || 1;
+const totalPages = Math.max(1, Math.ceil(matchedTotal / limit));
+const isFiltered = q.trim() !== '' || section !== 'ALL';
+// GROUP BY only ever yields rows with session_count >= 1, so this is always 0 —
+// kept as an explicit KPI tile rather than fetched data.
+const pendingCount = 0;
 
-const total = allStats.length || 1;
-const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
+function sortClass(key: string): string {
+  if (key !== sort) return '';
+  return dir === 'asc' ? 'sorted-asc' : 'sorted-desc';
+}
 ---
 
 <DashboardLayout title="Roster" currentPath="/roster">
@@ -48,16 +65,15 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
   <div class="page-header">
     <h1 class="page-title">Roster</h1>
     <p class="page-meta">
-      {totalRoster} students · {totalSessions} sessions · cohort avg {cohortAvg}% · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB'}
+      {cohort.totalStudents} students · {cohort.totalSessions} sessions · cohort avg {cohort.cohortAvg}% · {hasDb ? (dbError ? '⚠ DB error' : 'live data') : '⚠ no DB'}
     </p>
   </div>
 
   {dbError && <ErrorCard message={dbError} />}
 
   <div class="kpi-strip">
-    {(['HIGH', 'MODERATE', 'LOW'] as const).map(lvl => {
-      const count = allStats.filter(s => s.best_prep_level === lvl).length;
-      const pct   = Math.round((count / total) * 100);
+    {([['HIGH', cohort.highCount], ['MODERATE', cohort.modCount], ['LOW', cohort.lowCount]] as const).map(([lvl, count]) => {
+      const pct = Math.round((count / totalTiers) * 100);
       return (
         <div class="kpi-item">
           <span class="kpi-label">Best: {lvl}</span>
@@ -68,7 +84,7 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
     })}
     <div class="kpi-item">
       <span class="kpi-label">No sessions</span>
-      <span class="kpi-value" style="color:var(--text-brand-sub);">{stats.filter(s => Number(s.session_count) === 0).length}</span>
+      <span class="kpi-value" style="color:var(--text-brand-sub);">{pendingCount}</span>
       <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-brand-sub);">pending</span>
     </div>
   </div>
@@ -76,19 +92,17 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
   <div class="dist-section">
     <div class="dist-head">
       <span class="section-label">Cohort distribution (best session)</span>
-      <span class="dist-cohort">{stats.length} students</span>
+      <span class="dist-cohort">{cohort.totalStudents} students</span>
     </div>
     <div class="dist-bar">
-      {(['HIGH', 'MODERATE', 'LOW'] as const).map(lvl => {
-        const count = stats.filter(s => s.best_prep_level === lvl).length;
-        const pct   = Math.round((count / total) * 100);
+      {([['HIGH', cohort.highCount], ['MODERATE', cohort.modCount], ['LOW', cohort.lowCount]] as const).map(([lvl, count]) => {
+        const pct = Math.round((count / totalTiers) * 100);
         return <div class={`dist-seg ${lvl.toLowerCase()}`} style={`width: ${pct}%`}></div>;
       })}
     </div>
     <div class="dist-legend">
-      {(['HIGH', 'MODERATE', 'LOW'] as const).map(lvl => {
-        const count = stats.filter(s => s.best_prep_level === lvl).length;
-        const pct   = Math.round((count / total) * 100);
+      {([['HIGH', cohort.highCount], ['MODERATE', cohort.modCount], ['LOW', cohort.lowCount]] as const).map(([lvl, count]) => {
+        const pct = Math.round((count / totalTiers) * 100);
         return (
           <div class="dist-leg-item">
             <span class={`leg-dot ${lvl.toLowerCase()}`}></span>
@@ -100,28 +114,26 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
     </div>
   </div>
 
-  {stats.length > 0 && (
-    <div class="filter-bar">
-      {sections.length > 0 && (
-        <div class="filter-group">
-          <span class="filter-label">Section</span>
-          <div class="filter-pills" id="filter-section">
-            <button class="filter-pill active" data-value="ALL">All</button>
-            {sections.map(sec => (
-              <button class="filter-pill" data-value={sec}>{sec}</button>
-            ))}
-          </div>
-        </div>
-      )}
-      <div class="filter-group" style="margin-left: auto;">
-        <div class="search-wrapper">
-          <span class="material-symbols-outlined search-icon" style="font-size: 15px; line-height: 1;">search</span>
-          <input type="text" id="search-input" placeholder="Search student, ID, section..." class="search-input" />
+  <div class="filter-bar">
+    {sections.length > 0 && (
+      <div class="filter-group">
+        <span class="filter-label">Section</span>
+        <div class="filter-pills" id="filter-section">
+          <button class={`filter-pill ${section === 'ALL' ? 'active' : ''}`} data-value="ALL">All</button>
+          {sections.map(sec => (
+            <button class={`filter-pill ${section === sec ? 'active' : ''}`} data-value={sec}>{sec}</button>
+          ))}
         </div>
       </div>
-      <span class="filter-count" id="roster-count">{stats.length} students</span>
+    )}
+    <div class="filter-group" style="margin-left: auto;">
+      <div class="search-wrapper">
+        <span class="material-symbols-outlined search-icon" style="font-size: 15px; line-height: 1;">search</span>
+        <input type="text" id="search-input" placeholder="Search student, ID, section..." class="search-input" value={q} />
+      </div>
     </div>
-  )}
+    <span class="filter-count" id="roster-count">{matchedTotal} student{matchedTotal !== 1 ? 's' : ''}</span>
+  </div>
 
   <div class="sessions-section">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px;">
@@ -130,7 +142,11 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
 
     {stats.length === 0 ? (
       <p style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-muted); padding:24px 0;">
-        {hasDb ? 'No completed sessions yet.' : 'Configure TURSO_URL and TURSO_TOKEN to see live data.'}
+        {!hasDb
+          ? 'Configure TURSO_URL and TURSO_TOKEN to see live data.'
+          : isFiltered
+            ? 'No students match the selected filters.'
+            : 'No completed sessions yet.'}
       </p>
     ) : (
       <>
@@ -138,15 +154,15 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
         <table class="sessions-table roster-table">
           <thead>
             <tr>
-              <th class="sortable" data-sort-key="student">Student</th>
-              <th class="sortable" data-sort-key="id">ID</th>
-              <th class="sortable" data-sort-key="section">Section</th>
-              <th class="sortable" data-sort-key="sessions">Sessions</th>
-              <th class="sortable" data-sort-key="avg-score">Avg score</th>
-              <th class="sortable" data-sort-key="best-score">Best score</th>
-              <th class="sortable" data-sort-key="passed">Passed</th>
-              <th class="sortable" data-sort-key="level">Best level</th>
-              <th class="sortable" data-sort-key="last-active">Last active</th>
+              <th class={`sortable ${sortClass('student')}`} data-sort-key="student">Student</th>
+              <th class={`sortable ${sortClass('id')}`} data-sort-key="id">ID</th>
+              <th class={`sortable ${sortClass('section')}`} data-sort-key="section">Section</th>
+              <th class={`sortable ${sortClass('sessions')}`} data-sort-key="sessions">Sessions</th>
+              <th class={`sortable ${sortClass('avg-score')}`} data-sort-key="avg-score">Avg score</th>
+              <th class={`sortable ${sortClass('best-score')}`} data-sort-key="best-score">Best score</th>
+              <th class={`sortable ${sortClass('passed')}`} data-sort-key="passed">Passed</th>
+              <th class={`sortable ${sortClass('level')}`} data-sort-key="level">Best level</th>
+              <th class={`sortable ${sortClass('last-active')}`} data-sort-key="last-active">Last active</th>
               <th></th>
             </tr>
           </thead>
@@ -155,20 +171,8 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
               const lvl = s.best_prep_level
                 ? derivePrepLevel(Number(s.best_score), s.best_prep_level)
                 : 'PENDING';
-              const passRatio = Number(s.session_count) > 0 ? (s.pass_count / s.session_count) : -1;
               return (
                 <tr
-                  data-section={s.section ?? ''}
-                  data-search={`${s.student_name} ${s.student_id ?? ''} ${s.section ?? ''}`.toLowerCase()}
-                  data-sort-student={s.student_name.toLowerCase()}
-                  data-sort-id={(s.student_id ?? '').toLowerCase()}
-                  data-sort-section={(s.section ?? '').toLowerCase()}
-                  data-sort-sessions={s.session_count}
-                  data-sort-avg-score={s.avg_score}
-                  data-sort-best-score={Number(s.session_count) > 0 ? s.best_score : -1}
-                  data-sort-passed={passRatio}
-                  data-sort-level={lvl === 'HIGH' ? 3 : lvl === 'MODERATE' ? 2 : lvl === 'LOW' ? 1 : 0}
-                  data-sort-last-active={s.latest_start ? new Date(s.latest_start).getTime() : 0}
                   onclick={s.latest_session_id ? `window.location='/sessions/${s.latest_session_id}'` : undefined}
                   style={s.latest_session_id ? 'cursor:pointer;' : ''}
                 >
@@ -219,7 +223,7 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
       {totalPages > 1 && (
         <div class="pagination">
           <a
-            href={page > 1 ? `?page=${page - 1}` : '#'}
+            href={page > 1 ? pageHref(page - 1) : '#'}
             class={`pagination-btn ${page <= 1 ? 'disabled' : ''}`}
             aria-disabled={page <= 1}
           >
@@ -229,7 +233,7 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
             Page <strong>{page}</strong> of <strong>{totalPages}</strong>
           </span>
           <a
-            href={page < totalPages ? `?page=${page + 1}` : '#'}
+            href={page < totalPages ? pageHref(page + 1) : '#'}
             class={`pagination-btn ${page >= totalPages ? 'disabled' : ''}`}
             aria-disabled={page >= totalPages}
           >
@@ -248,48 +252,25 @@ const totalPages = Math.max(1, Math.ceil(totalRoster / limit));
 </DashboardLayout>
 
 <script>
-  import { initTableSorting } from '../lib/tableSorter';
+  import { initServerSort, updateQueryParams, debounce } from '../lib/tableQueryParams';
 
-  // Initialize sorting
-  initTableSorting();
+  initServerSort('avg-score', 'desc');
 
   const secGroup    = document.getElementById('filter-section');
   const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
-  const countLabel  = document.getElementById('roster-count');
-  const tbody       = document.querySelector('.roster-table tbody');
 
-  if (tbody) {
-    let activeSection = 'ALL';
-
-    function applyFilter() {
-      const rows = tbody!.querySelectorAll<HTMLTableRowElement>('tr');
-      const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-      let visible = 0;
-      rows.forEach(row => {
-        const sectionMatch = activeSection === 'ALL' || row.dataset.section === activeSection;
-        const searchMatch = !query || (row.dataset.search && row.dataset.search.includes(query));
-        const match = sectionMatch && searchMatch;
-        row.style.display = match ? '' : 'none';
-        if (match) visible++;
+  if (secGroup) {
+    secGroup.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        updateQueryParams({ section: pill.dataset.value! });
       });
-      if (countLabel) {
-        countLabel.textContent = `${visible} student${visible !== 1 ? 's' : ''}`;
-      }
-    }
+    });
+  }
 
-    if (secGroup) {
-      secGroup.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-          secGroup!.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-          activeSection = pill.dataset.value!;
-          applyFilter();
-        });
-      });
-    }
-
-    if (searchInput) {
-      searchInput.addEventListener('input', applyFilter);
-    }
+  if (searchInput) {
+    const debouncedSearch = debounce((value: string) => {
+      updateQueryParams({ q: value.trim() || null });
+    }, 400);
+    searchInput.addEventListener('input', () => debouncedSearch(searchInput.value));
   }
 </script>

@@ -1,7 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer } from 'recharts';
 
 interface ScoreHistogramProps {
-  scores: number[];
+  buckets: number[];
 }
 
 const LABELS = [
@@ -15,15 +15,8 @@ const tickStyle = {
   fontSize: 9,
 };
 
-export default function ScoreHistogram({ scores }: ScoreHistogramProps) {
-  // Bucket scores into 10 groups: 0-10, 11-20, ..., 91-100
-  const buckets = Array(10).fill(0);
-  scores.forEach(s => {
-    const idx = Math.min(9, Math.floor(s / 10));
-    buckets[idx]++;
-  });
-
-  const data = LABELS.map((label, i) => ({ label, count: buckets[i] }));
+export default function ScoreHistogram({ buckets }: ScoreHistogramProps) {
+  const data = LABELS.map((label, i) => ({ label, count: buckets[i] ?? 0 }));
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '180px' }}>

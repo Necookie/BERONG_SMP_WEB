@@ -12,17 +12,17 @@ import EvacuationTimeChart from '../components/EvacuationTimeChart';
 import {
   getOverviewStats,
   getRecentSessions,
-  getAllCompletedScores,
+  getScoreHistogramBuckets,
   getAnalyticsSessions,
+  getScoreTrend,
+  getScenarioBreakdown,
+  getPrepByScenario,
+  getSectionPerformance,
   formatDate,
   formatDuration,
   derivePrepLevel,
 } from '../lib/queries';
 import {
-  buildScoreTrend,
-  buildScenarioBreakdown,
-  buildPrepByScenario,
-  buildSectionPerformance,
   buildSafetyBehavior,
   buildEvacuationTimeBuckets,
 } from '../lib/analytics';
@@ -33,18 +33,26 @@ const hasDb = !!env;
 
 let stats = { total: 0, avg_score: 0, fire_count: 0, quake_count: 0, this_week: 0, high_count: 0, mod_count: 0, low_count: 0 };
 let recent: Awaited<ReturnType<typeof getRecentSessions>> = [];
-let scores: number[] = [];
+let scoreBuckets: number[] = [];
 let analyticsSessions: Awaited<ReturnType<typeof getAnalyticsSessions>> = [];
+let scoreTrend: Awaited<ReturnType<typeof getScoreTrend>> = [];
+let scenarioStats: Awaited<ReturnType<typeof getScenarioBreakdown>> = [];
+let prepByScenario: Awaited<ReturnType<typeof getPrepByScenario>> = [];
+let sectionStats: Awaited<ReturnType<typeof getSectionPerformance>> = [];
 
 let dbError: string | null = null;
 
 if (env) {
   try {
-    [stats, recent, scores, analyticsSessions] = await Promise.all([
+    [stats, recent, scoreBuckets, analyticsSessions, scoreTrend, scenarioStats, prepByScenario, sectionStats] = await Promise.all([
       getOverviewStats(env),
       getRecentSessions(env, 5),
-      getAllCompletedScores(env),
+      getScoreHistogramBuckets(env),
       getAnalyticsSessions(env),
+      getScoreTrend(env),
+      getScenarioBreakdown(env),
+      getPrepByScenario(env),
+      getSectionPerformance(env),
     ]);
   } catch (err) {
     dbError = err instanceof Error ? err.message : 'Unknown database error';
@@ -56,12 +64,8 @@ const highPct     = totalWithLevel ? Math.round((stats.high_count / totalWithLev
 const moderatePct = totalWithLevel ? Math.round((stats.mod_count  / totalWithLevel) * 100) : 0;
 const lowPct      = 100 - highPct - moderatePct;
 
-const scoreTrend      = buildScoreTrend(analyticsSessions);
-const scenarioStats   = buildScenarioBreakdown(analyticsSessions);
-const prepByScenario  = buildPrepByScenario(analyticsSessions);
-const sectionStats    = buildSectionPerformance(analyticsSessions);
-const safetyStats     = buildSafetyBehavior(analyticsSessions);
-const evacBuckets     = buildEvacuationTimeBuckets(analyticsSessions);
+const safetyStats  = buildSafetyBehavior(analyticsSessions);
+const evacBuckets  = buildEvacuationTimeBuckets(analyticsSessions);
 ---
 
 <DashboardLayout title="Overview" currentPath="/">
@@ -144,7 +148,7 @@ const evacBuckets     = buildEvacuationTimeBuckets(analyticsSessions);
         <span class="dist-cohort">All completed sessions</span>
       </div>
       <div class="dist-histogram-wrap">
-        <ScoreHistogram client:only="react" scores={scores} />
+        <ScoreHistogram client:only="react" buckets={scoreBuckets} />
       </div>
     </div>
   </div>
@@ -153,7 +157,7 @@ const evacBuckets     = buildEvacuationTimeBuckets(analyticsSessions);
     <div class="sessions-section" style="padding-bottom: 0;">
       <div class="dist-head">
         <span class="section-label">Advanced analytics</span>
-        <span class="dist-cohort">{analyticsSessions.length} completed sessions analyzed</span>
+        <span class="dist-cohort">{stats.total} completed sessions analyzed</span>
       </div>
     </div>
 
@@ -424,6 +428,10 @@ const evacBuckets     = buildEvacuationTimeBuckets(analyticsSessions);
         tr.onclick = () => { window.location.href = `/sessions/${s.id}`; };
         tr.style.cursor = 'pointer';
 
+        const levelBadgeHtml = level !== 'PENDING'
+          ? `<span class="tier-badge ${tierClass}"><span class="dot"></span>${level}</span>`
+          : `<span class="td-pending">PENDING</span>`;
+
         tr.innerHTML = `
           <td class="name-cell">${s.student_name}</td>
           <td class="td-mono-muted">${s.section ?? '—'}</td>
@@ -435,18 +443,9 @@ const evacBuckets     = buildEvacuationTimeBuckets(analyticsSessions);
           <td class="td-mono-muted">${formatDateLocal(s.start_time)}</td>
           <td class="td-mono-muted">${formatDurationLocal(s.start_time, s.end_time)}</td>
           <td class="td-score">${s.simulation_score}</td>
-          <td>
-            \${level !== 'PENDING' ? \`
-              <span class="tier-badge \${tierClass}">
-                <span class="dot"></span>
-                \${level}
-              </span>
-            \` : \`
-              <span class="td-pending">PENDING</span>
-            \`}
-          </td>
+          <td>${levelBadgeHtml}</td>
           <td class="link-cell">
-            <a href="/sessions/\${s.id}" class="view-link">→</a>
+            <a href="/sessions/${s.id}" class="view-link">→</a>
           </td>
         `;
         
