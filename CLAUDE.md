@@ -220,15 +220,23 @@ a real mod-sourced payload.
 
 ## Admin game commands relevant to dashboard testing
 
-When testing the full session flow (mod → Turso → dashboard), these in-game commands are useful:
+When testing the full session flow (mod → Turso → dashboard), these in-game commands are useful.
+**The full, authoritative reference for every in-game command (including all `/bfp new_tutorial`
+Academy variants, `/item get`/`/item kit`, and exact OP-level requirements) lives in the dashboard
+itself at `apps/dashboard/src/pages/commands.astro`** — update that page, not just this table, when
+the mod's command surface changes.
 
 | Command | Effect |
 |---|---|
+| `/register <student_id> <section> <full_name>` | Registers the caller as a student — the first lobby gate; must succeed before tutorial/sim buttons activate. |
 | `/bfp bypass on` | Skip lobby gates (registration, active session, tutorial) for your player — lets you click fire/quake buttons instantly without completing onboarding. Resets on server restart. |
 | `/bfp bypass off` | Re-enable gates (for testing the normal student flow). |
 | `/bfp checkin <student_name>` | Create a session row so the dashboard can show the student. |
 | `/bfp checkout` | Close the session row (writes end_time + score to Turso). |
-| `/sim_fire` / `/sim_earthquake` | Start a simulation directly via command (also works without bypass). |
+| `/sim_fire <library\|ccs>` / `/sim_earthquake <library\|ccs> [magnitude]` | Start a simulation directly via command — **open to any player, no OP required** (also works without bypass). |
+| `/bfp new_tutorial [player]` | Reset + activate the **Academy** (the newer, separate tutorial building) — teleports to Room 1 (Officer Cruz). |
+| `/bfp new_tutorial skipto <cruz\|reyes\|santos\|morfe> [player]` | Jump straight into any Academy room for testing without replaying prior rooms; marks earlier rooms `DONE`. |
+| `/item get <name>` / `/item kit` | Give any single BerongSMP item by registry name, or one of every item (83 total) at once, for dev testing. |
 
 The typical quick-test loop: `/bfp bypass on` → click lobby button → simulate → `/bfp checkout` → check dashboard.
 

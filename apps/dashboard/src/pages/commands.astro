@@ -1,16 +1,41 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 
-// Command list data
+// Command list data — audited against mod source in berongsmp-template-26.1.2
+// (command/RegistrationCommands.java, ItemCommands.java, SimulationCommands.java,
+// BfpAdminCommands.java) as of the /bfp new_tutorial skipto commit (8540c0a).
 const commands = [
+  {
+    name: '/register',
+    category: 'registration',
+    permission: 'Any Player',
+    permissionLevel: 'player',
+    syntax: '/register <student_id> <section> <full_name>',
+    arguments: [
+      { name: 'student_id', type: 'word', range: 'N/A', required: 'Yes', description: 'Single-token student ID.' },
+      { name: 'section', type: 'word', range: 'N/A (no hyphens, e.g. BSCS3A)', required: 'Yes', description: 'Single-token section code.' },
+      { name: 'full_name', type: 'string', range: 'N/A', required: 'Yes', description: 'Rest of the line — the student\'s full name (can contain spaces).' }
+    ],
+    description: 'Registers the calling player as a student before they can pass the lobby gates and start the tutorial.',
+    whatHappens: [
+      'Calls RegistrationManager.register(player, studentId, section, fullName).',
+      'Calls SessionManager.checkin(uuid, minecraftName, fullName) — opens a session row.',
+      'Writes student_id/section to Turso via TursoClient.updateStudentInfo.',
+      'Chat confirms registration and that the tutorial may begin.'
+    ],
+    notes: [
+      'Player-only — no-op from console.',
+      'This is the first gate in LobbyManager.gatesPassed — simulation buttons stay inactive until it succeeds.'
+    ]
+  },
   {
     name: '/sim_fire',
     category: 'simulation',
-    permission: 'Op Level 2+',
-    permissionLevel: 'admin',
+    permission: 'Any Player',
+    permissionLevel: 'player',
     syntax: '/sim_fire <library|ccs>',
     arguments: [
-      { name: 'target', type: 'string', range: 'library | ccs', required: 'Yes', description: '"library" starts the drill in the LSPU Library (ABC extinguisher given). "ccs" starts in the CCS Admin Building (CO2 extinguisher given).' }
+      { name: 'target', type: 'string', range: 'library | ccs', required: 'Yes', description: '"library" starts the drill in the LSPU Library (ABC extinguisher given, state FIRE). "ccs" starts in the CCS Admin Building (CO2 extinguisher given, state CCS_FIRE).' }
     ],
     description: 'Starts a Fire simulation immediately, bypassing the lobby button. Choose the target building.',
     whenToUse: [
@@ -26,19 +51,21 @@ const commands = [
       'HUD displays "SIMULATION STATUS: FIRE" (library) or "SIMULATION STATUS: CCS_FIRE".'
     ],
     notes: [
+      'No OP requirement in source — any player can run this directly, not just admins.',
+      'Bare "/sim_fire" with no argument fails with a usage hint.',
       'Fails if you already have a simulation running.',
-      'Cannot be run from the server console.'
+      'Player-only — cannot be run from the server console.'
     ]
   },
   {
     name: '/sim_earthquake',
-    category: 'simulation',
-    permission: 'Op Level 2+',
-    permissionLevel: 'admin',
+    category: 'earthquake',
+    permission: 'Any Player',
+    permissionLevel: 'player',
     syntax: '/sim_earthquake <library|ccs> [magnitude]',
     arguments: [
-      { name: 'target', type: 'string', range: 'library | ccs', required: 'Yes', description: '"library" runs the drill in the LSPU Library; "ccs" runs it in the CCS Admin Building.' },
-      { name: 'magnitude', type: 'double', range: '0.1 – 10.0', required: 'No', description: 'Quake intensity. If omitted, uses quakeMagnitude from config (default 5.0).' }
+      { name: 'target', type: 'string', range: 'library | ccs', required: 'Yes', description: '"library" runs the drill in the LSPU Library (state EARTHQUAKE); "ccs" runs it in the CCS Admin Building (state CCS_EARTHQUAKE).' },
+      { name: 'magnitude', type: 'double', range: '0.1 - 10.0', required: 'No', description: 'Quake intensity. If omitted: library uses quakeMagnitude from config (default 5.0); ccs instead rolls a random magnitude 6.0-9.5.' }
     ],
     description: 'Starts an Earthquake simulation immediately. Choose the building and optional magnitude.',
     whenToUse: [
@@ -48,17 +75,44 @@ const commands = [
     ],
     whatHappens: [
       'All structures placed (LSPU Library, SSC Building, CCS Admin Building).',
-      'Epicenter fixed 3–9 blocks from the chosen building interior so destruction stays inside.',
+      'Epicenter fixed 3-9 blocks from the chosen building interior so destruction stays inside.',
       'Player teleported to a random valid room inside the target building.',
-      'Chat: "⚠ Magnitude X.X Earthquake has begun!"',
-      'Phase machine: RUMBLE → PEAK → AFTERSHOCK (×2–4 waves) → END.',
-      'Aftershocks use random magnitude scales (0.2–1.1× base) before finally ending.',
-      'Nausea applied per phase; camera shake driven by per-player intensity = magnitude × e^(−decayRate × distance).',
-      'HUD shows "SIMULATION STATUS: EARTHQUAKE" or "CCS_EARTHQUAKE" and intensity bar.'
+      'Chat: "Magnitude X.X Earthquake has begun!"',
+      'Phase machine: RUMBLE (200 ticks / 10s) -> PEAK (900 ticks / 45s) -> AFTERSHOCK x2-4 waves (300 ticks / 15s each) -> END.',
+      'Aftershocks use random magnitude scales (0.2-1.1x base) before finally ending.',
+      'Nausea applied per phase; camera shake driven by per-player intensity = magnitude x e^(-decayRate x distance).',
+      'HUD shows "SIMULATION STATUS: EARTHQUAKE" or "CCS_EARTHQUAKE" and an intensity bar.'
     ],
     notes: [
-      'Lobby button starts with a random magnitude 6.0–9.5 (strong range).',
+      'No OP requirement in source — any player can run this directly, not just admins.',
+      'Lobby button always starts at a random magnitude 6.0-9.5 (strong range) regardless of building.',
       'Fails if you already have an active simulation.'
+    ]
+  },
+  {
+    name: '/sim_magnitude',
+    category: 'earthquake',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/sim_magnitude <value>',
+    arguments: [
+      { name: 'value', type: 'double', range: '0.1 – 10.0', required: 'Yes', description: 'New magnitude value.' }
+    ],
+    description: 'Changes the magnitude of your currently active earthquake session live, taking effect on the very next tick.',
+    whenToUse: [
+      'Instructor wants to dial up intensity mid-session to demonstrate a stronger quake.',
+      'Gradually increase magnitude as a teaching progression without stopping and restarting.',
+      'Dial back an accidental high-magnitude start so players aren\'t overwhelmed.'
+    ],
+    examples: [
+      { cmd: '/sim_earthquake library 3.0', desc: 'Start mild for explanation' },
+      { cmd: '/sim_magnitude 6.0', desc: 'Escalate during PEAK phase for impact' },
+      { cmd: '/sim_magnitude 9.0', desc: 'Push to severe for demonstration' },
+      { cmd: '/sim_stop', desc: 'End simulation when done' }
+    ],
+    notes: [
+      'Fails with "No active earthquake simulation to adjust." if you have no running earthquake session.',
+      'Restricted to ops (LEVEL_GAMEMASTERS) — regular players cannot use this, unlike /sim_earthquake itself.'
     ]
   },
   {
@@ -81,34 +135,8 @@ const commands = [
     ],
     notes: [
       'Safe to call even if no simulation is running (no-op).',
-      'Can be called from the server console to stop any running simulation by a specific player (resolves to the calling player).',
+      'Player-only in source — the console form always prints "Simulation stopped." even though there is no session to stop for a non-player source.',
       'If the player died during the simulation, the structure is still restored but the teleport is deferred to their next respawn.'
-    ]
-  },
-  {
-    name: '/sim_magnitude',
-    category: 'earthquake',
-    permission: 'Op Level 2+',
-    permissionLevel: 'admin',
-    syntax: '/sim_magnitude <value>',
-    arguments: [
-      { name: 'value', type: 'double', range: '0.1 – 10.0', required: 'Yes', description: 'New magnitude value.' }
-    ],
-    description: 'Changes the magnitude of your currently active earthquake session live, taking effect on the very next tick.',
-    whenToUse: [
-      'Instructor wants to dial up intensity mid-session to demonstrate a stronger quake.',
-      'Gradually increase magnitude as a teaching progression without stopping and restarting.',
-      'Dial back an accidental high-magnitude start so players aren\'t overwhelmed.'
-    ],
-    examples: [
-      { cmd: '/sim_earthquake 3.0', desc: 'Start mild for explanation' },
-      { cmd: '/sim_magnitude 6.0', desc: 'Escalate during PEAK phase for impact' },
-      { cmd: '/sim_magnitude 9.0', desc: 'Push to severe for demonstration' },
-      { cmd: '/sim_stop', desc: 'End simulation when done' }
-    ],
-    notes: [
-      'Fails with "No active earthquake simulation to adjust." if you have no running earthquake session.',
-      'Restricted to ops — regular players cannot use this.'
     ]
   },
   {
@@ -118,16 +146,18 @@ const commands = [
     permissionLevel: 'admin',
     syntax: '/bfp login <pin>',
     arguments: [
-      { name: 'pin', type: 'string', range: 'N/A', required: 'Yes', description: 'Admin authentication PIN set in bfpAdminPin config (default "1234").' }
+      { name: 'pin', type: 'word', range: 'N/A', required: 'Yes', description: 'Admin authentication PIN set in bfpAdminPin config (blank by default — PIN login disabled until set).' }
     ],
     description: 'Authenticates you as a BFP admin for this session using the configured PIN.',
     whatHappens: [
-      'Authenticates the user as BFP admin for the current session.',
+      'Authenticates the user as BFP admin for the current session (added to the in-memory bfpAuthorized set).',
       'All /bfp sub-commands become available until logout or server restart.'
     ],
     notes: [
-      'OPs always bypass the PIN check.',
-      'Ensure you change the default PIN in the config before going live.'
+      'OPs always bypass the PIN check (LEVEL_GAMEMASTERS satisfies isBfpAuthorized without logging in).',
+      '5 wrong attempts triggers a 5-minute lockout for that player (per-UUID).',
+      'Fails immediately if bfpAdminPin is left blank in config.',
+      'Ensure you change the default blank PIN in the config before going live.'
     ]
   },
   {
@@ -172,6 +202,9 @@ const commands = [
     whatHappens: [
       'Writes end_time and status="completed" to Turso.',
       'Useful when a student finishes and leaves without triggering a simulation end.'
+    ],
+    notes: [
+      'Self only — there is no [player] target argument on this command.'
     ]
   },
   {
@@ -186,6 +219,10 @@ const commands = [
     description: 'Wipes tutorial state and deletes the active DB row — no record is kept.',
     whenToUse: [
       'Use when a session was started by mistake or needs to be discarded.'
+    ],
+    notes: [
+      'This resets the OLD tutorial (TutorialSavedData). For the Academy, use /bfp new_tutorial or /bfp new_tutorial skipto instead.',
+      'Permanently deletes the DB row — there is no undo. Use /bfp checkout first if you want to keep the record.'
     ]
   },
   {
@@ -197,11 +234,108 @@ const commands = [
     arguments: [
       { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player to reset. Defaults to caller if omitted.' }
     ],
-    description: 'Resets a player\'s tutorial state and immediately teleports them to the tutorial lobby.',
+    description: 'Resets a player\'s OLD tutorial state and immediately teleports them to the old tutorial lobby.',
     whatHappens: [
-      'Wipes the tutorial save and any active session.',
-      'Tutorial NPCs are re-spawned at their correct positions (fixes any duplicates).',
-      'Target player is teleported to the tutorial spawn.'
+      'Wipes the tutorial save (SessionManager.resetTutorialOnly) and any active session.',
+      'Tutorial NPCs are re-initialised at their correct positions via TutorialLobbyManager.initNpcs (fixes any duplicates).',
+      'Target player is teleported to TutorialLobbyManager.TSPAWN_X/Y/Z.'
+    ],
+    notes: [
+      'Distinct from /bfp new_tutorial — this is the legacy TutorialManager flow, not the Academy.'
+    ]
+  },
+  {
+    name: '/bfp new_tutorial',
+    category: 'academy',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp new_tutorial [player]',
+    arguments: [
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller if omitted.' }
+    ],
+    description: 'Activates the Academy exactly like /bfp tutorial activates the old tutorial — wipes Academy progress back to a fresh start and teleports to Room 1 (Officer Cruz).',
+    whatHappens: [
+      'AcademySavedData.reset(uuid) — full wipe of AcademyProgress for the target.',
+      'AcademyManager.cancelDialogue + clearTransientState for the target.',
+      'CruzRoomManager.resetCruz — snaps the Officer Cruz NPC back to her briefing anchor.',
+      'ReyesRoomManager.restockExtinguisherFrames — refills the Tool Selection Wall.',
+      'Teleports target to the "officer_cruz" viewpoint (Room 1 default).',
+      'Chat: "Academy progress reset for <name> — teleported back to Room 1."'
+    ],
+    notes: [
+      'Bare form and /bfp new_tutorial reset are identical — reset is just a more discoverable alias.'
+    ]
+  },
+  {
+    name: '/bfp new_tutorial reset',
+    category: 'academy',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp new_tutorial reset [player]',
+    arguments: [
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller if omitted.' }
+    ],
+    description: 'Explicit, discoverable alias for the exact same reset-and-teleport the bare /bfp new_tutorial performs.',
+    whenToUse: [
+      'When you want a self-documenting command in a script or chat macro instead of the bare form.'
+    ]
+  },
+  {
+    name: '/bfp new_tutorial <viewpoint>',
+    category: 'academy',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp new_tutorial <officer_cruz|sgt_reyes|sgt_santos|capt_morfe> [player]',
+    arguments: [
+      { name: 'viewpoint', type: 'literal', range: 'officer_cruz | sgt_reyes | sgt_santos | capt_morfe', required: 'Yes', description: 'One literal subcommand per entry in AcademyBuildingManager.VIEWPOINTS — a pure dev-navigation teleport, no reset.' },
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller if omitted.' }
+    ],
+    description: 'Teleports straight to an F3-captured reference viewpoint inside the Academy building — for tuning NPC placement, no progress change.',
+    detailsLabel: 'Named viewpoints (world coords):',
+    details: [
+      'officer_cruz — (-148.570, -33.0, 32.248), yaw 88.3, pitch 0 — Room 1, Extinguisher Types section, faces Officer Cruz\'s NPC. Also the DEFAULT_VIEWPOINT used by the bare reset form.',
+      'sgt_reyes — (-172.5, -33.0, 17.5), yaw/pitch 0 — Room 2 NPC anchor.',
+      'sgt_santos — (-170.5, -33.0, 33.5), yaw/pitch 0 — Room 3 NPC anchor.',
+      'capt_morfe — (-108.5, -33.0, 77.5), yaw/pitch 0 — Room 4 NPC anchor.'
+    ],
+    notes: [
+      'Chat: "Teleported <name> to the new tutorial building."',
+      'Does not touch AcademyProgress — use /bfp new_tutorial skipto to jump in with a clean, consistent room state.'
+    ]
+  },
+  {
+    name: '/bfp new_tutorial skipto',
+    category: 'academy',
+    permission: 'Op or PIN Admin',
+    permissionLevel: 'admin',
+    syntax: '/bfp new_tutorial skipto <cruz|reyes|santos|morfe> [player]',
+    arguments: [
+      { name: 'instructor', type: 'literal', range: 'cruz | reyes | santos | morfe', required: 'Yes', description: 'Which room to jump straight into. Every room strictly before it is marked DONE; the target room and everything after is reset to NOT_STARTED.' },
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller if omitted.' }
+    ],
+    description: 'Dev shortcut to jump straight into any Academy room without replaying every prior one by hand.',
+    whenToUse: [
+      'QA-testing one room in isolation (e.g. only Sgt. Santos\'s STOP/GO drill) without redoing Rooms 1-2 every time.',
+      'Demoing a specific instructor to visitors without the full walkthrough.'
+    ],
+    whatHappens: [
+      'AcademyManager.cancelDialogue + clearTransientState for the target.',
+      'AcademyProgress.resetAll() — resets every room to NOT_STARTED — then marks rooms strictly before the target instructor DONE.',
+      'CruzRoomManager.resetCruz — Cruz snapped back to her anchor.',
+      'ReyesRoomManager.restockExtinguisherFrames — extinguisher wall refilled.',
+      'ReyesRoomManager.cleanupHazardProps — leftover Room 2 hazard props cleared (unique to skipto; the plain reset/bare form does not do this).',
+      'Teleports target to the chosen instructor\'s viewpoint.',
+      'Chat: "Academy progress set to start <instructor> for <name> — teleported there."'
+    ],
+    detailsLabel: 'Instructor -> what gets marked DONE:',
+    details: [
+      'skipto cruz — nothing marked done (equivalent to a full /bfp new_tutorial reset).',
+      'skipto reyes — Room 1 (Cruz) marked DONE.',
+      'skipto santos — Rooms 1-2 (Cruz, Reyes) marked DONE.',
+      'skipto morfe — Rooms 1-3 (Cruz, Reyes, Santos) marked DONE.'
+    ],
+    notes: [
+      'Added in commit 8540c0a as a debug command for faster iteration on later rooms.'
     ]
   },
   {
@@ -216,6 +350,9 @@ const commands = [
       'Session start time',
       'Whether the tutorial is complete',
       'Simulation type, score, and pass/fail status'
+    ],
+    notes: [
+      'Self only — no [player] target argument.'
     ]
   },
   {
@@ -238,7 +375,7 @@ const commands = [
     permission: 'Op or PIN Admin',
     permissionLevel: 'admin',
     syntax: '/bfp sessions export',
-    description: 'Queries all sessions from Turso and writes them to run/bfp_sessions_export.csv.',
+    description: 'Queries all sessions from Turso and writes them to bfp_sessions_export.csv in the server working directory.',
     details: [
       'Columns exported: id, student_name, station_account, account_uuid, start_time, end_time, status, tutorial_completed, tutorial_duration_s, simulation_type, simulation_score, passed, notes'
     ]
@@ -250,7 +387,7 @@ const commands = [
     permissionLevel: 'admin',
     syntax: '/bfp student <name>',
     arguments: [
-      { name: 'name', type: 'string', range: 'N/A', required: 'Yes', description: 'Name of the student to search.' }
+      { name: 'name', type: 'string', range: 'N/A', required: 'Yes', description: 'Exact student name to search (matched exactly, not partial).' }
     ],
     description: 'Looks up the last 10 sessions for a given student name and prints them to chat.',
     whenToUse: [
@@ -260,14 +397,17 @@ const commands = [
   {
     name: '/sim_status',
     category: 'simulation',
-    permission: 'Op Level 2+',
+    permission: 'Player (self) / Op Level 2+ (target)',
     permissionLevel: 'admin',
     syntax: '/sim_status [player]',
     arguments: [
-      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller.' }
+      { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller. Only the targeted form requires OP — checking your own status is open to any player.' }
     ],
     description: 'Prints a live snapshot of the target player\'s simulation: type, phase, time remaining, fires extinguished.',
-    whenToUse: ['Instructor monitoring a student\'s session in real time.']
+    whenToUse: ['Instructor monitoring a student\'s session in real time.'],
+    notes: [
+      'Also reports the frozen flag and quake phase (if quake type and phase != null).'
+    ]
   },
   {
     name: '/sim_list',
@@ -288,7 +428,10 @@ const commands = [
       { name: 'player', type: 'player', range: 'Online players', required: 'No', description: 'Target player. Defaults to caller.' }
     ],
     description: 'Pauses the simulation timer without stopping effects (fire/quake still ticks). Good for pausing to give instruction.',
-    notes: ['Resume with /sim_unfreeze.']
+    notes: [
+      'Gated to OP for both the bare and targeted forms — unlike /sim_status, even freezing your own session requires OP.',
+      'Resume with /sim_unfreeze.'
+    ]
   },
   {
     name: '/sim_unfreeze',
@@ -309,14 +452,17 @@ const commands = [
     permissionLevel: 'admin',
     syntax: '/sim_time set <seconds> | /sim_time add <seconds>',
     arguments: [
-      { name: 'set/add', type: 'string', range: 'set | add', required: 'Yes', description: '"set" replaces remaining time; "add" adds or subtracts seconds.' },
-      { name: 'seconds', type: 'integer', range: 'any', required: 'Yes', description: 'Seconds to set or offset.' }
+      { name: 'set/add', type: 'string', range: 'set | add', required: 'Yes', description: '"set" replaces remaining time (0-3600s); "add" adds or subtracts seconds (-3600 to 3600), clamped to a minimum of 0.' },
+      { name: 'seconds', type: 'integer', range: 'set: 0-3600, add: -3600 to 3600', required: 'Yes', description: 'Seconds to set or offset.' }
     ],
     description: 'Adjusts the remaining simulation time on the fly.',
     examples: [
       { cmd: '/sim_time set 60', desc: 'Give student exactly 1 minute left' },
       { cmd: '/sim_time add -30', desc: 'Subtract 30 seconds (urgency drill)' },
       { cmd: '/sim_time add 120', desc: 'Add 2 minutes for a struggling student' }
+    ],
+    notes: [
+      'Unlike /sim_status, /sim_freeze, and /sim_unfreeze, there is no [player] target argument — this only ever operates on the invoking player\'s own active session.'
     ]
   },
   {
@@ -342,7 +488,10 @@ const commands = [
       { name: 'text', type: 'string', range: 'N/A', required: 'Yes', description: 'Observation text to append to the session.' }
     ],
     description: 'Appends an instructor observation note to the active session\'s bfp_notes column in Turso.',
-    whenToUse: ['Recording on-the-fly behavioural observations during a drill.']
+    whenToUse: ['Recording on-the-fly behavioural observations during a drill.'],
+    notes: [
+      'Self only — no [player] target argument. Fails if you have no active session.'
+    ]
   },
   {
     name: '/bfp confidence',
@@ -351,10 +500,11 @@ const commands = [
     permissionLevel: 'admin',
     syntax: '/bfp confidence <1-5>',
     arguments: [
-      { name: 'rating', type: 'integer', range: '1–5', required: 'Yes', description: 'Instructor-assessed confidence level (1 = very low, 5 = very high).' }
+      { name: 'rating', type: 'double', range: '1.0 – 5.0', required: 'Yes', description: 'Instructor-assessed confidence level (1 = very low, 5 = very high).' }
     ],
     description: 'Sets the instructor confidence rating for the active session.',
-    whenToUse: ['After observing a student — rate their perceived readiness/composure.']
+    whenToUse: ['After observing a student — rate their perceived readiness/composure.'],
+    notes: ['Self only — no [player] target argument.']
   },
   {
     name: '/bfp prep_level',
@@ -363,10 +513,11 @@ const commands = [
     permissionLevel: 'admin',
     syntax: '/bfp prep_level <none|low|moderate|high>',
     arguments: [
-      { name: 'level', type: 'string', range: 'none | low | moderate | high', required: 'Yes', description: 'Instructor assessment of preparedness level.' }
+      { name: 'level', type: 'literal', range: 'none | low | moderate | high', required: 'Yes', description: 'Instructor assessment of preparedness level (four fixed subcommands, not a free string).' }
     ],
     description: 'Records the instructor\'s preparedness assessment in the session row.',
-    whenToUse: ['After a drill — qualitative complement to the numeric score.']
+    whenToUse: ['After a drill — qualitative complement to the numeric score.'],
+    notes: ['Self only — no [player] target argument.']
   },
   {
     name: '/bfp score',
@@ -421,7 +572,8 @@ const commands = [
     permissionLevel: 'admin',
     syntax: '/bfp sessions stats',
     description: 'Prints aggregate statistics: total sessions, pass rate, average score, fire vs earthquake breakdown.',
-    whenToUse: ['Instructor reporting; quick top-line numbers without opening the dashboard.']
+    whenToUse: ['Instructor reporting; quick top-line numbers without opening the dashboard.'],
+    notes: ['Fails if Turso is not configured (TursoClient.isReady() false).']
   },
   {
     name: '/bfp sessions search',
@@ -430,7 +582,7 @@ const commands = [
     permissionLevel: 'admin',
     syntax: '/bfp sessions search <query>',
     arguments: [
-      { name: 'query', type: 'string', range: 'N/A', required: 'Yes', description: 'Partial student name or station account to search.' }
+      { name: 'query', type: 'string', range: 'N/A', required: 'Yes', description: 'Partial student name or station account to search (LIKE %query%, up to 15 results).' }
     ],
     description: 'Searches sessions by student name or station account (partial match).',
     whenToUse: ['Locating a specific student\'s records without knowing their exact station.']
@@ -476,8 +628,8 @@ const commands = [
     syntax: '/get_wet_chemical_extinguisher',
     description: 'Gives a yellow wet chemical extinguisher for Class F/K (cooking-oil/grease) fires directly into your inventory.',
     whenToUse: [
-      'Testing the wet chemical unit against the five cafeteria/kitchen hazard props (deep fryer, grease pan, range hood, panini press, kitchen bin).',
-      'Demonstrating the Philippine BFP yellow colour-coding for kitchen fires alongside the red ABC and CO2 units.'
+      'Testing the wet chemical unit against the five cafeteria/kitchen hazard props (deep fryer, grease pan, range hood, panini press, kitchen bin) plus the leaking gas valve.',
+      'Demonstrating the Philippine BFP yellow colour-coding for kitchen fires alongside the red ABC and green CO2 units.'
     ],
     notes: [
       'Also suppresses regular fire/soul fire and defuses any hazard prop, but gives distinct "saponification complete" feedback on kitchen hazard props.',
@@ -491,15 +643,15 @@ const commands = [
     permissionLevel: 'admin',
     syntax: '/item hazard <name>',
     arguments: [
-      { name: 'name', type: 'string', range: 'see list below', required: 'Yes', description: 'Registry name of the hazard prop block to give. Tab-completes all 20 names.' }
+      { name: 'name', type: 'word', range: 'see list below', required: 'Yes', description: 'Registry name of the hazard prop block to give. Tab-completes all 30 names from ModItems.HAZARD_ITEM_MAP.' }
     ],
-    description: 'Gives a hazard prop block item by registry name. Use for building the new LSPU Emergency Response Training Facility scenario.',
+    description: 'Gives a hazard prop block item by registry name — the subset of /item get covering only the 30 hazard props. Use for building or decorating hazard scenarios.',
     whenToUse: [
-      'Building or decorating the training facility scenario with realistic hazard props.',
+      'Building or decorating a training facility scenario with realistic hazard props.',
       'Testing a specific hazard block\'s particle effects and light level.',
       'Placing blocks in normal (hazardous=false) or hazardous (hazardous=true via /setblock) states.'
     ],
-    detailsLabel: 'Available hazard block names (tab-completes in-game):',
+    detailsLabel: 'All 30 hazard block names (tab-completes in-game):',
     details: [
       'plastic_trash_bin — classroom bin with vape; smoke when hazardous',
       'daisy_chain_extension — overloaded extension cord; electric sparks',
@@ -520,17 +672,62 @@ const commands = [
       'grease_clogged_hood — kitchen range hood; large smoke (ceiling-mounted)',
       'contaminated_kitchen_bin — oil-rag bin; steam/smoke wisps',
       'jammed_panini_press — panini press with burning food; smoke',
-      'commercial_deep_fryer — overheated fryer; flame + smoke + lava; light 12'
+      'commercial_deep_fryer — overheated fryer; flame + smoke + lava; light 12',
+      'overloaded_microwave — faculty-pantry microwave on a runaway cycle; sparks + smoke → Class C fire',
+      'bunsen_burner_station — science-lab bunsen burner left running; open flame + soul flame',
+      'reagent_storage_shelf — tipped, leaking reagent bottle; fumes + water drip; widest failure radius (2 blocks)',
+      'overloaded_breaker_panel — utility-corridor panel over rated load; dense electric sparks → Class C fire',
+      'overheating_wall_aircon — wall aircon leaking condensation into wiring; water drip + sparks',
+      'jammed_laser_printer — faculty printer jammed against the fuser; smoke',
+      'unattended_shrine_candle — lobby shrine candle beside altar cloth; flame + smoke, light 10 — fastest-failing hazard (250 ticks)',
+      'leaking_gas_valve — cafeteria LPG line, Class F/K kitchen hazard; gas haze → flash fire',
+      'alcohol_dispenser_station — hallway sanitizer stand leaking near an outlet; vapor wisps → blue flash fire',
+      'clogged_exhaust_fan — dust-caked kitchen/workshop exhaust fan; smoke + ash from a stalled motor'
     ],
     notes: [
       'Set hazardous state with /setblock: e.g. /setblock ~ ~ ~ berongsmp:plastic_trash_bin[hazardous=true]',
+      'The five kitchen hazards (unattended_grease_pan, grease_clogged_hood, contaminated_kitchen_bin, jammed_panini_press, commercial_deep_fryer) plus leaking_gas_valve can only be defused with the wet chemical extinguisher — ABC and CO2 refuse them and print a "wrong extinguisher" warning.',
       'All blocks are registered in the "BerongSMP — Hazard Props" creative tab.'
+    ]
+  },
+  {
+    name: '/item get',
+    category: 'utility',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/item get <name>',
+    arguments: [
+      { name: 'name', type: 'word', range: 'see ModItems.ALL_ITEM_MAP', required: 'Yes', description: 'Registry name of any custom BerongSMP item. Tab-completes all 83 names — the full catalog, a superset of /item hazard.' }
+    ],
+    description: 'Gives any custom BerongSMP item by registry name — extinguishers, hazard wand, computer, fire alarm, NPC spawners, furniture, safety items, and all 30 hazard props in one lookup.',
+    whenToUse: [
+      'Grabbing a single specific item without hunting for its dedicated /get_* command.',
+      'Use "/item get hazard_wand" to grab the dev state-testing tool (right-click toggles a hazard prop between normal/hazardous, shift+right-click forces failure).'
+    ],
+    notes: [
+      'Differs from /item hazard only in which lookup map it draws from — get covers all 83 items, hazard covers just the 30 hazard-prop blocks (a subset).',
+      'example_block and example_item (template leftovers) are registered but deliberately excluded from ALL_ITEM_MAP — not obtainable via /item get or /item kit.'
+    ]
+  },
+  {
+    name: '/item kit',
+    category: 'utility',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/item kit',
+    description: 'Gives one of every custom BerongSMP item at once (all 83 entries in ALL_ITEM_MAP), for quick full-scene dev testing.',
+    whenToUse: [
+      'Setting up a dev inventory to test every extinguisher, furniture block, hazard prop, safety-equipment block, and safety item in one shot.'
+    ],
+    notes: [
+      'Chat: "Gave one of every BerongSMP item (83)."',
+      'Make sure you have enough free inventory slots before running this.'
     ]
   },
   {
     name: '/spawn_lspu',
     category: 'utility',
-    permission: 'Op Level 2+ only',
+    permission: 'Op Level 2+',
     permissionLevel: 'admin',
     syntax: '/spawn_lspu',
     description: 'Spawns the LSPU Library NBT structure at your current position for inspection.',
@@ -542,30 +739,58 @@ const commands = [
       'Permanent world modification — not restored by /sim_stop.',
       'Use /sim_fire library for a full session that restores the arena on end.'
     ]
+  },
+  {
+    name: '/place_buildings',
+    category: 'utility',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/place_buildings',
+    description: 'Places every building in SimulationManager.BUILDINGS at their fixed world-space origins (LSPU Library, SSC Building, CCS Admin Building).',
+    whenToUse: [
+      'Manually re-placing/restoring all simulation structures at their canonical positions without running a full drill.',
+      'Recovering the world after manual edits corrupted a structure.'
+    ]
+  },
+  {
+    name: '/spawn_npc',
+    category: 'utility',
+    permission: 'Op Level 2+',
+    permissionLevel: 'admin',
+    syntax: '/spawn_npc <type>',
+    arguments: [
+      { name: 'type', type: 'word', range: 'every NpcType.values() id', required: 'Yes', description: 'Which NPC role to spawn (e.g. sgt_reyes, sgt_santos, officer_cruz, capt_morfe, security_tuazon, dm_orlanda, necookie, sir_bookmark, student). Tab-completes.' }
+    ],
+    description: 'Spawns a CustomNpcEntity of the given type at your position, facing you.',
+    whenToUse: [
+      'Rebuilding a broken/missing NPC spot without re-running a full structure placement.',
+      'Testing a specific NPC\'s dialogue role in isolation.'
+    ],
+    notes: ['Player-only.']
   }
 ];
 
 // Config data
 const configs = [
   { key: 'simDurationTicks', default: '2400', affects: 'How long any simulation runs (2 min)' },
-  { key: 'quakeMagnitude', default: '5.0', affects: 'Default magnitude for /sim_earthquake with no arg' },
-  { key: 'quakeRumbleDuration', default: '100 ticks', affects: 'Length of RUMBLE phase (5 s)' },
-  { key: 'quakePeakDuration', default: '200 ticks', affects: 'Length of PEAK phase (10 s)' },
-  { key: 'quakeAftershockDuration', default: '100 ticks', affects: 'Length of AFTERSHOCK phase (5 s)' },
+  { key: 'fireSpawnCount', default: '3', affects: 'Fire blocks placed per fireSpawnInterval' },
+  { key: 'fireSpawnInterval', default: '20 ticks', affects: 'How often fire is placed (1 s)' },
   { key: 'quakeBreakCount', default: '2', affects: 'Blocks destroyed per quake interval' },
   { key: 'quakeInterval', default: '10 ticks', affects: 'How often earthquake effect fires' },
-  { key: 'fireSpawnCount', default: '3', affects: 'Fire blocks placed per spawn interval' },
-  { key: 'fireSpawnInterval', default: '20 ticks', affects: 'How often fire is placed (1 s)' },
+  { key: 'simAreaSize', default: '25', affects: 'XZ arena radius for random fire/quake effects' },
+  { key: 'simAreaHeight', default: '10', affects: 'Y arena height for random effects' },
+  { key: 'quakeMagnitude', default: '5.0', affects: 'Default magnitude for /sim_earthquake library with no arg (ccs always rolls random 6.0–9.5)' },
+  { key: 'quakeDecayRate', default: '0.05', affects: 'Intensity falloff per block of distance from epicenter' },
+  { key: 'quakeRumbleDuration', default: '200 ticks', affects: 'Length of RUMBLE phase (10 s)' },
+  { key: 'quakePeakDuration', default: '900 ticks', affects: 'Length of PEAK phase (45 s)' },
+  { key: 'quakeAftershockDuration', default: '300 ticks', affects: 'Length of each AFTERSHOCK wave (15 s); 2–4 waves follow' },
+  { key: 'bfpAdminPin', default: '""', affects: 'PIN for /bfp login — empty string disables PIN auth (OP-only); set a PIN before going live' },
   { key: 'tursoUrl', default: '""', affects: 'Turso HTTPS database URL for session tracking' },
   { key: 'tursoToken', default: '""', affects: 'Turso Bearer auth token' },
   { key: 'passThresholdFire', default: '5', affects: 'Fires extinguished required to mark a session as passed' },
-  { key: 'bfpAdminPin', default: '""', affects: 'PIN for /bfp login — empty string disables PIN auth (OP-only); set a PIN before going live' },
-  { key: 'quakeDecayRate', default: '0.05', affects: 'Intensity falloff per block of distance from epicenter' },
-  { key: 'quakeRumbleDuration', default: '200', affects: 'Ticks in RUMBLE phase (10 s)' },
-  { key: 'quakePeakDuration', default: '900', affects: 'Ticks in PEAK phase (45 s)' },
-  { key: 'quakeAftershockDuration', default: '300', affects: 'Ticks per aftershock wave (15 s)' },
-  { key: 'simAreaSize', default: '25', affects: 'XZ arena radius for random fire/quake effects' },
-  { key: 'simAreaHeight', default: '10', affects: 'Y arena height for random effects' }
+  { key: 'academyGoStopGraceTicks', default: '30 ticks', affects: 'Reaction window after Officer Cruz calls STOP (1.5 s) — movement during it is never punished' },
+  { key: 'academyPassThreshold', default: '70', affects: 'Minimum score (0–100) Capt. Morfe requires to certify a player after the Academy' },
+  { key: 'academyIgniteDemoTicks', default: '200 ticks', affects: 'No longer enforced as a timeout (as of 2026-07-06) — Sgt. Reyes\'s ignite demo fire only goes out after 5s of accumulated rolling. Kept in config to avoid breaking existing config files.' }
 ];
 ---
 
@@ -594,9 +819,11 @@ const configs = [
       <span class="filter-label">Categories</span>
       <div class="filter-pills" id="category-filters">
         <button class="filter-pill active" data-category="all">ALL</button>
+        <button class="filter-pill" data-category="registration">REGISTRATION</button>
         <button class="filter-pill" data-category="simulation">SIMULATION</button>
         <button class="filter-pill" data-category="earthquake">EARTHQUAKE</button>
         <button class="filter-pill" data-category="bfp-admin">BFP ADMIN</button>
+        <button class="filter-pill" data-category="academy">ACADEMY</button>
         <button class="filter-pill" data-category="utility">UTILITY</button>
       </div>
     </div>
@@ -753,12 +980,12 @@ const configs = [
           <span class="material-symbols-outlined flex-shrink-0" style="color: var(--text-brand)">inventory_2</span>
           <div>
             <h2 class="config-title">Vanilla Items & Blocks</h2>
-            <p class="config-meta">Obtain items via <code>/give</code></p>
+            <p class="config-meta">Obtain items via <code>/give</code> or <code>/item get</code></p>
           </div>
         </div>
         <div class="config-body">
           <p class="config-desc mb-4">
-            All BerongSMP items and blocks are obtainable via the vanilla <code>/give</code> command using namespaced IDs.
+            All BerongSMP items and blocks are obtainable via the vanilla <code>/give</code> command using namespaced IDs, or via <code>/item get &lt;name&gt;</code> / <code>/item kit</code> (see Utility commands, left).
           </p>
 
           <span class="sub-label mb-2">Simulation Items</span>
@@ -787,6 +1014,11 @@ const configs = [
                 <td class="cfg-affects">Yellow Class F/K extinguisher for kitchen grease fires. Also: <code>/get_wet_chemical_extinguisher</code></td>
               </tr>
               <tr>
+                <td><strong>Hazard Wand</strong></td>
+                <td><code class="cfg-key">berongsmp:hazard_wand</code></td>
+                <td class="cfg-affects">Dev tool. Right-click a hazard prop to toggle normal/hazardous; shift+right-click to force failure immediately.</td>
+              </tr>
+              <tr>
                 <td><strong>Computer</strong></td>
                 <td><code class="cfg-key">berongsmp:computer</code></td>
                 <td class="cfg-affects">Placeable; right-click ON/OFF; flint &amp; steel to ignite (BURNING state).</td>
@@ -799,8 +1031,89 @@ const configs = [
             </tbody>
           </table>
 
+          <span class="sub-label mb-2">Safety Response Items</span>
+          <table class="config-table mb-4">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Namespaced ID</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Fire Blanket</strong></td>
+                <td><code class="cfg-key">berongsmp:fire_blanket</code></td>
+                <td class="cfg-affects">One-shot: use while on fire clears fire ticks instantly; use on a hazardous kitchen prop smothers it. 3 uses.</td>
+              </tr>
+              <tr>
+                <td><strong>First Aid Kit</strong></td>
+                <td><code class="cfg-key">berongsmp:first_aid_kit</code></td>
+                <td class="cfg-affects">Heals 3 hearts, clears negative effects, brief Slowness ("treatment time"). 5 uses.</td>
+              </tr>
+              <tr>
+                <td><strong>Megaphone</strong></td>
+                <td><code class="cfg-key">berongsmp:megaphone</code></td>
+                <td class="cfg-affects">Instructor tool (OP 2+): broadcasts evacuation chat + klaxon to all players within 30 blocks, 5s cooldown.</td>
+              </tr>
+              <tr>
+                <td><strong>Safety Whistle</strong></td>
+                <td><code class="cfg-key">berongsmp:safety_whistle</code></td>
+                <td class="cfg-affects">Loud positional ping + particle burst overhead, for group drills ("on me!"); 2s cooldown.</td>
+              </tr>
+              <tr>
+                <td><strong>Flashlight</strong></td>
+                <td><code class="cfg-key">berongsmp:flashlight</code></td>
+                <td class="cfg-affects">60s of Night Vision — staying oriented in smoke/blackout scenes.</td>
+              </tr>
+              <tr>
+                <td><strong>Firefighter Uniform</strong></td>
+                <td><code class="cfg-key">berongsmp:firefighter_helmet</code> / <code>_coat</code> / <code>_pants</code> / <code>_boots</code></td>
+                <td class="cfg-affects">Custom armor set (own ArmorMaterial), full 4-piece suit.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <span class="sub-label mb-2">Safety-Equipment Blocks</span>
+          <table class="config-table mb-4">
+            <thead>
+              <tr>
+                <th>Block</th>
+                <th>Namespaced ID</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Exit Sign</strong></td>
+                <td><code class="cfg-key">berongsmp:exit_sign</code></td>
+                <td class="cfg-affects">Always-lit green EXIT sign (light level 7); wayfinding decor readable in a blackout scene.</td>
+              </tr>
+              <tr>
+                <td><strong>Smoke Detector</strong></td>
+                <td><code class="cfg-key">berongsmp:smoke_detector</code></td>
+                <td class="cfg-affects">Ceiling detector; SafetyDeviceManager alarms it (red LED + beep) when fire is within 8 blocks during FIRE sessions.</td>
+              </tr>
+              <tr>
+                <td><strong>Sprinkler Head</strong></td>
+                <td><code class="cfg-key">berongsmp:sprinkler_head</code></td>
+                <td class="cfg-affects">Ceiling sprinkler; rains a water curtain and extinguishes at most one fire block per 40-tick cycle during FIRE sessions.</td>
+              </tr>
+              <tr>
+                <td><strong>Emergency Light</strong></td>
+                <td><code class="cfg-key">berongsmp:emergency_light</code></td>
+                <td class="cfg-affects">Wall light, dark by default; lit (level 10) for the duration of any active session in its arena.</td>
+              </tr>
+              <tr>
+                <td><strong>Evacuation Map</strong></td>
+                <td><code class="cfg-key">berongsmp:evacuation_map</code></td>
+                <td class="cfg-affects">Wall-mounted map; right-click points to nearest exit in chat + sets a 30s Academy compass needle target.</td>
+              </tr>
+            </tbody>
+          </table>
+
           <span class="sub-label mb-2">Furniture Blocks</span>
-          <table class="config-table">
+          <table class="config-table mb-4">
             <thead>
               <tr>
                 <th>Item / Block</th>
@@ -812,7 +1125,12 @@ const configs = [
               <tr>
                 <td><strong>Classroom Whiteboard</strong></td>
                 <td><code class="cfg-key">berongsmp:whiteboard</code></td>
-                <td class="cfg-affects">Large wall-mounted whiteboard; FACING-aware thin panel.</td>
+                <td class="cfg-affects">Large wall-mounted whiteboard; FACING-aware, stacks vertically to grow a tall board.</td>
+              </tr>
+              <tr>
+                <td><strong>Fire Hose Cabinet</strong></td>
+                <td><code class="cfg-key">berongsmp:fire_hose_cabinet</code></td>
+                <td class="cfg-affects">FACING-aware wall-mounted hose cabinet decor.</td>
               </tr>
               <tr>
                 <td><strong>Toilet</strong></td>
@@ -827,42 +1145,115 @@ const configs = [
               <tr>
                 <td><strong>Office Drawers</strong></td>
                 <td><code class="cfg-key">berongsmp:drawers</code></td>
-                <td class="cfg-affects">FACING-aware wooden drawer cabinet; flammable.</td>
+                <td class="cfg-affects">FACING-aware modern dresser; flammable.</td>
               </tr>
               <tr>
                 <td><strong>Computer Table</strong></td>
                 <td><code class="cfg-key">berongsmp:computer_table</code></td>
-                <td class="cfg-affects">Long desk-style table; full-block footprint; flammable oak construction.</td>
+                <td class="cfg-affects">FACING-aware modern office desk; flammable.</td>
+              </tr>
+              <tr>
+                <td><strong>Table</strong></td>
+                <td><code class="cfg-key">berongsmp:table</code></td>
+                <td class="cfg-affects">Symmetric extendable study/library table; auto-merges legs/aprons when placed side by side.</td>
               </tr>
               <tr>
                 <td><strong>Classroom Chair</strong></td>
                 <td><code class="cfg-key">berongsmp:chair</code></td>
-                <td class="cfg-affects">FACING-aware seat with backrest; flammable wood.</td>
+                <td class="cfg-affects">FACING-aware task chair with backrest; flammable.</td>
               </tr>
               <tr>
                 <td><strong>Filing Cabinet</strong></td>
                 <td><code class="cfg-key">berongsmp:filing_cabinet</code></td>
-                <td class="cfg-affects">Metal filing cabinet; FACING-aware; fire-resistant.</td>
+                <td class="cfg-affects">FACING-aware graphite-metal cabinet; fire-resistant.</td>
               </tr>
               <tr>
                 <td><strong>Locker</strong></td>
                 <td><code class="cfg-key">berongsmp:locker</code></td>
-                <td class="cfg-affects">Metal school/office locker with gold lock detail; FACING-aware.</td>
+                <td class="cfg-affects">FACING-aware painted-steel locker with LED keypad lock.</td>
               </tr>
               <tr>
                 <td><strong>Trash Can</strong></td>
                 <td><code class="cfg-key">berongsmp:trash_can</code></td>
-                <td class="cfg-affects">Symmetric cylindrical bin; no FACING needed.</td>
+                <td class="cfg-affects">Symmetric pedal-bin style trash can; no FACING needed.</td>
               </tr>
               <tr>
                 <td><strong>Bulletin Board</strong></td>
                 <td><code class="cfg-key">berongsmp:bulletin_board</code></td>
-                <td class="cfg-affects">Wall-mounted cork board; FACING-aware full-height panel; flammable.</td>
+                <td class="cfg-affects">FACING-aware felt pinboard with sticky notes; flammable.</td>
               </tr>
               <tr>
                 <td><strong>Ceiling Fan</strong></td>
                 <td><code class="cfg-key">berongsmp:ceiling_fan</code></td>
-                <td class="cfg-affects">Ceiling-mounted fixture; emits light level 5; symmetric.</td>
+                <td class="cfg-affects">Symmetric ceiling fixture; emits light level 5.</td>
+              </tr>
+              <tr>
+                <td><strong>Light Bulb</strong></td>
+                <td><code class="cfg-key">berongsmp:light_bulb</code></td>
+                <td class="cfg-affects">Full-cube glowing ceiling tile; light level 15 (vanilla's hard cap). Tile several to flood a room.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <span class="sub-label mb-2">School Decor / Furniture Blocks</span>
+          <table class="config-table">
+            <thead>
+              <tr>
+                <th>Item / Block</th>
+                <th>Namespaced ID</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Teacher's Desk</strong></td>
+                <td><code class="cfg-key">berongsmp:teachers_desk</code></td>
+                <td class="cfg-affects">FACING-aware desk with a drawer pedestal; flammable. Classroom front-of-room anchor.</td>
+              </tr>
+              <tr>
+                <td><strong>Armchair Desk</strong></td>
+                <td><code class="cfg-key">berongsmp:armchair_desk</code></td>
+                <td class="cfg-affects">FACING-aware Philippine classroom armchair-desk; flammable.</td>
+              </tr>
+              <tr>
+                <td><strong>Tall Bookshelf</strong></td>
+                <td><code class="cfg-key">berongsmp:tall_bookshelf</code></td>
+                <td class="cfg-affects">FACING-aware full-height library bookshelf; flammable — a library fire's favourite fuel.</td>
+              </tr>
+              <tr>
+                <td><strong>Philippine Flag Stand</strong></td>
+                <td><code class="cfg-key">berongsmp:philippine_flag_stand</code></td>
+                <td class="cfg-affects">Indoor flag on a brass pole stand; lobby/stage decor, non-flammable.</td>
+              </tr>
+              <tr>
+                <td><strong>Trophy Cabinet</strong></td>
+                <td><code class="cfg-key">berongsmp:trophy_cabinet</code></td>
+                <td class="cfg-affects">Glass-front display cabinet; glows softly (light 3).</td>
+              </tr>
+              <tr>
+                <td><strong>Water Dispenser</strong></td>
+                <td><code class="cfg-key">berongsmp:water_dispenser</code></td>
+                <td class="cfg-affects">Bottled-water dispenser; right-click plays a drink sound.</td>
+              </tr>
+              <tr>
+                <td><strong>Wall Clock</strong></td>
+                <td><code class="cfg-key">berongsmp:wall_clock</code></td>
+                <td class="cfg-affects">Wall clock permanently reading ten past ten; classroom/corridor decor.</td>
+              </tr>
+              <tr>
+                <td><strong>Blackboard</strong></td>
+                <td><code class="cfg-key">berongsmp:blackboard</code></td>
+                <td class="cfg-affects">FACING-aware green chalkboard with tray; whiteboard's traditional sibling, wood frame, flammable.</td>
+              </tr>
+              <tr>
+                <td><strong>Podium Lectern</strong></td>
+                <td><code class="cfg-key">berongsmp:podium_lectern</code></td>
+                <td class="cfg-affects">FACING-aware wooden speaker's podium with the school seal; flammable. Stage/classroom front.</td>
+              </tr>
+              <tr>
+                <td><strong>Classroom Globe</strong></td>
+                <td><code class="cfg-key">berongsmp:classroom_globe</code></td>
+                <td class="cfg-affects">Desk globe on a dark stand; geography-corner decor.</td>
               </tr>
             </tbody>
           </table>
@@ -878,21 +1269,12 @@ const configs = [
               <code class="example-cmd">/give @s berongsmp:wet_chemical_extinguisher</code>
             </div>
             <div class="example-item">
-              <code class="example-cmd">/give @s berongsmp:computer</code>
+              <code class="example-cmd">/item get hazard_wand</code>
             </div>
             <div class="example-item">
-              <code class="example-cmd">/give @s berongsmp:whiteboard</code>
-            </div>
-            <div class="example-item">
-              <code class="example-cmd">/give @s berongsmp:computer_table</code>
-            </div>
-            <div class="example-item">
-              <code class="example-cmd">/give @s berongsmp:chair</code>
+              <code class="example-cmd">/item kit</code>
             </div>
           </div>
-          <p class="font-mono text-[9px] mt-3" style="color: var(--text-muted)">
-            Note: <code>berongsmp:example_block</code> and <code>berongsmp:example_item</code> are leftover template placeholders — ignore them.
-          </p>
         </div>
       </div>
 
@@ -907,7 +1289,7 @@ const configs = [
         </div>
         <div class="config-body">
           <p class="config-desc mb-4">
-            These parameters tune simulation logic, timing intervals, and database synchronization. Changes applied to the common.toml configuration are hot-reloaded automatically by the mod on the next tick.
+            These parameters tune simulation logic, timing intervals, Academy pacing, and database synchronization. All values are read at call time — changes applied to the common.toml configuration take effect on the next tick without a server restart.
           </p>
           <table class="config-table">
             <thead>
@@ -1420,7 +1802,7 @@ const configs = [
       commandCards.forEach((card) => {
         const category = card.dataset.category || '';
         const keywords = (card.dataset.keywords || '').toLowerCase();
-        
+
         const matchesCategory = activeCategory === 'all' || category === activeCategory;
         const matchesSearch = keywords.includes(searchQuery.toLowerCase());
 
@@ -1473,11 +1855,11 @@ const configs = [
 
         try {
           await navigator.clipboard.writeText(syntax);
-          
+
           // Visual Feedback
           const label = btn.querySelector('.label');
           const icon = btn.querySelector('.icon');
-          
+
           if (label && icon) {
             const originalText = label.textContent;
             const originalIcon = icon.textContent;
@@ -1511,15 +1893,15 @@ const configs = [
 
         if (content && icon && textSpan) {
           const isCollapsed = content.classList.contains('hidden-height');
-          
+
           if (isCollapsed) {
             // Expand
             content.classList.remove('hidden-height');
             icon.classList.add('active');
             textSpan.textContent = 'Hide Details';
-            
+
             // Allow height calculation transitions
-            content.style.maxHeight = '1000px'; 
+            content.style.maxHeight = '1000px';
             content.style.opacity = '1';
             content.style.pointerEvents = 'auto';
           } else {
@@ -1527,7 +1909,7 @@ const configs = [
             content.classList.add('hidden-height');
             icon.classList.remove('active');
             textSpan.textContent = 'View Details';
-            
+
             content.style.maxHeight = '0px';
             content.style.opacity = '0';
             content.style.pointerEvents = 'none';

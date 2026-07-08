@@ -162,10 +162,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             <div class="step-title">Student completes tutorial + simulation</div>
             <p class="step-note">Follow the Student Flow above (steps 1–4). The admin can also manually trigger simulations if needed:</p>
             <ul class="guide-list" style="margin-top:6px;">
-              <li><code>/sim_fire</code> — start fire sim for yourself</li>
-              <li><code>/sim_earthquake [magnitude]</code> — start earthquake sim (optional magnitude 0.1–10.0)</li>
+              <li><code>/sim_fire &lt;library|ccs&gt;</code> — start fire sim for yourself (open to any player, no OP needed)</li>
+              <li><code>/sim_earthquake &lt;library|ccs&gt; [magnitude]</code> — start earthquake sim (optional magnitude 0.1–10.0)</li>
               <li><code>/sim_stop</code> — end the current simulation early</li>
             </ul>
+            <p class="step-note" style="margin-top:6px;">Full command reference (all <code>/bfp</code>, <code>/sim_*</code>, <code>/item</code> commands with exact syntax and permissions): see the <a href="/commands">Commands</a> page.</p>
           </div>
         </div>
         <div class="guide-step">
