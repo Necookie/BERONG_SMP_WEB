@@ -104,11 +104,16 @@ export const CCS_FLOOR_Y_BOUNDARY = -26;
 // NEW_SIM_BUILDING2_POS = (-182, -34, 358). 34 named rooms across 2 floors,
 // surveyed via //copyroom in the mod repo — see docs/new_sim_building2_rooms.md
 // there for the source table these coords were transcribed from.
+//
+// Bounds widened 2026-07-14 to include the real (F3-verified) assembly zone,
+// which sits well outside the building to the west — X -164..-148, per the
+// mod repo's AssemblyZone.NEW_SIM2_ZONE. Previously this box only covered the
+// building footprint itself.
 export const NEW_SIM2_BOUNDS: BuildingBounds = {
-  xMin: -122, xMax: -77,
+  xMin: -170, xMax: -77,
   zMin: 430,  zMax: 546,
-  svgWidth: 390,
-  svgHeight: 930,
+  svgWidth: 650,
+  svgHeight: 800,
   padX: 24,
   padZ: 24,
 };
@@ -119,9 +124,10 @@ export const NEW_SIM2_BOUNDS: BuildingBounds = {
 export const NEW_SIM2_OUTER_GROUND = { xMin: -118, xMax: -81, zMin: 434, zMax: 542 };
 export const NEW_SIM2_OUTER_UPPER  = { xMin: -105, xMax: -81, zMin: 434, zMax: 542 };
 
-// Assembly zone = the 1st-floor "Lobby" room itself (see AssemblyZone.NEW_SIM2_ZONE
-// in the mod repo) — a ground-floor-only muster point, so only rendered on that panel.
-export const NEW_SIM2_ASSEMBLY_ZONE = { xMin: -118, xMax: -81, zMin: 482, zMax: 498 };
+// Assembly zone — F3/WorldEdit-verified via //copyroom (2026-07-14): real open
+// ground west of the building itself, not a room inside it (superseding the
+// earlier "Lobby room" approximation). Ground-floor-only, same as before.
+export const NEW_SIM2_ASSEMBLY_ZONE = { xMin: -164, xMax: -148, zMin: 466, zMax: 512 };
 
 // world Y boundary: y ≤ this → ground floor; y > this → upper floor.
 // 1st floor tops out at Y=-24 (ceiling); 2nd floor's floor starts at Y=-23.
