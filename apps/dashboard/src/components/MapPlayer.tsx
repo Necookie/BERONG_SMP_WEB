@@ -18,6 +18,8 @@ interface CsvRow {
   y: number;
   z: number;
   interaction_target: string;
+  hazardDistance: number;
+  hitFire: boolean;
 }
 
 interface Props {
@@ -25,8 +27,12 @@ interface Props {
   simulationType: string | null;
 }
 
+// telemetry_contract.md v1.2 §4: "in danger" = hazard_distance < this (blocks).
+const SAFE_HAZARD_DISTANCE = 5.0;
+
 // ── CSV parser ────────────────────────────────────────────────────────────
-// Header: player_id,session_id,scenario_type,timestamp,event_type,x,y,z,hazard_distance,interaction_target,nearby_player_count
+// Header (contract v1.2): player_id,session_id,scenario_type,timestamp,event_type,
+// x,y,z,hazard_distance,interaction_target,nearby_player_count,hit_fire,extinguisher_class,phase
 
 function parseCsv(csv: string): CsvRow[] {
   const lines = csv.trim().split('\n');
@@ -51,6 +57,8 @@ function parseCsv(csv: string): CsvRow[] {
       event_type: parts[4] ?? '',
       x, y, z,
       interaction_target: parts[9] ?? '',
+      hazardDistance: parseFloat(parts[8]),
+      hitFire: parts[11] === '1' || parts[11] === 'true',
     });
   }
   return rows;
@@ -62,6 +70,9 @@ const EVENT_META: Record<string, { color: string; label: string }> = {
   fire_alarm_activate:  { color: '#ef4444', label: 'Fire alarm' },
   door_open:            { color: '#6b8cff', label: 'Door opened' },
   extinguisher_use:     { color: '#f5c842', label: 'Extinguisher' },
+  pin_pull:             { color: '#fbbf24', label: 'Pin pulled' },
+  ext_spray:            { color: '#f97316', label: 'Extinguisher spray' },
+  hazard_neutralize:    { color: '#14b8a6', label: 'Hazard put out' },
   assembly_area_reached:{ color: '#22c55e', label: 'Assembly zone' },
   emergency_exit:       { color: '#42d9d4', label: 'Emergency exit' },
   duck_cover_hold:      { color: '#a855f7', label: 'Duck, cover & hold' },
@@ -73,16 +84,36 @@ const ACTION_TYPES = new Set(Object.keys(EVENT_META).filter(k => k !== 'session_
 
 // ── Event marker SVG element ──────────────────────────────────────────────
 
-function EventMarker({ x, y, type }: { x: number; y: number; type: string }) {
+function EventMarker({ x, y, type, hit }: { x: number; y: number; type: string; hit?: boolean }) {
   const meta = EVENT_META[type];
   if (!meta) return null;
   const c = meta.color;
   return (
     <g transform={`translate(${x.toFixed(1)},${y.toFixed(1)})`}>
-      <title>{meta.label}</title>
+      <title>{meta.label}{type === 'ext_spray' ? (hit ? ' (hit)' : ' (missed)') : ''}</title>
       {type === 'fire_alarm_activate'   && <circle r={5}   fill={c} fillOpacity={0.9} stroke="#000" strokeWidth={0.5} />}
       {type === 'door_open'             && <rect x={-4} y={-4} width={8} height={8} fill={c} fillOpacity={0.9} stroke="#000" strokeWidth={0.5} />}
       {type === 'extinguisher_use'      && <polygon points="0,-5 5,0 0,5 -5,0" fill={c} fillOpacity={0.9} stroke="#000" strokeWidth={0.5} />}
+      {/* Pin ring — the PASS-technique "pull the pin" step */}
+      {type === 'pin_pull'              && (
+        <>
+          <circle r={3.5} fill="none" stroke={c} strokeWidth={1.8} />
+          <circle r={1}   fill={c} />
+        </>
+      )}
+      {/* Spray diamond — filled when it actually hit an active hazard, hollow on a miss */}
+      {type === 'ext_spray'             && (
+        <polygon points="0,-5 5,0 0,5 -5,0"
+          fill={hit ? c : 'none'} fillOpacity={0.9}
+          stroke={c} strokeWidth={hit ? 0.5 : 1.5} />
+      )}
+      {/* Bullseye — a hazard was successfully neutralized here */}
+      {type === 'hazard_neutralize'     && (
+        <>
+          <circle r={5}   fill="none" stroke={c} strokeWidth={1.5} />
+          <circle r={2}   fill={c} />
+        </>
+      )}
       {type === 'assembly_area_reached' && <polygon points="0,-6 1.4,-2 6,-2 2.5,1 3.5,6 0,3.5 -3.5,6 -2.5,1 -6,-2 -1.4,-2" fill={c} fillOpacity={0.9} stroke="#000" strokeWidth={0.5} />}
       {type === 'emergency_exit'        && <polygon points="0,-5 -4,3 4,3" fill={c} fillOpacity={0.9} stroke="#000" strokeWidth={0.5} />}
       {type === 'duck_cover_hold'       && <polygon points="0,-6 4,-4 4,1 0,6 -4,1 -4,-4" fill={c} fillOpacity={0.9} stroke="#000" strokeWidth={0.5} />}
@@ -91,6 +122,30 @@ function EventMarker({ x, y, type }: { x: number; y: number; type: string }) {
       )}
     </g>
   );
+}
+
+// ── Hazard-proximity "danger trail" ────────────────────────────────────────
+// Small dots along the visible path wherever the player was within
+// SAFE_HAZARD_DISTANCE of an active hazard — the "how close did they get to
+// the fire" picture that a plain movement line can't show on its own.
+
+function DangerTrail({ rows, bounds }: { rows: CsvRow[]; bounds: BuildingBounds }) {
+  return (
+    <>
+      {rows.map((r, i) => {
+        const [x, y] = worldToSvg(r.x, r.z, bounds);
+        const intensity = Math.max(0, Math.min(1, 1 - r.hazardDistance / SAFE_HAZARD_DISTANCE));
+        return (
+          <circle key={i} cx={x} cy={y} r={2.2} fill="#ff3b3b"
+            fillOpacity={0.12 + intensity * 0.5} />
+        );
+      })}
+    </>
+  );
+}
+
+function isNearHazard(r: CsvRow): boolean {
+  return !isNaN(r.hazardDistance) && r.hazardDistance >= 0 && r.hazardDistance < SAFE_HAZARD_DISTANCE;
 }
 
 // ── Shared polyline builder ───────────────────────────────────────────────
@@ -132,6 +187,11 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
 
   const visibleEvents = useMemo(
     () => rows.filter(r => ACTION_TYPES.has(r.event_type) && r.timestamp <= currentTs),
+    [rows, currentTs],
+  );
+
+  const dangerRows = useMemo(
+    () => rows.filter(r => r.event_type === 'move_tick' && r.timestamp <= currentTs && isNearHazard(r)),
     [rows, currentTs],
   );
 
@@ -223,6 +283,9 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
         />
       )}
 
+      {/* Hazard-proximity danger trail — how close/how long near fire */}
+      <DangerTrail rows={dangerRows} bounds={bounds} />
+
       {/* Visible orange path */}
       {visibleMovePts && (
         <polyline
@@ -239,7 +302,7 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
       {/* Event markers */}
       {visibleEvents.map((evt, i) => {
         const [ex, ez] = worldToSvg(evt.x, evt.z, bounds);
-        return <EventMarker key={i} x={ex} y={ez} type={evt.event_type} />;
+        return <EventMarker key={i} x={ex} y={ez} type={evt.event_type} hit={evt.hitFire} />;
       })}
 
       {/* Session start/end markers */}
@@ -337,8 +400,9 @@ interface TwoFloorPanelProps {
   bounds: BuildingBounds;
   rooms: Room[];
   outer: TwoFloorRect;
-  /** Some buildings' assembly zone is a ground-floor-only room (e.g. New Sim
-   *  Building 2.0's Lobby) — pass null to skip drawing it on a given floor. */
+  /** Some buildings' assembly zone only makes sense on one floor (e.g. New Sim
+   *  Building 2.0's is ground-level, outside the building) — pass null to skip
+   *  drawing it on a given floor. */
   assemblyZone: TwoFloorRect | null;
   floorYBoundary: number;
 }
@@ -370,6 +434,16 @@ function TwoFloorPanel({ rows, frame, floor, label, bounds, rooms, outer, assemb
       ACTION_TYPES.has(r.event_type) &&
       r.timestamp <= currentTs &&
       isOnThisFloor(r),
+    ),
+    [rows, currentTs, floor],
+  );
+
+  const dangerRows = useMemo(
+    () => rows.filter(r =>
+      r.event_type === 'move_tick' &&
+      r.timestamp <= currentTs &&
+      isOnThisFloor(r) &&
+      isNearHazard(r),
     ),
     [rows, currentTs, floor],
   );
@@ -489,6 +563,9 @@ function TwoFloorPanel({ rows, frame, floor, label, bounds, rooms, outer, assemb
           />
         )}
 
+        {/* Hazard-proximity danger trail — how close/how long near fire */}
+        <DangerTrail rows={dangerRows} bounds={bounds} />
+
         {/* Visible orange path */}
         {visibleMovePts && (
           <polyline
@@ -505,7 +582,7 @@ function TwoFloorPanel({ rows, frame, floor, label, bounds, rooms, outer, assemb
         {/* Event markers */}
         {visibleEvents.map((evt, i) => {
           const [ex, ez] = worldToSvg(evt.x, evt.z, bounds);
-          return <EventMarker key={i} x={ex} y={ez} type={evt.event_type} />;
+          return <EventMarker key={i} x={ex} y={ez} type={evt.event_type} hit={evt.hitFire} />;
         })}
 
         {/* Player dot */}
@@ -865,6 +942,24 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
             flexShrink: 0,
           }} />
           Full route
+        </span>
+        <span style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: '9px',
+          color: 'var(--text-muted)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+        }}>
+          <span style={{
+            width: '7px',
+            height: '7px',
+            background: '#ff3b3b',
+            borderRadius: '50%',
+            flexShrink: 0,
+            opacity: 0.6,
+          }} />
+          Near fire (&lt;{SAFE_HAZARD_DISTANCE}m)
         </span>
       </div>
     </div>
