@@ -130,8 +130,13 @@ export const NEW_SIM2_OUTER_UPPER  = { xMin: -105, xMax: -81, zMin: 434, zMax: 5
 export const NEW_SIM2_ASSEMBLY_ZONE = { xMin: -164, xMax: -148, zMin: 466, zMax: 512 };
 
 // world Y boundary: y ≤ this → ground floor; y > this → upper floor.
-// 1st floor tops out at Y=-24 (ceiling); 2nd floor's floor starts at Y=-23.
-export const NEW_SIM2_FLOOR_Y_BOUNDARY = -24;
+// 1st floor tops out at Y=-25 (ceiling); 2nd floor's floor starts at Y=-24.
+// 2026-07-14: shifted from -24 to -25 to match the mod repo's SimRoom.NEW_SIM2_GROUND_ROOMS/
+// NEW_SIM2_UPPER_ROOMS recalibration (in-game F3 re-observation found the mapped rooms reading
+// too high on the 1st floor and too low on the 2nd floor). This one constant drives BOTH the
+// movement-path floor split and the fire-animation floor split in MapPlayer.tsx (isOnThisFloor/
+// fireIsOnThisFloor), so fixing it here corrects both at once.
+export const NEW_SIM2_FLOOR_Y_BOUNDARY = -25;
 
 // Named rooms — absolute world coords, transcribed from the mod repo's
 // //copyroom survey (docs/new_sim_building2_rooms.md).
