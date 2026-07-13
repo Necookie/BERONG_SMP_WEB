@@ -16,6 +16,7 @@ export interface LiveSession {
   passed: number;
   event_log: string | null;
   move_log_csv: string | null;
+  fire_log_csv: string | null;
   prep_level: 'HIGH' | 'MODERATE' | 'LOW' | null;
   confidence: number | null;
   bfp_notes: string | null;

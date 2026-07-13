@@ -74,6 +74,13 @@ const midrrRaw: Record<string, number> = session.midrr_features
           ↓ Move Log CSV
         </a>
       )}
+      {session.fire_log_csv && (
+        <a href={`/api/sessions/${session.id}/fire-log`}
+           class="btn-cancel"
+           style="margin-top:0; padding:5px 12px; font-weight:500; text-decoration:none; display:inline-block;">
+          ↓ Fire Log CSV
+        </a>
+      )}
       <button id="btn-edit-details" class="btn-cancel" style="margin-top: 0; padding: 5px 12px; font-weight: 500;">Edit Details</button>
       <button id="btn-delete-session" class="delete-btn" style="padding: 5px 12px; font-weight: 500;">Delete</button>
     </div>
@@ -91,7 +98,7 @@ const midrrRaw: Record<string, number> = session.midrr_features
         {session.move_log_csv && (
           <button id="tab-map" class="log-tab" data-tab="map">
             Movement Map
-            <span style="margin-left:6px; font-size:9px; color:var(--text-muted);">10 Hz</span>
+            <span style="margin-left:6px; font-size:9px; color:var(--text-muted);">20 Hz</span>
           </button>
         )}
       </div>
@@ -115,6 +122,7 @@ const midrrRaw: Record<string, number> = session.midrr_features
           <MapPlayer
             client:only="react"
             moveCsv={session.move_log_csv}
+            fireLogCsv={session.fire_log_csv}
             simulationType={session.simulation_type}
           />
         </div>
