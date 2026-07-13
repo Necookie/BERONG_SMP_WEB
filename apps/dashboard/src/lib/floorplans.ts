@@ -99,3 +99,71 @@ export const CCS_ROOMS: Room[] = [
 // world Y boundary: y ≤ this → ground floor; y > this → upper floor
 // CCS_POS.y = -34, ground floor height offset = 8, so boundary = -34 + 8 = -26
 export const CCS_FLOOR_Y_BOUNDARY = -26;
+
+// ── New Sim Building 2.0 (NEW_SIM_BUILDING2_FIRE) ─────────────────────────
+// NEW_SIM_BUILDING2_POS = (-182, -34, 358). 34 named rooms across 2 floors,
+// surveyed via //copyroom in the mod repo — see docs/new_sim_building2_rooms.md
+// there for the source table these coords were transcribed from.
+export const NEW_SIM2_BOUNDS: BuildingBounds = {
+  xMin: -122, xMax: -77,
+  zMin: 430,  zMax: 546,
+  svgWidth: 390,
+  svgHeight: 930,
+  padX: 24,
+  padZ: 24,
+};
+
+// The two floors don't share one footprint here (unlike CCS): the 1st floor's
+// Lobby/General CR extend to X=-118, with no matching 2nd-floor rooms that far
+// west, so each floor gets its own outline rect.
+export const NEW_SIM2_OUTER_GROUND = { xMin: -118, xMax: -81, zMin: 434, zMax: 542 };
+export const NEW_SIM2_OUTER_UPPER  = { xMin: -105, xMax: -81, zMin: 434, zMax: 542 };
+
+// Assembly zone = the 1st-floor "Lobby" room itself (see AssemblyZone.NEW_SIM2_ZONE
+// in the mod repo) — a ground-floor-only muster point, so only rendered on that panel.
+export const NEW_SIM2_ASSEMBLY_ZONE = { xMin: -118, xMax: -81, zMin: 482, zMax: 498 };
+
+// world Y boundary: y ≤ this → ground floor; y > this → upper floor.
+// 1st floor tops out at Y=-24 (ceiling); 2nd floor's floor starts at Y=-23.
+export const NEW_SIM2_FLOOR_Y_BOUNDARY = -24;
+
+// Named rooms — absolute world coords, transcribed from the mod repo's
+// //copyroom survey (docs/new_sim_building2_rooms.md).
+export const NEW_SIM2_ROOMS: Room[] = [
+  // 1st floor (ground)
+  { name: 'Cafeteria',          xMin: -105, xMax: -81,  zMin: 434, zMax: 444, floor: 'ground' },
+  { name: 'Room 101',           xMin:  -89, xMax: -81,  zMin: 446, zMax: 456, floor: 'ground' },
+  { name: 'Under Maintenance',  xMin: -105, xMax: -97,  zMin: 446, zMax: 456, floor: 'ground' },
+  { name: 'Room 102',           xMin:  -89, xMax: -81,  zMin: 458, zMax: 468, floor: 'ground' },
+  { name: 'Room 103',           xMin: -105, xMax: -97,  zMin: 458, zMax: 468, floor: 'ground' },
+  { name: 'Main Hallway',       xMin:  -95, xMax: -91,  zMin: 446, zMax: 530, floor: 'ground' },
+  { name: 'Lobby',              xMin: -118, xMax: -81,  zMin: 482, zMax: 498, floor: 'ground' },
+  { name: 'Room 104',           xMin:  -89, xMax: -81,  zMin: 496, zMax: 506, floor: 'ground' },
+  { name: 'Kitchen Lobby',      xMin: -105, xMax: -97,  zMin: 508, zMax: 524, floor: 'ground' },
+  { name: 'Room 105',           xMin:  -89, xMax: -81,  zMin: 508, zMax: 518, floor: 'ground' },
+  { name: 'Room 106',           xMin:  -89, xMax: -81,  zMin: 520, zMax: 530, floor: 'ground' },
+  { name: "Principal's Office", xMin: -105, xMax: -97,  zMin: 526, zMax: 530, floor: 'ground' },
+  { name: 'Badminton Court',    xMin: -105, xMax: -81,  zMin: 532, zMax: 542, floor: 'ground' },
+  { name: 'General CR',         xMin: -118, xMax: -106, zMin: 472, zMax: 476, floor: 'ground' },
+  // 2nd floor (upper)
+  { name: 'Room 201',           xMin:  -88, xMax: -81,  zMin: 446, zMax: 453, floor: 'upper' },
+  { name: 'Male CR',            xMin: -100, xMax: -93,  zMin: 446, zMax: 453, floor: 'upper' },
+  { name: 'Female CR',          xMin: -100, xMax: -93,  zMin: 455, zMax: 462, floor: 'upper' },
+  { name: 'Conference Room',    xMin:  -88, xMax: -81,  zMin: 455, zMax: 471, floor: 'upper' },
+  { name: 'Room 202',           xMin: -100, xMax: -93,  zMin: 464, zMax: 471, floor: 'upper' },
+  { name: 'Room 203',           xMin:  -88, xMax: -81,  zMin: 473, zMax: 480, floor: 'upper' },
+  { name: 'Lecture Hall',       xMin:  -88, xMax: -81,  zMin: 482, zMax: 498, floor: 'upper' },
+  { name: 'ComLab 201',         xMin: -100, xMax: -93,  zMin: 473, zMax: 489, floor: 'upper' },
+  { name: 'Room 204',           xMin: -100, xMax: -93,  zMin: 491, zMax: 498, floor: 'upper' },
+  { name: 'Room 205',           xMin: -100, xMax: -93,  zMin: 500, zMax: 507, floor: 'upper' },
+  { name: 'Room 206',           xMin:  -88, xMax: -81,  zMin: 500, zMax: 507, floor: 'upper' },
+  { name: 'Room 207',           xMin:  -88, xMax: -81,  zMin: 509, zMax: 516, floor: 'upper' },
+  { name: 'Clinic',             xMin:  -88, xMax: -81,  zMin: 518, zMax: 525, floor: 'upper' },
+  { name: 'Study Lobby',        xMin: -100, xMax: -93,  zMin: 509, zMax: 525, floor: 'upper' },
+  { name: 'Faculty Room',       xMin:  -88, xMax: -81,  zMin: 527, zMax: 534, floor: 'upper' },
+  { name: 'Research Lab',       xMin: -100, xMax: -93,  zMin: 527, zMax: 534, floor: 'upper' },
+  { name: 'Library',            xMin: -101, xMax: -81,  zMin: 536, zMax: 542, floor: 'upper' },
+  { name: 'Basketball Court',   xMin: -105, xMax: -81,  zMin: 434, zMax: 444, floor: 'upper' },
+  { name: 'Hallway 1',          xMin: -105, xMax: -102, zMin: 445, zMax: 542, floor: 'upper' },
+  { name: 'Hallway 2',          xMin:  -91, xMax: -90,  zMin: 445, zMax: 535, floor: 'upper' },
+];

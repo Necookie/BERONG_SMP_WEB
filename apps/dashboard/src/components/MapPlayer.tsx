@@ -2,8 +2,11 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   LIBRARY_BOUNDS, LIBRARY_ROOMS, LIBRARY_OUTER, ASSEMBLY_ZONE,
   CCS_BOUNDS, CCS_OUTER, CCS_ROOMS, CCS_ASSEMBLY_ZONE, CCS_FLOOR_Y_BOUNDARY,
+  NEW_SIM2_BOUNDS, NEW_SIM2_ROOMS, NEW_SIM2_OUTER_GROUND, NEW_SIM2_OUTER_UPPER,
+  NEW_SIM2_ASSEMBLY_ZONE, NEW_SIM2_FLOOR_Y_BOUNDARY,
   worldToSvg,
   type BuildingBounds,
+  type Room,
 } from '../lib/floorplans';
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -258,9 +261,9 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
   );
 }
 
-// ── CCS room label: auto-rotate + multi-line for small rooms ─────────────
+// ── Room label: auto-rotate + multi-line for small rooms (CCS + New Sim 2) ─
 
-function CcsRoomLabel({
+function RoomLabel({
   name, rx1, rz1, rx2, rz2,
 }: { name: string; rx1: number; rz1: number; rx2: number; rz2: number }) {
   const w  = rx2 - rx1;
@@ -319,20 +322,30 @@ function CcsRoomLabel({
   );
 }
 
-// ── CCS floor panel SVG ───────────────────────────────────────────────────
+// ── Two-floor building panel SVG (CCS Admin Building, New Sim Building 2.0) ─
+// Generalized from the original CCS-only panel once a second two-floor
+// building (New Sim Building 2.0) needed the exact same ground/upper split,
+// room-label auto-rotate, and assembly-zone overlay logic.
 
-interface CCSPanelProps {
+interface TwoFloorRect { xMin: number; xMax: number; zMin: number; zMax: number; }
+
+interface TwoFloorPanelProps {
   rows: CsvRow[];
   frame: number;
   floor: 'ground' | 'upper';
   label: string;
+  bounds: BuildingBounds;
+  rooms: Room[];
+  outer: TwoFloorRect;
+  /** Some buildings' assembly zone is a ground-floor-only room (e.g. New Sim
+   *  Building 2.0's Lobby) — pass null to skip drawing it on a given floor. */
+  assemblyZone: TwoFloorRect | null;
+  floorYBoundary: number;
 }
 
-function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
-  const bounds = CCS_BOUNDS;
-
+function TwoFloorPanel({ rows, frame, floor, label, bounds, rooms, outer, assemblyZone, floorYBoundary }: TwoFloorPanelProps) {
   const isOnThisFloor = (r: CsvRow) =>
-    floor === 'ground' ? r.y <= CCS_FLOOR_Y_BOUNDARY : r.y > CCS_FLOOR_Y_BOUNDARY;
+    floor === 'ground' ? r.y <= floorYBoundary : r.y > floorYBoundary;
 
   const currentTs = rows[frame]?.timestamp ?? 0;
 
@@ -365,11 +378,13 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
   const playerHere = cur ? isOnThisFloor(cur) : false;
   const [dotX, dotZ] = cur && playerHere ? worldToSvg(cur.x, cur.z, bounds) : [-99, -99];
 
-  const floorRooms = CCS_ROOMS.filter(r => r.floor === floor);
-  const [ox1, oz1] = worldToSvg(CCS_OUTER.xMin, CCS_OUTER.zMin, bounds);
-  const [ox2, oz2] = worldToSvg(CCS_OUTER.xMax, CCS_OUTER.zMax, bounds);
-  const [caz1x, caz1z] = worldToSvg(CCS_ASSEMBLY_ZONE.xMin, CCS_ASSEMBLY_ZONE.zMin, bounds);
-  const [caz2x, caz2z] = worldToSvg(CCS_ASSEMBLY_ZONE.xMax, CCS_ASSEMBLY_ZONE.zMax, bounds);
+  const floorRooms = rooms.filter(r => r.floor === floor);
+  const [ox1, oz1] = worldToSvg(outer.xMin, outer.zMin, bounds);
+  const [ox2, oz2] = worldToSvg(outer.xMax, outer.zMax, bounds);
+  const assemblyRect = assemblyZone && {
+    p1: worldToSvg(assemblyZone.xMin, assemblyZone.zMin, bounds),
+    p2: worldToSvg(assemblyZone.xMax, assemblyZone.zMax, bounds),
+  };
 
   // Which named room is the player currently standing in?
   const currentRoom = (cur && playerHere)
@@ -410,21 +425,29 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
         preserveAspectRatio="xMidYMid meet"
         style={{ background: 'var(--bg-log-panel)', display: 'block', width: '100%', maxHeight: '65vh' }}
       >
-        {/* Assembly zone (south of building) */}
-        <rect
-          x={caz1x} y={caz1z} width={caz2x - caz1x} height={caz2z - caz1z}
-          fill="rgba(34,197,94,0.08)"
-          stroke="#22c55e"
-          strokeWidth={1}
-          strokeDasharray="4 3"
-        />
-        <text
-          x={(caz1x + caz2x) / 2} y={caz1z + 10}
-          textAnchor="middle"
-          fontSize={7}
-          fill="#22c55e"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >ASSEMBLY ZONE</text>
+        {/* Assembly zone (only drawn on the floor it actually applies to) */}
+        {assemblyRect && (() => {
+          const [caz1x, caz1z] = assemblyRect.p1;
+          const [caz2x, caz2z] = assemblyRect.p2;
+          return (
+            <>
+              <rect
+                x={caz1x} y={caz1z} width={caz2x - caz1x} height={caz2z - caz1z}
+                fill="rgba(34,197,94,0.08)"
+                stroke="#22c55e"
+                strokeWidth={1}
+                strokeDasharray="4 3"
+              />
+              <text
+                x={(caz1x + caz2x) / 2} y={caz1z + 10}
+                textAnchor="middle"
+                fontSize={7}
+                fill="#22c55e"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >ASSEMBLY ZONE</text>
+            </>
+          );
+        })()}
 
         {/* Building outline */}
         <rect
@@ -448,7 +471,7 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
                 strokeOpacity={active ? 0.6 : 0.2}
                 strokeWidth={active ? 1.2 : 0.8}
               />
-              <CcsRoomLabel name={room.name} rx1={rx1} rz1={rz1} rx2={rx2} rz2={rz2} />
+              <RoomLabel name={room.name} rx1={rx1} rz1={rz1} rx2={rx2} rz2={rz2} />
             </g>
           );
         })}
@@ -499,7 +522,7 @@ function CCSPanel({ rows, frame, floor, label }: CCSPanelProps) {
           fillOpacity={0.5}
           fontFamily="JetBrains Mono, monospace"
         >
-          {floor === 'ground' ? 'Y ≤ −26 (ground)' : 'Y > −26 (upper)'}
+          {floor === 'ground' ? `Y ≤ ${floorYBoundary} (ground)` : `Y > ${floorYBoundary} (upper)`}
         </text>
 
         {/* Compass */}
@@ -534,9 +557,29 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
   const elapsed      = (rows[frame]?.timestamp ?? startTs) - startTs;
 
   const isCCS = simulationType === 'CCS_FIRE' || simulationType === 'CCS_EARTHQUAKE';
+  const isNewSim2 = simulationType === 'NEW_SIM_BUILDING2_FIRE';
+
+  // Shared config for whichever two-floor building applies (null for the single-floor Library).
+  const twoFloorConfig = isCCS
+    ? {
+        bounds: CCS_BOUNDS, rooms: CCS_ROOMS,
+        outerByFloor: { ground: CCS_OUTER, upper: CCS_OUTER },
+        assemblyZoneByFloor: { ground: CCS_ASSEMBLY_ZONE, upper: CCS_ASSEMBLY_ZONE },
+        floorYBoundary: CCS_FLOOR_Y_BOUNDARY,
+      }
+    : isNewSim2
+    ? {
+        bounds: NEW_SIM2_BOUNDS, rooms: NEW_SIM2_ROOMS,
+        outerByFloor: { ground: NEW_SIM2_OUTER_GROUND, upper: NEW_SIM2_OUTER_UPPER },
+        // New Sim Building 2.0's assembly zone (the Lobby) is a ground-floor-only room —
+        // don't draw it on the upper-floor panel.
+        assemblyZoneByFloor: { ground: NEW_SIM2_ASSEMBLY_ZONE, upper: null },
+        floorYBoundary: NEW_SIM2_FLOOR_Y_BOUNDARY,
+      }
+    : null;
 
   // Floor tab state for narrow viewports
-  const [ccsFloor, setCcsFloor] = useState<'ground' | 'upper'>('upper');
+  const [activeFloor, setActiveFloor] = useState<'ground' | 'upper'>('upper');
   const [viewportW, setViewportW] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth : 1200,
   );
@@ -611,7 +654,7 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
     <div>
       {/* ── Map canvas ── */}
       <div style={{ display: 'flex', width: '100%', minHeight: 0 }}>
-        {isCCS ? (
+        {twoFloorConfig ? (
           useTabLayout ? (
             /* Narrow: tab switcher, one panel at a time */
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
@@ -623,13 +666,13 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
                 {(['ground', 'upper'] as const).map(f => (
                   <button
                     key={f}
-                    onClick={() => setCcsFloor(f)}
+                    onClick={() => setActiveFloor(f)}
                     style={{
                       padding: '6px 18px',
                       background: 'transparent',
                       border: 'none',
-                      borderBottom: ccsFloor === f ? '2px solid #ff8c42' : '2px solid transparent',
-                      color: ccsFloor === f ? 'var(--text-primary)' : 'var(--text-muted)',
+                      borderBottom: activeFloor === f ? '2px solid #ff8c42' : '2px solid transparent',
+                      color: activeFloor === f ? 'var(--text-primary)' : 'var(--text-muted)',
                       fontFamily: "'JetBrains Mono', monospace",
                       fontSize: '9px',
                       textTransform: 'uppercase' as const,
@@ -641,15 +684,27 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
                   </button>
                 ))}
               </div>
-              <CCSPanel rows={rows} frame={frame} floor={ccsFloor}
-                label={ccsFloor === 'ground' ? 'Ground Floor' : 'Upper Floor'} />
+              <TwoFloorPanel rows={rows} frame={frame} floor={activeFloor}
+                label={activeFloor === 'ground' ? 'Ground Floor' : 'Upper Floor'}
+                bounds={twoFloorConfig.bounds} rooms={twoFloorConfig.rooms}
+                outer={twoFloorConfig.outerByFloor[activeFloor]}
+                assemblyZone={twoFloorConfig.assemblyZoneByFloor[activeFloor]}
+                floorYBoundary={twoFloorConfig.floorYBoundary} />
             </div>
           ) : (
             /* Wide: side by side */
             <>
-              <CCSPanel rows={rows} frame={frame} floor="ground" label="Ground Floor" />
+              <TwoFloorPanel rows={rows} frame={frame} floor="ground" label="Ground Floor"
+                bounds={twoFloorConfig.bounds} rooms={twoFloorConfig.rooms}
+                outer={twoFloorConfig.outerByFloor.ground}
+                assemblyZone={twoFloorConfig.assemblyZoneByFloor.ground}
+                floorYBoundary={twoFloorConfig.floorYBoundary} />
               <div style={{ width: '1px', background: 'var(--border-card)', flexShrink: 0 }} />
-              <CCSPanel rows={rows} frame={frame} floor="upper" label="Upper Floor" />
+              <TwoFloorPanel rows={rows} frame={frame} floor="upper" label="Upper Floor"
+                bounds={twoFloorConfig.bounds} rooms={twoFloorConfig.rooms}
+                outer={twoFloorConfig.outerByFloor.upper}
+                assemblyZone={twoFloorConfig.assemblyZoneByFloor.upper}
+                floorYBoundary={twoFloorConfig.floorYBoundary} />
             </>
           )
         ) : (
