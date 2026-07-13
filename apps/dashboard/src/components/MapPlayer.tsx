@@ -22,8 +22,20 @@ interface CsvRow {
   hitFire: boolean;
 }
 
+// One row per real fire block igniting or being put out — session.fire_log_csv,
+// a dedicated log kept separate from move_tick rows (see TelemetryCsvWriter.writeFireLogRow
+// in the mod repo). Header: session_id,timestamp,x,y,z,event
+interface FireRow {
+  timestamp: number;
+  x: number;
+  y: number;
+  z: number;
+  event: 'ignite' | 'extinguish';
+}
+
 interface Props {
   moveCsv: string | null;
+  fireLogCsv?: string | null;
   simulationType: string | null;
 }
 
@@ -62,6 +74,43 @@ function parseCsv(csv: string): CsvRow[] {
     });
   }
   return rows;
+}
+
+// ── Fire log parser ──────────────────────────────────────────────────────
+// Header: session_id,timestamp,x,y,z,event
+
+function parseFireLog(csv: string): FireRow[] {
+  const lines = csv.trim().split('\n');
+  if (lines.length < 2) return [];
+  const rows: FireRow[] = [];
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(',');
+    if (parts.length < 5) continue;
+    const ts = parseFloat(parts[1]);
+    const x = parseInt(parts[2], 10);
+    const y = parseInt(parts[3], 10);
+    const z = parseInt(parts[4], 10);
+    if (isNaN(ts) || isNaN(x) || isNaN(y) || isNaN(z)) continue;
+    const event = parts[5]?.trim();
+    if (event !== 'ignite' && event !== 'extinguish') continue;
+    rows.push({ timestamp: ts, x, y, z, event });
+  }
+  // Rows are written in tick order already, but sort defensively — the active-fire
+  // computation below assumes chronological order.
+  rows.sort((a, b) => a.timestamp - b.timestamp);
+  return rows;
+}
+
+/** Which (x,y,z) fire blocks are still burning as of `currentTs`, replaying every row in order. */
+function activeFiresAt(fireRows: FireRow[], currentTs: number): { x: number; y: number; z: number }[] {
+  const active = new Map<string, { x: number; y: number; z: number }>();
+  for (const r of fireRows) {
+    if (r.timestamp > currentTs) break;
+    const key = `${r.x},${r.y},${r.z}`;
+    if (r.event === 'ignite') active.set(key, { x: r.x, y: r.y, z: r.z });
+    else active.delete(key);
+  }
+  return [...active.values()];
 }
 
 // ── Event marker colours ──────────────────────────────────────────────────
@@ -148,6 +197,58 @@ function isNearHazard(r: CsvRow): boolean {
   return !isNaN(r.hazardDistance) && r.hazardDistance >= 0 && r.hazardDistance < SAFE_HAZARD_DISTANCE;
 }
 
+// ── Animated flame marker — "actual moving fire", not a static dot ────────
+// Deterministic per-position pseudo-random phase (a coordinate hash, not Math.random())
+// so a flame's flicker is stable across re-renders but two nearby flames don't flicker
+// in lockstep. Pure SVG SMIL animation (<animateTransform>/<animate>) — runs on the
+// browser's own timeline, no per-frame React re-render cost.
+
+function flickerSeed(x: number, z: number): number {
+  const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453;
+  return s - Math.floor(s); // fractional part, in [0, 1)
+}
+
+function FlameMarker({ x, y }: { x: number; y: number }) {
+  const seed = flickerSeed(x, y);
+  const dur = (0.45 + seed * 0.5).toFixed(2);
+  const delay = (seed * 0.4).toFixed(2);
+  const size = 0.85 + seed * 0.3; // slight per-tile size variance
+  return (
+    <g transform={`translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${size.toFixed(2)})`}>
+      {/* Heat glow — static, just a soft radial wash */}
+      <circle r={9} fill="#ff8c42" fillOpacity={0.1} />
+      <circle r={5.5} fill="#ff6a1a" fillOpacity={0.12} />
+      {/* Flickering flame body */}
+      <g>
+        <animateTransform attributeName="transform" type="scale"
+          values="0.88;1.2;0.95;1.12;0.88" dur={`${dur}s`} begin={`${delay}s`} repeatCount="indefinite" />
+        <path d="M0,4.6 C-2.7,2 -2.9,-1.3 -0.6,-4 C-0.2,-2.3 0.6,-2.7 0.4,-4.4 C2.7,-2 3.1,1.7 0,4.6 Z"
+          fill="#ff5a1f" fillOpacity={0.92} stroke="#c23f0f" strokeWidth={0.3} />
+        <animateTransform attributeName="transform" type="rotate"
+          values="-4;4;-4" dur={`${(Number(dur) * 1.7).toFixed(2)}s`} begin={`${delay}s`} repeatCount="indefinite" additive="sum" />
+      </g>
+      {/* Hot inner core, flickers slightly out of phase with the body */}
+      <g>
+        <animate attributeName="opacity" values="0.8;1;0.85;1;0.8" dur={`${(Number(dur) * 0.8).toFixed(2)}s`}
+          begin={`${(Number(delay) + 0.15).toFixed(2)}s`} repeatCount="indefinite" />
+        <path d="M0,2.6 C-1.3,1 -1.3,-0.8 0,-2.5 C0.9,-1 1.2,0.8 0,2.6 Z" fill="#ffd23f" />
+      </g>
+    </g>
+  );
+}
+
+/** All currently-active fire markers for one panel, already filtered/positioned by the caller. */
+function FireLayer({ fires, bounds }: { fires: { x: number; y: number; z: number }[]; bounds: BuildingBounds }) {
+  return (
+    <>
+      {fires.map(f => {
+        const [sx, sy] = worldToSvg(f.x, f.z, bounds);
+        return <FlameMarker key={`${f.x},${f.y},${f.z}`} x={sx} y={sy} />;
+      })}
+    </>
+  );
+}
+
 // ── Shared polyline builder ───────────────────────────────────────────────
 
 function buildPoints(rows: CsvRow[], bounds: BuildingBounds): string {
@@ -164,13 +265,16 @@ function buildPoints(rows: CsvRow[], bounds: BuildingBounds): string {
 
 interface LibraryPanelProps {
   rows: CsvRow[];
+  fireRows: FireRow[];
   frame: number;
 }
 
-function LibraryPanel({ rows, frame }: LibraryPanelProps) {
+function LibraryPanel({ rows, fireRows, frame }: LibraryPanelProps) {
   const bounds = LIBRARY_BOUNDS;
 
   const currentTs = rows[frame]?.timestamp ?? 0;
+
+  const activeFires = useMemo(() => activeFiresAt(fireRows, currentTs), [fireRows, currentTs]);
 
   const allMovePts = useMemo(
     () => buildPoints(rows.filter(r => r.event_type === 'move_tick'), bounds),
@@ -311,6 +415,9 @@ function LibraryPanel({ rows, frame }: LibraryPanelProps) {
         return <EventMarker x={sx} y={sz} type="session_start" />;
       })()}
 
+      {/* Active fire — animated, replays ignite/extinguish over the timeline */}
+      <FireLayer fires={activeFires} bounds={bounds} />
+
       {/* Player dot */}
       {cur && (
         <circle cx={dotX} cy={dotZ} r={5} fill="#ff8c42" stroke="#fff" strokeWidth={1} />
@@ -394,6 +501,7 @@ interface TwoFloorRect { xMin: number; xMax: number; zMin: number; zMax: number;
 
 interface TwoFloorPanelProps {
   rows: CsvRow[];
+  fireRows: FireRow[];
   frame: number;
   floor: 'ground' | 'upper';
   label: string;
@@ -407,11 +515,18 @@ interface TwoFloorPanelProps {
   floorYBoundary: number;
 }
 
-function TwoFloorPanel({ rows, frame, floor, label, bounds, rooms, outer, assemblyZone, floorYBoundary }: TwoFloorPanelProps) {
+function TwoFloorPanel({ rows, fireRows, frame, floor, label, bounds, rooms, outer, assemblyZone, floorYBoundary }: TwoFloorPanelProps) {
   const isOnThisFloor = (r: CsvRow) =>
+    floor === 'ground' ? r.y <= floorYBoundary : r.y > floorYBoundary;
+  const fireIsOnThisFloor = (r: FireRow) =>
     floor === 'ground' ? r.y <= floorYBoundary : r.y > floorYBoundary;
 
   const currentTs = rows[frame]?.timestamp ?? 0;
+
+  const activeFires = useMemo(
+    () => activeFiresAt(fireRows.filter(fireIsOnThisFloor), currentTs),
+    [fireRows, currentTs, floor],
+  );
 
   const allMovePts = useMemo(
     () => buildPoints(
@@ -585,6 +700,9 @@ function TwoFloorPanel({ rows, frame, floor, label, bounds, rooms, outer, assemb
           return <EventMarker key={i} x={ex} y={ez} type={evt.event_type} hit={evt.hitFire} />;
         })}
 
+        {/* Active fire — animated, replays ignite/extinguish over the timeline */}
+        <FireLayer fires={activeFires} bounds={bounds} />
+
         {/* Player dot */}
         {playerHere && (
           <circle cx={dotX} cy={dotZ} r={5} fill="#ff8c42" stroke="#fff" strokeWidth={1} />
@@ -613,8 +731,9 @@ function TwoFloorPanel({ rows, frame, floor, label, bounds, rooms, outer, assemb
 
 // ── Main MapPlayer component ──────────────────────────────────────────────
 
-export function MapPlayer({ moveCsv, simulationType }: Props) {
+export function MapPlayer({ moveCsv, fireLogCsv, simulationType }: Props) {
   const rows = useMemo(() => (moveCsv ? parseCsv(moveCsv) : []), [moveCsv]);
+  const fireRows = useMemo(() => (fireLogCsv ? parseFireLog(fireLogCsv) : []), [fireLogCsv]);
 
   const [frame, setFrame]       = useState(() => Math.max(0, rows.length - 1));
   const [isPlaying, setIsPlaying] = useState(false);
@@ -761,7 +880,7 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
                   </button>
                 ))}
               </div>
-              <TwoFloorPanel rows={rows} frame={frame} floor={activeFloor}
+              <TwoFloorPanel rows={rows} fireRows={fireRows} frame={frame} floor={activeFloor}
                 label={activeFloor === 'ground' ? 'Ground Floor' : 'Upper Floor'}
                 bounds={twoFloorConfig.bounds} rooms={twoFloorConfig.rooms}
                 outer={twoFloorConfig.outerByFloor[activeFloor]}
@@ -771,13 +890,13 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
           ) : (
             /* Wide: side by side */
             <>
-              <TwoFloorPanel rows={rows} frame={frame} floor="ground" label="Ground Floor"
+              <TwoFloorPanel rows={rows} fireRows={fireRows} frame={frame} floor="ground" label="Ground Floor"
                 bounds={twoFloorConfig.bounds} rooms={twoFloorConfig.rooms}
                 outer={twoFloorConfig.outerByFloor.ground}
                 assemblyZone={twoFloorConfig.assemblyZoneByFloor.ground}
                 floorYBoundary={twoFloorConfig.floorYBoundary} />
               <div style={{ width: '1px', background: 'var(--border-card)', flexShrink: 0 }} />
-              <TwoFloorPanel rows={rows} frame={frame} floor="upper" label="Upper Floor"
+              <TwoFloorPanel rows={rows} fireRows={fireRows} frame={frame} floor="upper" label="Upper Floor"
                 bounds={twoFloorConfig.bounds} rooms={twoFloorConfig.rooms}
                 outer={twoFloorConfig.outerByFloor.upper}
                 assemblyZone={twoFloorConfig.assemblyZoneByFloor.upper}
@@ -785,7 +904,7 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
             </>
           )
         ) : (
-          <LibraryPanel rows={rows} frame={frame} />
+          <LibraryPanel rows={rows} fireRows={fireRows} frame={frame} />
         )}
       </div>
 
@@ -960,6 +1079,24 @@ export function MapPlayer({ moveCsv, simulationType }: Props) {
             opacity: 0.6,
           }} />
           Near fire (&lt;{SAFE_HAZARD_DISTANCE}m)
+        </span>
+        <span style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: '9px',
+          color: 'var(--text-muted)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+        }}>
+          <span style={{
+            width: '8px',
+            height: '8px',
+            background: '#ff5a1f',
+            borderRadius: '50%',
+            flexShrink: 0,
+            opacity: 0.9,
+          }} />
+          Active fire
         </span>
       </div>
     </div>
