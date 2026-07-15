@@ -4,7 +4,7 @@ export const prerender = false;
 
 export const GET: APIRoute = async () => {
   try {
-    const res = await fetch('https://api.mcsrvstat.us/2/berongsmpdev.mcsh.io');
+    const res = await fetch('https://api.mcsrvstat.us/2/berongsmp.mcsh.io');
     if (!res.ok) {
       return new Response(JSON.stringify({ online: false, players: { online: 0, max: 0 } }), {
         status: 200,

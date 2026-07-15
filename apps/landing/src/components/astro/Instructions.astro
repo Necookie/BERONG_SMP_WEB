@@ -23,7 +23,7 @@
         How to Join the Server
       </h2>
       <p class="font-body text-body-md text-on-surface-variant max-w-2xl mx-auto">
-        Follow these steps to install the client dependencies, import the research modpack, and connect to the live simulation environment.
+        Follow these steps to download the client installer, set up the mod, and connect to the live simulation environment.
       </p>
     </div>
 
@@ -38,45 +38,13 @@
           </div>
           <div class="space-y-3">
             <h3 class="font-headline text-lg font-bold text-white uppercase tracking-wide">
-              Install CurseForge
+              Download Installer
             </h3>
             <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
-              Download and install the free, official CurseForge App for your computer (<a href="https://www.curseforge.com/download/app" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:text-white transition-colors">curseforge.com/download/app</a>).
+              You'll need Minecraft <strong>Java Edition</strong> already installed — open the official Minecraft Launcher and press Play at least once before continuing.
             </p>
             <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
-              Open the CurseForge app, select <strong>Minecraft</strong> from the game list, and set the folder directory to <strong>Standard</strong> (Recommended).
-            </p>
-          </div>
-        </div>
-        <div class="pt-6">
-          <a
-            href="https://www.curseforge.com/download/app"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center justify-center gap-2 w-full px-4 py-2 border border-border-stone hover:border-primary/60 font-mono text-xs uppercase tracking-wider text-on-surface hover:text-white transition-all bg-surface-base"
-          >
-            <span>CurseForge Website</span>
-            <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="bg-surface-elevated stone-border p-8 flex flex-col justify-between group hover:border-primary/40 transition-colors duration-200">
-        <div class="space-y-6">
-          <div class="flex justify-between items-start">
-            <span class="font-mono text-xs font-bold text-primary tracking-widest uppercase">Step 02</span>
-            <span class="material-symbols-outlined text-primary/60 group-hover:text-primary transition-colors" style="font-size: 28px;">unarchive</span>
-          </div>
-          <div class="space-y-3">
-            <h3 class="font-headline text-lg font-bold text-white uppercase tracking-wide">
-              Import Modpack
-            </h3>
-            <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
-              Click the <strong class="text-white">↓ Import</strong> button located next to the "+ Create" button at the top left of your CurseForge screen.
-            </p>
-            <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
-              Select the <code class="bg-surface-base px-1.5 py-0.5 border border-border-stone text-xs text-white">Thesis_Fire_Sim.zip</code> file from the download folder. CurseForge will automatically compile and configure the directories.
+              Click <strong class="text-white">Download Installer</strong> below and save the zip file anywhere on your computer.
             </p>
           </div>
         </div>
@@ -88,8 +56,37 @@
             class="mc-button w-full py-3 flex items-center justify-center gap-2 font-mono text-xs font-medium uppercase tracking-widest"
           >
             <span class="material-symbols-outlined" style="font-size: 18px;">cloud_download</span>
-            <span>Download Modpack</span>
+            <span>Download Installer</span>
           </a>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="bg-surface-elevated stone-border p-8 flex flex-col justify-between group hover:border-primary/40 transition-colors duration-200">
+        <div class="space-y-6">
+          <div class="flex justify-between items-start">
+            <span class="font-mono text-xs font-bold text-primary tracking-widest uppercase">Step 02</span>
+            <span class="material-symbols-outlined text-primary/60 group-hover:text-primary transition-colors" style="font-size: 28px;">terminal</span>
+          </div>
+          <div class="space-y-3">
+            <h3 class="font-headline text-lg font-bold text-white uppercase tracking-wide">
+              Run the Installer
+            </h3>
+            <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
+              Extract the zip, then double-click <code class="bg-surface-base px-1.5 py-0.5 border border-border-stone text-xs text-white">Install-BerongSMP.exe</code> inside. It automatically installs the mod loader and the mod — nothing else to configure.
+            </p>
+            <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
+              Windows may show a blue "protected your PC" screen first — this is expected for a small installer like this. Click <strong>More info</strong>, then <strong>Run anyway</strong>.
+            </p>
+          </div>
+        </div>
+        <div class="pt-6">
+          <div
+            class="inline-flex items-center justify-center gap-2 w-full px-4 py-2 border border-border-stone font-mono text-xs uppercase tracking-wider text-on-surface-variant bg-surface-base"
+          >
+            <span class="material-symbols-outlined" style="font-size: 16px;">schedule</span>
+            <span>Takes about a minute</span>
+          </div>
         </div>
       </div>
 
@@ -105,10 +102,10 @@
               Launch & Connect
             </h3>
             <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
-              Click the orange <strong>Play</strong> button on the Thesis Fire Simulation tile, and launch the game profile.
+              Open the Minecraft Launcher, select the <strong>NeoForge 26.1.2.80</strong> profile from the dropdown, and click <strong>Play</strong>.
             </p>
             <p class="font-body text-body-sm text-on-surface-variant leading-relaxed">
-              From the Minecraft main menu, go to <strong>Multiplayer</strong> -> <strong>Direct Connect</strong>, and paste the server address:
+              From the Minecraft main menu, go to <strong>Multiplayer</strong> -> <strong>Add Server</strong>, and paste the server address:
             </p>
           </div>
         </div>
@@ -118,7 +115,7 @@
               id="instruction-server-address"
               class="px-3 py-2 font-mono text-[11px] font-medium text-on-surface flex-1 text-left select-all truncate"
             >
-              berongsmpdev.mcsh.io
+              berongsmp.mcsh.io
             </div>
             <button
               id="instruction-copy-btn"
