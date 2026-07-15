@@ -5,7 +5,7 @@ import { MapPlayer } from '../../components/MapPlayer.tsx';
 import MidrrScoreGauge from '../../components/MidrrScoreGauge.tsx';
 import MidrrFeatureRadar from '../../components/MidrrFeatureRadar.tsx';
 import MidrrShapChart from '../../components/MidrrShapChart.tsx';
-import { getSessionById, getAuditLog, formatDuration, formatDate, derivePrepLevel, parseEventLog, extractRubricSignals } from '../../lib/queries';
+import { getSessionById, getAuditLog, getMidrrCohortAverage, formatDuration, formatDate, derivePrepLevel, parseEventLog, extractRubricSignals } from '../../lib/queries';
 import { getEnv } from '../../lib/db';
 
 const { id } = Astro.params;
@@ -35,6 +35,10 @@ const midrrWeights: { feature: string; weight: number }[] = session.midrr_featur
 const midrrRaw: Record<string, number> = session.midrr_features
   ? JSON.parse(session.midrr_features)
   : {};
+
+const cohortAvg = (env && session.simulation_type)
+  ? await getMidrrCohortAverage(env, session.simulation_type)
+  : null;
 ---
 
 <DashboardLayout
@@ -44,45 +48,46 @@ const midrrRaw: Record<string, number> = session.midrr_features
 >
 
   <div class={`session-header-bar ${tierClass}`}>
-    <div style="display: flex; align-items: center; gap: 16px; flex-grow: 1; flex-wrap: wrap;">
+    <div class="session-header-crumb">
       <a href="/sessions" class="back-link">← Sessions</a>
-      <span class="header-sep">|</span>
-      <span class="session-id-tag">#{session.id}</span>
-      <span class="header-sep">|</span>
-      <span class="session-participant-name">{session.student_name}</span>
-      {session.student_id && (
-        <>
-          <span class="header-sep">·</span>
-          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);">{session.student_id}</span>
-        </>
-      )}
-      <span class="header-sep">·</span>
-      <span class="scenario-tag">{session.simulation_type ?? '—'}</span>
-      {level !== 'PENDING' && (
-        <span class={`tier-badge ${tierClass}`} style="margin-left: 4px;">
-          <span class="dot"></span>
-          {level}
-        </span>
-      )}
+      <span class="header-sep">/</span>
+      <span class="session-id-tag">Session #{session.id}</span>
       <span class="header-date">{formatDate(session.start_time)}</span>
     </div>
-    <div style="display: flex; gap: 8px; align-items: center; margin-left: 16px; flex-shrink: 0;">
-      {session.move_log_csv && (
-        <a href={`/api/sessions/${session.id}/move-log`}
-           class="btn-cancel"
-           style="margin-top:0; padding:5px 12px; font-weight:500; text-decoration:none; display:inline-block;">
-          ↓ Move Log CSV
-        </a>
-      )}
-      {session.fire_log_csv && (
-        <a href={`/api/sessions/${session.id}/fire-log`}
-           class="btn-cancel"
-           style="margin-top:0; padding:5px 12px; font-weight:500; text-decoration:none; display:inline-block;">
-          ↓ Fire Log CSV
-        </a>
-      )}
-      <button id="btn-edit-details" class="btn-cancel" style="margin-top: 0; padding: 5px 12px; font-weight: 500;">Edit Details</button>
-      <button id="btn-delete-session" class="delete-btn" style="padding: 5px 12px; font-weight: 500;">Delete</button>
+
+    <div class="session-header-main">
+      <div class="session-header-identity">
+        <span class="session-participant-name">{session.student_name}</span>
+        {session.student_id && (
+          <span class="session-chip">{session.student_id}</span>
+        )}
+        <span class="scenario-tag">{session.simulation_type ?? '—'}</span>
+        {level !== 'PENDING' && (
+          <span class={`tier-badge tier-pill ${tierClass}`}>
+            <span class="dot"></span>
+            {level}
+          </span>
+        )}
+      </div>
+
+      <div class="session-header-actions">
+        {session.move_log_csv && (
+          <a href={`/api/sessions/${session.id}/move-log`}
+             class="btn-cancel"
+             style="margin-top:0; padding:5px 12px; font-weight:500; text-decoration:none; display:inline-block;">
+            ↓ Move Log CSV
+          </a>
+        )}
+        {session.fire_log_csv && (
+          <a href={`/api/sessions/${session.id}/fire-log`}
+             class="btn-cancel"
+             style="margin-top:0; padding:5px 12px; font-weight:500; text-decoration:none; display:inline-block;">
+            ↓ Fire Log CSV
+          </a>
+        )}
+        <button id="btn-edit-details" class="btn-cancel" style="margin-top: 0; padding: 5px 12px; font-weight: 500;">Edit Details</button>
+        <button id="btn-delete-session" class="delete-btn" style="padding: 5px 12px; font-weight: 500;">Delete</button>
+      </div>
     </div>
   </div>
 
@@ -247,10 +252,10 @@ const midrrRaw: Record<string, number> = session.midrr_features
                   <div class="feat-track" style="margin-top:8px;">
                     <div class={`feat-fill midrr-fill-${midrrTierClass}`} style={`width: ${session.midrr_prep_score != null ? Math.round(session.midrr_prep_score) : 0}%`}></div>
                   </div>
-                  <span class="midrr-timestamp">Score: {session.midrr_prep_score != null ? Math.round(session.midrr_prep_score) : 0}% · see full breakdown below</span>
+                  <span class="midrr-timestamp">Score: {session.midrr_prep_score != null ? Math.round(session.midrr_prep_score) : 0}% · see AI Preparedness Analysis below</span>
                 </>
               ) : (
-                <span class="midrr-timestamp" style="margin-top:8px;">Not yet run — see below.</span>
+                <span class="midrr-timestamp" style="margin-top:8px;">Not yet run — see AI Preparedness Analysis below.</span>
               )}
             </div>
           </div>
@@ -271,75 +276,20 @@ const midrrRaw: Record<string, number> = session.midrr_features
         </div>
 
         <div class="stat-section">
-          <div class={`midrr-card ${session.midrr_prep_level ? `midrr-card-${midrrTierClass}` : ''}`}>
-            <div class="midrr-card-header">
-              <span class="stat-section-label" style="margin:0;">MiDRR Assessment</span>
-              <span class="midrr-badge">SYNTHETIC MODEL</span>
-            </div>
-            <p class="midrr-disclaimer">
-              ⚠ Trained on fabricated sessions — not a real assessment. For demo purposes only.
-            </p>
-
-            <button id="btn-run-midrr" class="midrr-run-btn" type="button" data-session-id={session.id}>
-              {session.midrr_predicted_at ? '↻ Re-run MiDRR Assessment' : '▶ Run MiDRR Assessment'}
-            </button>
-            <p id="midrr-status" class="midrr-status"></p>
-
-            <div id="midrr-result" style={`display: ${session.midrr_prep_level ? '' : 'none'};`}>
-
-              <div class="midrr-score-row">
-                <MidrrScoreGauge
-                  client:only="react"
-                  score={session.midrr_prep_score ?? 0}
-                  tier={(session.midrr_prep_level ?? 'LOW') as 'HIGH' | 'MODERATE' | 'LOW'}
-                />
-                <div class="midrr-score-meta">
-                  <span class={`midrr-tier-${midrrTierClass ?? 'low'}`} id="midrr-tier-label">
-                    {session.midrr_prep_level ?? '—'}
-                  </span>
-                  <span class="midrr-score-sublabel">MiDRR Prep Score</span>
-                  <p class="midrr-timestamp" id="midrr-timestamp">
-                    {session.midrr_predicted_at ? `Last assessed: ${new Date(session.midrr_predicted_at + 'Z').toLocaleString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: false, month: 'short', day: 'numeric' })}` : ''}
-                  </p>
-                </div>
-              </div>
-
-              <div class="midrr-chart-grid">
-                <div>
-                  <span class="midrr-chart-title">Behavior profile</span>
-                  <MidrrFeatureRadar
-                    client:only="react"
-                    sprayAccuracy={midrrRaw.spray_accuracy ?? 0}
-                    pathEfficiencyRatio={midrrRaw.path_efficiency_ratio ?? 0}
-                    hazardAvoidanceRatio={midrrRaw.hazard_avoidance_ratio ?? 0}
-                    resourceUtilization={midrrRaw.resource_utilization ?? 0}
-                    situationalAwareness={midrrRaw.situational_awareness ?? 0}
-                  />
-                </div>
-                <div>
-                  <span class="midrr-chart-title">What's driving this score</span>
-                  <MidrrShapChart client:only="react" weights={midrrWeights} />
-                </div>
-              </div>
-
-              <span class="midrr-chart-title" style="margin-top:14px; display:block;">Raw session metrics</span>
-              <div class="stat-grid" style="margin-top:8px;">
-                <span class="stat-key">Decision latency</span>
-                <span class="stat-val">{midrrRaw.decision_latency != null ? `${midrrRaw.decision_latency.toFixed(1)}s` : '—'}</span>
-
-                <span class="stat-key">Evacuation time</span>
-                <span class="stat-val">{midrrRaw.evacuation_time != null ? `${midrrRaw.evacuation_time.toFixed(1)}s` : '—'}</span>
-
-                <span class="stat-key">Interaction freq.</span>
-                <span class="stat-val">{midrrRaw.interaction_frequency != null ? `${midrrRaw.interaction_frequency.toFixed(2)}/s` : '—'}</span>
-
-                <span class="stat-key">Panic proxy</span>
-                <span class="stat-val">{midrrRaw.panic_proxy != null ? midrrRaw.panic_proxy.toFixed(2) : '—'}</span>
-              </div>
-
-              <p id="midrr-result-text" class="midrr-result-text">{session.midrr_result_text}</p>
-            </div>
-          </div>
+          <button id="btn-open-ai-drawer" type="button" class={`ai-teaser-card ${session.midrr_prep_level ? `ai-teaser-${midrrTierClass}` : ''}`}>
+            <span class="ai-teaser-icon">🧠</span>
+            <span class="ai-teaser-info">
+              <span class="ai-teaser-title">AI Preparedness Analysis</span>
+              <span class="ai-teaser-sub">
+                {session.midrr_prep_level
+                  ? <>MiDRR: <strong class={`midrr-tier-${midrrTierClass}`}>{session.midrr_prep_level}</strong> · {Math.round(session.midrr_prep_score ?? 0)}% score</>
+                  : 'Not yet assessed — run the ML model for a full breakdown'}
+              </span>
+            </span>
+            <span class="ai-teaser-cta">
+              {session.midrr_prep_level ? 'View Full Analysis' : 'Run Assessment'} →
+            </span>
+          </button>
         </div>
 
         <div class="stat-section">
@@ -484,6 +434,99 @@ const midrrRaw: Record<string, number> = session.midrr_features
     </div>
   </div>
 
+  <!-- AI Preparedness Analysis Drawer -->
+  <div id="ai-drawer-overlay" class="ai-drawer-overlay">
+    <div class="ai-drawer" role="dialog" aria-modal="true" aria-label="AI preparedness analysis">
+      <div class="ai-drawer-header">
+        <div class="ai-drawer-header-text">
+          <span class="ai-drawer-title">AI Preparedness Analysis</span>
+          <span class="midrr-badge">SYNTHETIC MODEL</span>
+        </div>
+        <button id="ai-drawer-close" class="ai-drawer-close-btn" type="button" aria-label="Close panel">✕</button>
+      </div>
+
+      <div class="ai-drawer-body">
+        <p class="midrr-disclaimer">
+          ⚠ Trained on fabricated sessions — not a real assessment. For demo purposes only.
+        </p>
+
+        <button id="btn-run-midrr" class="midrr-run-btn" type="button" data-session-id={session.id}>
+          {session.midrr_predicted_at ? '↻ Re-run MiDRR Assessment' : '▶ Run MiDRR Assessment'}
+        </button>
+        <p id="midrr-status" class="midrr-status"></p>
+
+        <div id="midrr-result" style={`display: ${session.midrr_prep_level ? '' : 'none'};`}>
+
+          <div class="midrr-score-row">
+            <MidrrScoreGauge
+              client:only="react"
+              score={session.midrr_prep_score ?? 0}
+              tier={(session.midrr_prep_level ?? 'LOW') as 'HIGH' | 'MODERATE' | 'LOW'}
+            />
+            <div class="midrr-score-meta">
+              <span class={`midrr-tier-${midrrTierClass ?? 'low'}`} id="midrr-tier-label">
+                {session.midrr_prep_level ?? '—'}
+              </span>
+              <span class="midrr-score-sublabel">MiDRR Prep Score</span>
+              <p class="midrr-timestamp" id="midrr-timestamp">
+                {session.midrr_predicted_at ? `Last assessed: ${new Date(session.midrr_predicted_at + 'Z').toLocaleString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: false, month: 'short', day: 'numeric' })}` : ''}
+              </p>
+              {cohortAvg && cohortAvg.sampleSize > 0 && cohortAvg.avgPrepScore != null && (
+                <p class="midrr-timestamp">
+                  Scenario average: {Math.round(cohortAvg.avgPrepScore)}% across {cohortAvg.sampleSize} assessed session{cohortAvg.sampleSize === 1 ? '' : 's'}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div class="midrr-chart-grid">
+            <div>
+              <span class="midrr-chart-title">Behavior profile</span>
+              <MidrrFeatureRadar
+                client:only="react"
+                sprayAccuracy={midrrRaw.spray_accuracy ?? 0}
+                pathEfficiencyRatio={midrrRaw.path_efficiency_ratio ?? 0}
+                hazardAvoidanceRatio={midrrRaw.hazard_avoidance_ratio ?? 0}
+                resourceUtilization={midrrRaw.resource_utilization ?? 0}
+                situationalAwareness={midrrRaw.situational_awareness ?? 0}
+                cohort={cohortAvg && cohortAvg.sampleSize > 0 ? {
+                  sprayAccuracy: cohortAvg.sprayAccuracy,
+                  pathEfficiencyRatio: cohortAvg.pathEfficiencyRatio,
+                  hazardAvoidanceRatio: cohortAvg.hazardAvoidanceRatio,
+                  resourceUtilization: cohortAvg.resourceUtilization,
+                  situationalAwareness: cohortAvg.situationalAwareness,
+                  sampleSize: cohortAvg.sampleSize,
+                } : null}
+              />
+            </div>
+            <div>
+              <span class="midrr-chart-title">What's driving this score</span>
+              <MidrrShapChart client:only="react" weights={midrrWeights} />
+            </div>
+          </div>
+
+          <span class="midrr-chart-title" style="margin-top:14px; display:block;">Raw session metrics</span>
+          <div class="stat-grid" style="margin-top:8px;">
+            <span class="stat-key">Decision latency</span>
+            <span class="stat-val">{midrrRaw.decision_latency != null ? `${midrrRaw.decision_latency.toFixed(1)}s` : '—'}</span>
+
+            <span class="stat-key">Evacuation time</span>
+            <span class="stat-val">{midrrRaw.evacuation_time != null ? `${midrrRaw.evacuation_time.toFixed(1)}s` : '—'}</span>
+
+            <span class="stat-key">Interaction freq.</span>
+            <span class="stat-val">{midrrRaw.interaction_frequency != null ? `${midrrRaw.interaction_frequency.toFixed(2)}/s` : '—'}</span>
+
+            <span class="stat-key">Panic proxy</span>
+            <span class="stat-val">{midrrRaw.panic_proxy != null ? midrrRaw.panic_proxy.toFixed(2) : '—'}</span>
+          </div>
+
+          <span class="midrr-chart-title" style="margin-top:14px; display:block;">Model narrative</span>
+          <p id="midrr-result-text" class="midrr-result-text">{session.midrr_result_text}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </DashboardLayout>
 
 <style>
@@ -563,6 +606,35 @@ const midrrRaw: Record<string, number> = session.midrr_features
     if (e.target === modalDelete) closeDelete();
   });
 
+  // AI Preparedness Analysis drawer
+  const btnOpenAiDrawer = document.getElementById('btn-open-ai-drawer');
+  const aiDrawerOverlay = document.getElementById('ai-drawer-overlay');
+  const aiDrawerClose = document.getElementById('ai-drawer-close');
+
+  function openAiDrawer() {
+    aiDrawerOverlay?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeAiDrawer() {
+    aiDrawerOverlay?.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btnOpenAiDrawer?.addEventListener('click', openAiDrawer);
+  aiDrawerClose?.addEventListener('click', closeAiDrawer);
+  aiDrawerOverlay?.addEventListener('click', (e) => {
+    if (e.target === aiDrawerOverlay) closeAiDrawer();
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAiDrawer();
+  });
+
+  // Re-open automatically after a fresh assessment reload (see fetch handler below)
+  if (new URLSearchParams(window.location.search).get('aiPanel') === '1') {
+    openAiDrawer();
+    history.replaceState(null, '', window.location.pathname);
+  }
+
   // MiDRR assessment
   const btnRunMidrr = document.getElementById('btn-run-midrr') as HTMLButtonElement | null;
   const midrrStatus = document.getElementById('midrr-status');
@@ -585,8 +657,9 @@ const midrrRaw: Record<string, number> = session.midrr_features
       if (!res.ok || !body.ok) {
         throw new Error(body.error || `Request failed (${res.status})`);
       }
-      // Reload so the SSR page re-renders the now-persisted midrr_* columns.
-      window.location.reload();
+      // Reload (keeping the drawer open via ?aiPanel=1) so the SSR page
+      // re-renders the now-persisted midrr_* columns.
+      window.location.href = `${window.location.pathname}?aiPanel=1`;
     } catch (err) {
       btnRunMidrr.disabled = false;
       btnRunMidrr.textContent = originalLabel;

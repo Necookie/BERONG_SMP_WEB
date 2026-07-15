@@ -479,6 +479,49 @@ export async function updateSessionPrediction(
   );
 }
 
+export interface MidrrCohortAverage {
+  sampleSize: number;
+  avgPrepScore: number | null;
+  sprayAccuracy: number;
+  pathEfficiencyRatio: number;
+  hazardAvoidanceRatio: number;
+  resourceUtilization: number;
+  situationalAwareness: number;
+}
+
+// Averages the 5 ratio-type MiDRR features (0-1 scale) across every other
+// session of the same scenario that has already been assessed, so a single
+// session's radar can be plotted against its peers instead of read in isolation.
+export async function getMidrrCohortAverage(
+  env: Env,
+  simulationType: string
+): Promise<MidrrCohortAverage> {
+  const db = getDb(env);
+  const res = await db.execute(
+    `SELECT
+       COUNT(*) AS sample_size,
+       AVG(midrr_prep_score) AS avg_prep_score,
+       AVG(json_extract(midrr_features, '$.spray_accuracy')) AS spray_accuracy,
+       AVG(json_extract(midrr_features, '$.path_efficiency_ratio')) AS path_efficiency_ratio,
+       AVG(json_extract(midrr_features, '$.hazard_avoidance_ratio')) AS hazard_avoidance_ratio,
+       AVG(json_extract(midrr_features, '$.resource_utilization')) AS resource_utilization,
+       AVG(json_extract(midrr_features, '$.situational_awareness')) AS situational_awareness
+     FROM sessions
+     WHERE simulation_type = ? AND midrr_features IS NOT NULL`,
+    [simulationType]
+  );
+  const r = res.rows[0] as Record<string, unknown>;
+  return {
+    sampleSize: Number(r.sample_size ?? 0),
+    avgPrepScore: r.avg_prep_score != null ? Number(r.avg_prep_score) : null,
+    sprayAccuracy: Number(r.spray_accuracy ?? 0),
+    pathEfficiencyRatio: Number(r.path_efficiency_ratio ?? 0),
+    hazardAvoidanceRatio: Number(r.hazard_avoidance_ratio ?? 0),
+    resourceUtilization: Number(r.resource_utilization ?? 0),
+    situationalAwareness: Number(r.situational_awareness ?? 0),
+  };
+}
+
 export interface AuditLogEntry {
   id: number;
   session_id: number;
