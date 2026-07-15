@@ -11,6 +11,12 @@ This repo hosts:
 
 > **Note:** A FastAPI DRR API service was originally planned as a third entry point but has not been implemented in this repo. The dashboard now integrates with an external **MiDRR API** (separate repo, deployed on Render) as a consumer — see "MiDRR ML API integration" below.
 
+## Documentation
+
+- **[`usermanual.md`](usermanual.md)** — landing-page visitor guide: downloading/running the client installer and connecting to the server
+- **[`adminmanual.md`](adminmanual.md)** — dashboard instructor/admin guide: login & accounts, every page, the AI assessment drawer, admin actions, deployment env vars
+- The dashboard's own in-app **`/guide`** page (once logged in) covers the whole pipeline end to end and is the closest thing to a full operator manual — the two files above focus on this repo's own screens rather than duplicating it
+
 ---
 
 ## Monorepo structure
@@ -49,6 +55,7 @@ pnpm typecheck            # tsc --noEmit both apps
 - **Fonts:** Space Grotesk, Inter, JetBrains Mono (Google Fonts)
 - **Styling:** Tailwind CSS + custom CSS variables in `src/styles/global.css`
 - **Theme:** Supports light/dark mode via `html.dark` / `html.light` classes and CSS custom properties. Toggle is a React island (`ThemeToggle.tsx`).
+- **Install instructions (`components/astro/Instructions.astro`):** 2026-07-16 — rewritten from a CurseForge App + `Thesis_Fire_Sim.zip` import flow to the mod repo's new client installer (`Install-BerongSMP.exe` + bundled NeoForge — see `distribution/client-installer/` and `docs/adminmanual.md` in the mod repo). The "Download Modpack" button keeps its original Google Drive folder href (relabelled "Download Installer") — only the file living at that Drive location and the three step cards' copy changed, not the link itself. Live server address is `berongsmp.mcsh.io`, set in four places that must stay in sync: `Hero.astro`, `Footer.astro`, `Instructions.astro`, and — the one that's functionally load-bearing, not just display text — `src/pages/api/server-status.ts`'s `mcsrvstat.us` query (this is what actually drives the online/offline badge).
 
 ---
 
@@ -417,6 +424,8 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
 
 ### Task 1 — Seed initial admin user
 On first deploy, visit `/login` and the system will detect no users exist. Navigate to `/setup` (only accessible when zero users exist) to create the first admin account (which will be initialized as `owner` and `active`).
+
+**⚠️ Known quirk in `api/auth/register.ts`:** self-registering with the exact username `necookie` bypasses the normal pending-approval flow and is auto-approved as `owner` immediately (line ~51). Reads as a leftover dev convenience rather than an intended feature — flagged here so it isn't mistaken for correct behavior; should be removed before any real public deployment.
 
 ### MiDRR result columns
 ```sql
