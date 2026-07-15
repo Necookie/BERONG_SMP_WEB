@@ -1162,29 +1162,66 @@ html.sidebar-collapsed .sidebar-footer-row {
 /* ── Session detail header ───────────────────────────────────────────── */
 .session-header-bar {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0 32px;
-  height: 60px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 32px 20px;
   border-bottom: 1px solid var(--border-card);
   border-left: 3px solid transparent;
+  background: var(--bg-sidebar);
+  flex-shrink: 0;
+}
+
+.session-header-crumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.session-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.session-header-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.session-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
   .session-header-bar {
-    height: auto;
-    padding: 12px 20px;
-    flex-wrap: wrap;
-    gap: 8px;
+    padding: 14px 20px 16px;
+    gap: 10px;
   }
   .session-header-bar .header-sep {
     display: none;
   }
   .session-header-bar .header-date {
     margin-left: 0;
+  }
+  .session-header-crumb {
+    gap: 8px;
+  }
+  .session-header-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .session-header-actions {
     width: 100%;
-    margin-top: 2px;
   }
 }
 
@@ -1218,9 +1255,20 @@ html.sidebar-collapsed .sidebar-footer-row {
 
 .session-participant-name {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.01em;
+}
+
+.session-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  border: 1px solid var(--border-card);
+  border-radius: 999px;
+  padding: 3px 10px;
 }
 
 .scenario-tag {
@@ -1229,7 +1277,15 @@ html.sidebar-collapsed .sidebar-footer-row {
   letter-spacing: 0.12em;
   color: var(--text-muted);
   border: 1px solid var(--border-card);
-  padding: 3px 8px;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.tier-badge.tier-pill {
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
 }
 
 .header-date {
