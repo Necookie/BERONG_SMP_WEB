@@ -1,6 +1,7 @@
 ---
 // BaseLayout.astro – wraps every page with <head> meta, fonts, and semantic structure
 import '../styles/global.css';
+import Loader from '../components/astro/Loader.astro';
 
 interface Props {
   title?: string;
@@ -75,25 +76,19 @@ const {
   </head>
 
   <body>
-    <slot />
+    <Loader />
 
-    <script is:inline>
-      (function () {
-        const els = document.querySelectorAll('.reveal, .reveal-stagger');
-        if (!els.length) return;
-        const io = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('is-visible');
-                io.unobserve(entry.target);
-              }
-            });
-          },
-          { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
-        );
-        els.forEach(function (el) { io.observe(el); });
-      })();
+    <div class="page-content" data-page-content>
+      <slot />
+      <div data-footer-sentinel aria-hidden="true" style="height:0"></div>
+    </div>
+    <slot name="footer" />
+
+    <script>
+      import { initPageLoader } from '../lib/pageLoader';
+      import { initScrollAnimations } from '../lib/scrollAnimations';
+      initPageLoader();
+      initScrollAnimations();
     </script>
   </body>
 </html>

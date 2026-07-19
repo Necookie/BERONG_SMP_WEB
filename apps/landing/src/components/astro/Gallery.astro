@@ -13,10 +13,10 @@ import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
 >
   <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
     <!-- Section header row -->
-    <div class="flex justify-between items-end mb-12 border-b border-border-stone pb-4">
+    <div class="flex justify-between items-end mb-12 border-b border-border-stone pb-4 reveal-heading">
       <h2
         id="gallery-heading"
-        class="font-headline text-2xl md:text-3xl font-semibold text-white"
+        class="pixel-heading--sm"
       >
         Visual Logs
       </h2>
@@ -33,10 +33,10 @@ import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
     </div>
 
     <!-- Asymmetric grid: 8 cols large / 4 cols stacked -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 reveal">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 reveal-stagger">
 
       <!-- Large featured image (8/12 columns) -->
-      <figure class="md:col-span-8 stone-border bg-surface-container p-2 relative overflow-hidden group">
+      <figure class="md:col-span-8 stone-border bg-surface-container p-2 relative overflow-hidden group" data-parallax-root>
         <div
           class="absolute inset-0 bg-gradient-to-t from-surface-deep via-transparent to-transparent z-10 opacity-60"
           aria-hidden="true"
@@ -49,11 +49,19 @@ import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
           width={960}
           height={500}
           loading="lazy"
+          data-parallax="0.15"
         />
+        <span class="pill-tag absolute top-4 left-4 z-20">SEC-01</span>
+        <!-- Decorative play affordance — no video attached, purely visual -->
+        <div
+          class="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          aria-hidden="true"
+        >
+          <div class="w-14 h-14 rounded-full bg-black/60 border-2 border-white/80 flex items-center justify-center backdrop-blur-sm">
+            <span class="material-symbols-outlined text-white" style="font-size:28px; font-variation-settings:'FILL' 1;">play_arrow</span>
+          </div>
+        </div>
         <figcaption class="absolute bottom-6 left-6 z-20">
-          <span
-            class="px-2 py-1 bg-black/80 font-mono text-[10px] font-medium text-primary border border-primary/30 uppercase mb-2 inline-block"
-          >SEC-01</span>
           <p class="font-headline text-sm font-semibold text-white m-0">Central Staging Area</p>
         </figcaption>
       </figure>
@@ -62,7 +70,7 @@ import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
       <div class="md:col-span-4 flex flex-col gap-6">
 
         <!-- Seismic event -->
-        <figure class="stone-border bg-surface-container p-2 flex-1 relative overflow-hidden group">
+        <figure class="stone-border bg-surface-container p-2 flex-1 relative overflow-hidden group" data-parallax-root>
           <Image
             src={seismicImg}
             alt="Structural destruction during a simulated seismic event — collapsing voxel buildings and debris"
@@ -71,16 +79,13 @@ import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
             width={480}
             height={250}
             loading="lazy"
+            data-parallax="0.1"
           />
-          <figcaption class="absolute bottom-4 left-4 z-20">
-            <span
-              class="px-2 py-1 bg-black/80 font-mono text-[10px] font-medium text-error border border-error/30 uppercase"
-            >Seismic Event</span>
-          </figcaption>
+          <span class="pill-tag pill-tag--error absolute top-3 left-3 z-20">Seismic Event</span>
         </figure>
 
         <!-- Thermal protocol -->
-        <figure class="stone-border bg-surface-container p-2 flex-1 relative overflow-hidden group">
+        <figure class="stone-border bg-surface-container p-2 flex-1 relative overflow-hidden group" data-parallax-root>
           <Image
             src={thermalImg}
             alt="Fire extinguisher mechanics test environment — thermal protocol training in a burning Minecraft room"
@@ -89,12 +94,9 @@ import thermalImg from '../../assets/images/fire-extinguisher-sim.jpg';
             width={480}
             height={250}
             loading="lazy"
+            data-parallax="0.1"
           />
-          <figcaption class="absolute bottom-4 left-4 z-20">
-            <span
-              class="px-2 py-1 bg-black/80 font-mono text-[10px] font-medium text-secondary border border-secondary/30 uppercase"
-            >Thermal Protocol</span>
-          </figcaption>
+          <span class="pill-tag pill-tag--secondary absolute top-3 left-3 z-20">Thermal Protocol</span>
         </figure>
 
       </div>

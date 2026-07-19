@@ -31,10 +31,10 @@ const phases = [
 >
   <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
     <!-- Section header -->
-    <div class="text-center mb-16">
+    <div class="text-center mb-16 reveal-heading">
       <h2
         id="timeline-heading"
-        class="font-headline text-2xl md:text-3xl font-semibold text-white mb-4"
+        class="pixel-heading mb-4 justify-center"
       >
         Deployment Sequence
       </h2>
@@ -45,7 +45,7 @@ const phases = [
 
     <!-- Mobile Timeline Layout (vertical stack) -->
     <div class="md:hidden">
-      <ol class="space-y-6 list-none pl-0">
+      <ol class="space-y-6 list-none pl-0 reveal-stagger">
         {
           phases.map((item) => (
             <li class="bg-surface-elevated stone-border p-6 text-center hover:border-primary/40 transition-colors duration-200">
@@ -67,15 +67,19 @@ const phases = [
       <!-- Horizontal connector line -->
       <div
         class="absolute left-0 right-0 h-[2px] bg-border-stone"
-        style="top: calc(50% - 1px);"
+        style="top: calc(50% - 1px); transform-origin: left center;"
+        data-timeline-line
         aria-hidden="true"
       ></div>
 
-      <div class="grid grid-cols-4 grid-rows-[1fr_auto_1fr] relative">
+      <div class="grid grid-cols-4 grid-rows-[1fr_auto_1fr] relative" data-timeline-sequence>
         <!-- Row 1: Top Cards (Phases 1 & 3) -->
         <div class="row-start-1 col-start-1 pb-10 flex flex-col justify-end">
-          <div class="bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200">
-            <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
+          <div
+            class="timeline-card bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200"
+            data-timeline-phase="0"
+          >
+            <div class="timeline-phase-label font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
               {phases[0].phase}
             </div>
             <h3 class="font-headline text-sm font-semibold text-white mb-2">{phases[0].title}</h3>
@@ -88,8 +92,11 @@ const phases = [
         <div class="row-start-1 col-start-2"></div>
 
         <div class="row-start-1 col-start-3 pb-10 flex flex-col justify-end">
-          <div class="bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200">
-            <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
+          <div
+            class="timeline-card bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200"
+            data-timeline-phase="2"
+          >
+            <div class="timeline-phase-label font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
               {phases[2].phase}
             </div>
             <h3 class="font-headline text-sm font-semibold text-white mb-2">{phases[2].title}</h3>
@@ -103,24 +110,39 @@ const phases = [
 
         <!-- Row 2: Nodes (Phases 1-4) -->
         <div class="row-start-2 col-start-1 flex justify-center py-4 relative z-10">
-          <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45"></div>
+          <div class="relative">
+            <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45 timeline-node" data-timeline-node="0"></div>
+            <div class="timeline-node-ring absolute inset-0 w-4 h-4 border-2 border-primary rotate-45 pointer-events-none" aria-hidden="true"></div>
+          </div>
         </div>
         <div class="row-start-2 col-start-2 flex justify-center py-4 relative z-10">
-          <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45"></div>
+          <div class="relative">
+            <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45 timeline-node" data-timeline-node="1"></div>
+            <div class="timeline-node-ring absolute inset-0 w-4 h-4 border-2 border-primary rotate-45 pointer-events-none" aria-hidden="true"></div>
+          </div>
         </div>
         <div class="row-start-2 col-start-3 flex justify-center py-4 relative z-10">
-          <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45"></div>
+          <div class="relative">
+            <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45 timeline-node" data-timeline-node="2"></div>
+            <div class="timeline-node-ring absolute inset-0 w-4 h-4 border-2 border-primary rotate-45 pointer-events-none" aria-hidden="true"></div>
+          </div>
         </div>
         <div class="row-start-2 col-start-4 flex justify-center py-4 relative z-10">
-          <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45"></div>
+          <div class="relative">
+            <div class="w-4 h-4 bg-surface-base border-2 border-primary rotate-45 timeline-node" data-timeline-node="3"></div>
+            <div class="timeline-node-ring absolute inset-0 w-4 h-4 border-2 border-primary rotate-45 pointer-events-none" aria-hidden="true"></div>
+          </div>
         </div>
 
         <!-- Row 3: Bottom Cards (Phases 2 & 4) -->
         <div class="row-start-3 col-start-1"></div>
 
         <div class="row-start-3 col-start-2 pt-10 flex flex-col justify-start">
-          <div class="bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200">
-            <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
+          <div
+            class="timeline-card bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200"
+            data-timeline-phase="1"
+          >
+            <div class="timeline-phase-label font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
               {phases[1].phase}
             </div>
             <h3 class="font-headline text-sm font-semibold text-white mb-2">{phases[1].title}</h3>
@@ -133,8 +155,11 @@ const phases = [
         <div class="row-start-3 col-start-3"></div>
 
         <div class="row-start-3 col-start-4 pt-10 flex flex-col justify-start">
-          <div class="bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200">
-            <div class="font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
+          <div
+            class="timeline-card bg-surface-elevated stone-border p-6 text-center hover:-translate-y-2 transition-transform duration-200"
+            data-timeline-phase="3"
+          >
+            <div class="timeline-phase-label font-mono text-xs font-medium text-primary mb-2 tracking-widest uppercase">
               {phases[3].phase}
             </div>
             <h3 class="font-headline text-sm font-semibold text-white mb-2">{phases[3].title}</h3>

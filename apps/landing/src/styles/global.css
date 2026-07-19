@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 @tailwind base;
@@ -40,6 +41,8 @@ html.dark {
   --hero-gradient-from: rgba(13, 13, 13, 0.80);
   --hero-gradient-via:  rgba(13, 13, 13, 0.60);
   --hero-gradient-to:   #0d0d0d;
+
+  --band-tint:          rgba(46, 125, 50, 0.05);
 }
 
 /* Light mode overrides */
@@ -75,12 +78,17 @@ html.light {
   --hero-gradient-from: rgba(244, 241, 238, 0.75);
   --hero-gradient-via:  rgba(244, 241, 238, 0.50);
   --hero-gradient-to:   #f4f1ee;
+
+  --band-tint:          rgba(46, 125, 50, 0.08);
 }
 
 /* ── Base ───────────────────────────────────────────────────── */
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #2e7d32 var(--surface-container);
   }
 
   body {
@@ -97,6 +105,40 @@ html.light {
   *::before,
   *::after {
     box-sizing: border-box;
+  }
+
+  /* Chromium/WebKit — blocky pixel scrollbar matching .mc-button's fixed
+     forest-green accent (not themed, same as the CTA button and focus ring).
+     box-shadow reliably fails to paint on ::-webkit-scrollbar-thumb in
+     Chromium, so the bevel is a diagonal gradient instead — light corner to
+     dark corner, same highlight/shadow colors as .mc-button's inset shadow. */
+  ::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: var(--bg-base);
+    border-left: 1px solid var(--border-stone-solid);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-image: linear-gradient(135deg, #88d982 0%, #2e7d32 25%, #2e7d32 75%, #003909 100%);
+    border: 2px solid var(--bg-base);
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-image: linear-gradient(135deg, #a8e6a2 0%, #43a047 25%, #43a047 75%, #003909 100%);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background-image: linear-gradient(135deg, #003909 0%, #2e7d32 25%, #2e7d32 75%, #88d982 100%);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background-color: var(--bg-base);
   }
 }
 
@@ -173,6 +215,81 @@ html.light {
     @apply hidden md:flex absolute top-1/2 left-1/2
            -translate-y-1/2 -translate-x-1/2
            w-4 h-4 bg-surface-base border-2 border-primary rotate-45 z-10;
+  }
+
+  /* Pixel display heading — bitmap-style font for big section titles */
+  .pixel-heading {
+    @apply font-pixel inline-flex items-center gap-3 uppercase font-bold text-3xl md:text-5xl text-shadow-mc;
+    color: var(--text-heading);
+    letter-spacing: 0.01em;
+  }
+
+  /* Smaller variant for longer, sentence-length headings (e.g. About) */
+  .pixel-heading--sm {
+    @apply font-pixel inline-flex items-center gap-3 uppercase font-bold text-xl md:text-2xl text-shadow-mc;
+    color: var(--text-heading);
+    letter-spacing: 0.01em;
+  }
+
+  /* Small rotated-square accent flanking pixel headings / the navbar wordmark */
+  .pixel-diamond {
+    @apply inline-block w-2 h-2 md:w-2.5 md:h-2.5 shrink-0;
+    background-color: #88d982;
+    transform: rotate(45deg);
+  }
+
+  /* Corner category tag on image cards — matches Gallery's badge treatment */
+  .pill-tag {
+    @apply inline-flex items-center px-2 py-1 bg-black/80 font-mono text-[10px] font-medium tracking-widest uppercase text-primary border border-primary/30;
+  }
+  .pill-tag--error {
+    @apply text-error border-error/30;
+  }
+  .pill-tag--secondary {
+    @apply text-secondary border-secondary/30;
+  }
+
+  /* Full-width promo banner divider — .mc-button's bevel technique at block scale */
+  .mc-banner {
+    @apply flex flex-wrap items-center justify-center gap-3 w-full px-6 py-6 text-center no-underline;
+    border: 1px solid #1b6d24;
+    background-color: #2e7d32;
+    color: #ffffff;
+    box-shadow:
+      inset 2px 2px 0px 0px #88d982,
+      inset -2px -2px 0px 0px #003909;
+    transition: background-color var(--dur-fast, 180ms) ease;
+  }
+  .mc-banner:hover {
+    background-color: #43a047;
+  }
+
+  /* Footer stat chip — icon + mono number + mono label */
+  .stat-badge {
+    @apply flex flex-col items-center gap-1 px-5 py-3 bg-surface-elevated stone-border;
+  }
+
+  /* Wraps everything above the footer so it fully occludes the fixed footer
+     sitting behind it — must match body's own background exactly (including
+     translucent sections like Features/Instructions that rely on it showing
+     through), or the footer bleeds through partway down the page instead of
+     only in the reveal gap at the very bottom. */
+  .page-content {
+    position: relative;
+    z-index: 1;
+    background-color: var(--bg-base);
+    background-image: radial-gradient(var(--bg-dot) 1px, transparent 1px);
+    background-size: var(--bg-dot-size) var(--bg-dot-size);
+  }
+
+  /* Pinned behind .page-content; revealed once the page scrolls past the
+     margin-bottom gap reserved for it (see initFooterReveal in scrollAnimations.ts). */
+  .reveal-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
   }
 }
 
@@ -373,37 +490,9 @@ li {
   --dur-enter:    520ms;
 }
 
-/* Scroll-reveal — start hidden, fire when .is-visible is added by JS */
-.reveal {
-  opacity: 0;
-  transform: translateY(18px);
-  transition:
-    opacity var(--dur-enter) var(--ease-out-expo),
-    transform var(--dur-enter) var(--ease-out-expo);
-}
-.reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Staggered child reveals — list items, grid cards */
-.reveal-stagger > * {
-  opacity: 0;
-  transform: translateY(14px);
-  transition:
-    opacity var(--dur-enter) var(--ease-out-expo),
-    transform var(--dur-enter) var(--ease-out-expo);
-}
-.reveal-stagger.is-visible > * {
-  opacity: 1;
-  transform: translateY(0);
-}
-.reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0ms; }
-.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 65ms; }
-.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 130ms; }
-.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 195ms; }
-.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 260ms; }
-.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 325ms; }
+/* .reveal / .reveal-stagger / [data-parallax] states are owned entirely by
+   GSAP ScrollTrigger now — see src/lib/scrollAnimations.ts. No CSS needed
+   here; elements are visible by default until JS decides to animate them. */
 
 /* ── Typography refinements ─────────────────────────────────── */
 h1, h2, h3 {
@@ -423,14 +512,56 @@ h1, h2, h3 {
   outline-offset: 3px;
 }
 
+/* ── Page Loader ─────────────────────────────────────────────── */
+/* Locks scroll while the boot screen is up; toggled by pageLoader.ts. */
+html.loading-lock,
+html.loading-lock body {
+  overflow: hidden;
+  height: 100%;
+}
+
+.loader-panel-bg {
+  background-color: var(--bg-base);
+  background-image: radial-gradient(var(--bg-dot) 1px, transparent 1px);
+  background-size: var(--bg-dot-size) var(--bg-dot-size);
+}
+
+/* Hairline where the two split panels meet at rest; scaleX'd in on intro,
+   same "draw-in" language as the Timeline connector. */
+.loader-seam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background-color: #2e7d32;
+  opacity: 0.5;
+  transform: scaleX(0);
+  pointer-events: none;
+}
+
+.loader-logo-frame {
+  @apply flex items-center justify-center w-24 h-24 md:w-28 md:h-28 bg-surface-elevated stone-border;
+  box-shadow:
+    inset 1px 1px 0px 0px var(--stone-shadow-inner-hi),
+    inset -1px -1px 0px 0px var(--stone-shadow-inner-lo),
+    0 0 24px rgba(46, 125, 50, 0.25);
+}
+
+.loader-corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-color: #2e7d32;
+  opacity: 0;
+}
+.loader-corner--tl { top: 24px; left: 24px; border-top: 2px solid; border-left: 2px solid; }
+.loader-corner--tr { top: 24px; right: 24px; border-top: 2px solid; border-right: 2px solid; }
+.loader-corner--bl { bottom: 24px; left: 24px; border-bottom: 2px solid; border-left: 2px solid; }
+.loader-corner--br { bottom: 24px; right: 24px; border-bottom: 2px solid; border-right: 2px solid; }
+
 /* ── Reduced motion overrides ───────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .reveal-stagger > * {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
   .animate-mascot-float {
     animation: none !important;
   }

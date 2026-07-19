@@ -33,10 +33,22 @@ import Footer        from '../components/astro/Footer.astro';
     <Features />
     <Timeline />
     <Gallery />
+
+    <!-- Promo interstitial -->
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop my-4">
+      <a href="#enroll" class="mc-banner">
+        <span class="pixel-diamond" aria-hidden="true"></span>
+        <span class="font-mono text-xs md:text-sm font-bold uppercase tracking-widest">
+          Ready to deploy? Join the simulation
+        </span>
+        <span class="material-symbols-outlined" style="font-size:18px;" aria-hidden="true">arrow_forward</span>
+      </a>
+    </div>
+
     <Rules />
     <Instructions />
     <EnrollSection />
   </main>
 
-  <Footer />
+  <Footer slot="footer" />
 </BaseLayout>

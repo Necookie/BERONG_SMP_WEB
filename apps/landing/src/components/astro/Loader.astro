@@ -1,0 +1,59 @@
+---
+// Loader.astro – Full-viewport GSAP boot screen shown while the page loads.
+// Markup only; the animation timeline lives in src/lib/pageLoader.ts so it
+// can be unit-testable/tree-shaken independent of the template.
+import { Image } from 'astro:assets';
+import logo from '../../assets/images/berong-elearning-logo.png';
+---
+
+<div
+  data-page-loader
+  role="status"
+  aria-live="polite"
+  aria-label="Loading BERONG SMP"
+  class="fixed inset-0 z-[999] flex items-center justify-center overflow-hidden"
+>
+  <div data-loader-top class="loader-panel-bg absolute inset-x-0 top-0 h-1/2"></div>
+  <div data-loader-bottom class="loader-panel-bg absolute inset-x-0 bottom-0 h-1/2"></div>
+  <div data-loader-seam class="loader-seam" aria-hidden="true"></div>
+
+  <span data-loader-corner class="loader-corner loader-corner--tl" aria-hidden="true"></span>
+  <span data-loader-corner class="loader-corner loader-corner--tr" aria-hidden="true"></span>
+  <span data-loader-corner class="loader-corner loader-corner--bl" aria-hidden="true"></span>
+  <span data-loader-corner class="loader-corner loader-corner--br" aria-hidden="true"></span>
+
+  <div data-loader-content class="relative z-10 flex flex-col items-center gap-5 px-6 text-center">
+    <div data-loader-logo class="loader-logo-frame">
+      <Image
+        src={logo}
+        alt=""
+        width={96}
+        height={96}
+        loading="eager"
+        format="webp"
+        quality={90}
+        class="w-14 h-14 md:w-16 md:h-16 object-contain"
+      />
+    </div>
+
+    <div data-loader-brand class="flex items-center gap-2">
+      <span class="pixel-diamond" aria-hidden="true"></span>
+      <span class="font-headline text-base md:text-lg font-bold uppercase tracking-wider" style="color:var(--text-heading)">
+        Berong <span class="text-primary">SMP</span>
+      </span>
+      <span class="pixel-diamond" aria-hidden="true"></span>
+    </div>
+
+    <p
+      data-loader-status
+      class="font-mono text-[11px] md:text-xs tracking-widest uppercase text-on-surface-variant min-h-[1.2em]"
+    ></p>
+
+    <div class="w-52 md:w-64 flex flex-col gap-1.5">
+      <div class="xp-bar">
+        <div data-loader-bar-fill class="xp-bar-fill" style="width:0%"></div>
+      </div>
+      <span data-loader-percent class="self-end font-mono text-[10px] text-on-surface-variant">0%</span>
+    </div>
+  </div>
+</div>

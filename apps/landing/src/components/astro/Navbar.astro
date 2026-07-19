@@ -8,13 +8,13 @@ import logo from '../../assets/images/berong-elearning-logo.png';
 const isCommandsPage = Astro.url.pathname.startsWith('/commands');
 
 const navLinks = [
-  { href: isCommandsPage ? '/' : '#',        label: 'Home'     },
-  { href: isCommandsPage ? '/#about' : '#about',   label: 'About'    },
-  { href: isCommandsPage ? '/#features' : '#features',label: 'Features' },
-  { href: isCommandsPage ? '/#gallery' : '#gallery', label: 'Gallery'  },
-  { href: isCommandsPage ? '/#rules' : '#rules',   label: 'Rules'    },
-  { href: isCommandsPage ? '/#instructions' : '#instructions', label: 'Instructions' },
-  { href: '/commands', label: 'Commands' },
+  { key: 'home',         href: isCommandsPage ? '/' : '#',        label: 'Home'     },
+  { key: 'about',        href: isCommandsPage ? '/#about' : '#about',   label: 'About'    },
+  { key: 'features',     href: isCommandsPage ? '/#features' : '#features',label: 'Features' },
+  { key: 'gallery',      href: isCommandsPage ? '/#gallery' : '#gallery', label: 'Gallery'  },
+  { key: 'rules',        href: isCommandsPage ? '/#rules' : '#rules',   label: 'Rules'    },
+  { key: 'instructions', href: isCommandsPage ? '/#instructions' : '#instructions', label: 'Instructions' },
+  { key: 'commands',     href: '/commands', label: 'Commands' },
 ];
 ---
 
@@ -22,30 +22,31 @@ const navLinks = [
   class="bg-surface-deep fixed top-0 w-full z-50 glass-panel"
   aria-label="Primary navigation"
 >
-  <div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+  <div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-2.5 max-w-container-max mx-auto">
     <!-- Logo -->
-    <a href="/" aria-label="BERONG SMP home" class="flex items-center gap-3">
+    <a href="/" aria-label="BERONG SMP home" class="flex items-center gap-2">
       <Image
         src={logo}
         alt="BERONG SMP logo"
-        class="h-10 w-10 md:h-12 md:w-12 object-contain"
+        class="h-8 w-8 md:h-9 md:w-9 object-contain"
         width={48}
         height={48}
         loading="eager"
         format="webp"
         quality={85}
       />
-      <span class="font-headline text-lg md:text-xl font-bold text-white uppercase tracking-wider">
+      <span class="font-headline text-base md:text-lg font-bold text-white uppercase tracking-wider">
         Berong <span class="text-primary">SMP</span>
       </span>
     </a>
 
     <!-- Desktop links -->
-    <ul class="hidden md:flex items-center gap-8 list-none" role="list">
-      {navLinks.map(({ href, label }) => (
+    <ul class="hidden md:flex items-center gap-6 list-none" role="list">
+      {navLinks.map(({ key, href, label }) => (
         <li>
           <a
             href={href}
+            data-nav-key={key}
             class={[
               'font-mono text-xs font-medium tracking-widest uppercase transition-colors',
               (isCommandsPage ? label === 'Commands' : label === 'Home')
@@ -63,7 +64,7 @@ const navLinks = [
     <div class="flex items-center gap-2">
       <a
         href="#enroll"
-        class="mc-button px-6 py-2 font-mono text-xs font-medium uppercase tracking-wider hidden md:block"
+        class="mc-button magnetic px-5 py-1.5 font-mono text-xs font-medium uppercase tracking-wider hidden md:block"
       >
         Join Server
       </a>

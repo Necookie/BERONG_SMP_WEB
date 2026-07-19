@@ -82,6 +82,7 @@ module.exports = {
         'display':     ['"Space Grotesk"', 'sans-serif'],
         'body':        ['Inter', 'sans-serif'],
         'mono':        ['"JetBrains Mono"', 'monospace'],
+        'pixel':       ['"Pixelify Sans"', 'sans-serif'],
         // Extended aliases for landing page
         'headline-xl': ['"Space Grotesk"', 'sans-serif'],
         'headline-lg': ['"Space Grotesk"', 'sans-serif'],

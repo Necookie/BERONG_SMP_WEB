@@ -2,15 +2,16 @@
 // Hero.astro – Full-viewport hero with background image, status badge, server address copy widget
 import { Image } from 'astro:assets';
 import heroBg from '../../assets/images/hero-background.jpg';
-import mascot from '../../assets/images/berong-mascot.png';
+import mascot from '../../assets/images/berong-mascot-new.png';
 import ServerStatus from '../react/ServerStatus';
 ---
 
 <header
+  id="home"
   class="relative pt-32 pb-24 lg:pt-48 lg:pb-32 flex items-center justify-center min-h-[90vh] overflow-hidden"
 >
   <!-- Background image layer -->
-  <div class="absolute inset-0 z-0">
+  <div class="absolute inset-0 z-0" data-parallax="0.15">
     <div
       class="absolute inset-0 bg-gradient-to-b from-surface-deep/80 via-surface-deep/60 to-surface-deep z-10"
     ></div>
@@ -27,14 +28,15 @@ import ServerStatus from '../react/ServerStatus';
 
   <!-- Content -->
   <div
-    class="relative z-20 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center flex flex-col items-center hero-enter"
+    class="relative z-20 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center flex flex-col items-center"
+    data-hero-intro
   >
     <!-- Status badge -->
     <ServerStatus client:load />
 
     <!-- H1 -->
     <h1
-      class="font-headline text-5xl md:text-[64px] md:leading-[72px] font-bold text-white mb-6 tracking-tighter uppercase text-shadow-mc"
+      class="font-pixel text-4xl md:text-[64px] md:leading-[72px] font-bold text-white mb-6 tracking-tight uppercase text-shadow-mc"
     >
       BERONG <span class="text-primary">SMP</span>
     </h1>
@@ -70,7 +72,7 @@ import ServerStatus from '../react/ServerStatus';
 
       <!-- Join CTA -->
       <button
-        class="mc-button px-8 py-4 font-mono text-xs font-medium uppercase tracking-widest w-full sm:w-auto"
+        class="mc-button magnetic px-8 py-4 font-mono text-xs font-medium uppercase tracking-widest w-full sm:w-auto"
         onclick="document.getElementById('enroll').scrollIntoView({behavior:'smooth'})"
       >
         Join Now
@@ -78,20 +80,25 @@ import ServerStatus from '../react/ServerStatus';
     </div>
   </div>
 
-  <!-- Mascot (Berong Waving) -->
+  <!-- Mascot (Berong Waving) — outer div is the GSAP peek-in/hide target (position
+       + opacity only), inner div keeps the idle float loop, so the two transform
+       animations never fight over the same element's `transform` property. -->
   <div
-    class="hidden lg:block absolute bottom-0 right-0 z-10 w-[300px] xl:w-[420px] pointer-events-none select-none opacity-85 xl:opacity-100 transition-all duration-500 translate-x-4 xl:translate-x-0 animate-mascot-float"
+    class="hidden lg:block absolute bottom-0 right-0 z-10 w-[300px] xl:w-[420px] pointer-events-none select-none"
+    data-mascot-peek
   >
-    <Image
-      src={mascot}
-      alt="Berong Mascot - Bureau of Fire Protection waving bull"
-      class="w-full h-auto object-contain object-bottom-right"
-      width={420}
-      height={630}
-      loading="eager"
-      format="webp"
-      quality={90}
-    />
+    <div class="opacity-85 xl:opacity-100 transition-all duration-500 translate-x-4 xl:translate-x-0 animate-mascot-float">
+      <Image
+        src={mascot}
+        alt="Berong Mascot - Bureau of Fire Protection waving bull"
+        class="w-full h-auto object-contain"
+        width={420}
+        height={563}
+        loading="eager"
+        format="webp"
+        quality={90}
+      />
+    </div>
   </div>
 </header>
 
@@ -126,29 +133,5 @@ import ServerStatus from '../react/ServerStatus';
 
   .animate-mascot-float {
     animation: float 6s ease-in-out infinite;
-  }
-
-  @keyframes hero-enter {
-    from {
-      opacity: 0;
-      transform: translateY(22px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .hero-enter {
-    animation: hero-enter 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: 80ms;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .hero-enter {
-      animation: none;
-      opacity: 1;
-      transform: none;
-    }
   }
 </style>
