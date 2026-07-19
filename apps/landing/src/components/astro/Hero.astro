@@ -80,25 +80,35 @@ import ServerStatus from '../react/ServerStatus';
     </div>
   </div>
 
-  <!-- Mascot (Berong Waving) — outer div is the GSAP peek-in/hide target (position
-       + opacity only), inner div keeps the idle float loop, so the two transform
-       animations never fight over the same element's `transform` property. -->
+  <!-- Mascot (Berong Waving) — outer div is the GSAP scroll peek-in/hide target
+       (position + opacity), the button is the click-to-swap-sides target
+       (x + opacity, see initMascotToggle), and the innermost div keeps the
+       idle float loop. Three separate elements so none of the transform
+       animations ever fight over the same element's `transform` property. -->
   <div
     class="hidden lg:block absolute bottom-0 right-0 z-10 w-[300px] xl:w-[420px] pointer-events-none select-none"
     data-mascot-peek
+    data-mascot-side="right"
   >
-    <div class="opacity-85 xl:opacity-100 transition-all duration-500 translate-x-4 xl:translate-x-0 animate-mascot-float">
-      <Image
-        src={mascot}
-        alt="Berong Mascot - Bureau of Fire Protection waving bull"
-        class="w-full h-auto object-contain"
-        width={420}
-        height={563}
-        loading="eager"
-        format="webp"
-        quality={90}
-      />
-    </div>
+    <button
+      type="button"
+      data-mascot-toggle
+      aria-label="Move Berong to the other side"
+      class="block w-full bg-transparent border-0 p-0 m-0 pointer-events-auto cursor-pointer"
+    >
+      <div class="opacity-85 xl:opacity-100 transition-all duration-500 translate-x-4 xl:translate-x-0 animate-mascot-float">
+        <Image
+          src={mascot}
+          alt="Berong Mascot - Bureau of Fire Protection waving bull"
+          class="w-full h-auto object-contain"
+          width={420}
+          height={563}
+          loading="eager"
+          format="webp"
+          quality={90}
+        />
+      </div>
+    </button>
   </div>
 </header>
 

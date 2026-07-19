@@ -94,6 +94,7 @@ export function initScrollAnimations(): void {
       initTimelineDraw();
       initMagneticButtons();
       initMascotPeek();
+      initMascotToggle();
     }
   );
 
@@ -320,6 +321,56 @@ function initMascotPeek(): void {
     end: 'bottom top',
     onLeave: () => tween.reverse(),
     onEnterBack: () => tween.play(),
+  });
+}
+
+/**
+ * Click-to-swap: clicking the mascot hides it (slide + fade toward whichever
+ * edge it's currently anchored to) then reappears mirrored on the opposite
+ * edge. Runs on the button nested inside [data-mascot-peek], animating x/
+ * autoAlpha there — a different element and property set than initMascotPeek's
+ * xPercent/yPercent/autoAlpha on the wrapper, so the two never collide.
+ */
+function initMascotToggle(): void {
+  const wrapper = document.querySelector<HTMLElement>('[data-mascot-peek]');
+  const btn = wrapper?.querySelector<HTMLButtonElement>('[data-mascot-toggle]');
+  if (!wrapper || !btn) return;
+
+  let side: 'right' | 'left' = 'right';
+  let animating = false;
+  const edgeOffset = 60;
+
+  btn.addEventListener('click', () => {
+    if (animating) return;
+    animating = true;
+
+    gsap.to(btn, {
+      x: side === 'right' ? edgeOffset : -edgeOffset,
+      autoAlpha: 0,
+      duration: 0.35,
+      ease: 'power2.in',
+      onComplete: () => {
+        side = side === 'right' ? 'left' : 'right';
+        wrapper.dataset.mascotSide = side;
+        wrapper.classList.toggle('right-0', side === 'right');
+        wrapper.classList.toggle('left-0', side === 'left');
+        btn.classList.toggle('-scale-x-100', side === 'left');
+
+        gsap.fromTo(
+          btn,
+          { x: side === 'right' ? edgeOffset : -edgeOffset, autoAlpha: 0 },
+          {
+            x: 0,
+            autoAlpha: 1,
+            duration: 0.5,
+            ease: 'back.out(1.6)',
+            onComplete: () => {
+              animating = false;
+            },
+          }
+        );
+      },
+    });
   });
 }
 
