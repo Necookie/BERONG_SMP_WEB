@@ -108,7 +108,7 @@ export default function MobileMenu({ links }: Props) {
 
       <div ref={ctaRef} className="px-6 pb-10 w-full flex justify-center">
         <a
-          href="#enroll"
+          href="#instructions"
           className="mc-button block w-full max-w-xs text-center px-6 py-3 font-mono text-xs font-medium uppercase tracking-widest"
           onClick={() => setOpen(false)}
         >
