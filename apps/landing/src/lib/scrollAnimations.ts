@@ -354,7 +354,11 @@ function initMascotToggle(): void {
         wrapper.dataset.mascotSide = side;
         wrapper.classList.toggle('right-0', side === 'right');
         wrapper.classList.toggle('left-0', side === 'left');
-        btn.classList.toggle('-scale-x-100', side === 'left');
+
+        // scaleX must be a GSAP-managed property, not a Tailwind class: GSAP
+        // writes the whole `transform` as one inline style, so a class-based
+        // transform on the same element would just get clobbered by it.
+        gsap.set(btn, { scaleX: side === 'left' ? -1 : 1 });
 
         gsap.fromTo(
           btn,
