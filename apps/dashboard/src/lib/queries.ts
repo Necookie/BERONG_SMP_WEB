@@ -421,7 +421,7 @@ export async function updateSessionDetails(
     student_name: string;
     student_id: string | null;
     section: string | null;
-    simulation_type: 'FIRE' | 'EARTHQUAKE' | 'CCS_FIRE' | 'CCS_EARTHQUAKE' | null;
+    simulation_type: 'FIRE' | 'EARTHQUAKE' | 'CCS_FIRE' | 'CCS_EARTHQUAKE' | 'NEW_SIM_BUILDING2_FIRE' | null;
     simulation_score: number;
     prep_level: 'HIGH' | 'MODERATE' | 'LOW' | 'PENDING' | null;
     passed: number;
