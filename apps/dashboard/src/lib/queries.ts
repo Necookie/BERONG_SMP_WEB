@@ -698,8 +698,14 @@ export async function getScoreHistogramBuckets(env: Env): Promise<number[]> {
   return buckets;
 }
 
+/** Per-session rubric signals for the overview charts, computed in the database. */
 export interface AnalyticsSession {
-  event_log: string | null;
+  alarmActivated: boolean;
+  extHits: number;
+  doorOpens: number;
+  assemblyReached: boolean;
+  exitUsed: boolean;
+  evacuationTimeSec: number | null;
 }
 
 // Only event_log survives here — every other analytics chart is now a direct SQL
@@ -707,12 +713,38 @@ export interface AnalyticsSession {
 // above). Safety-behavior and evacuation-time charts still need per-row event_log
 // parsing (extractRubricSignals), which isn't practical to replicate as SQL JSON path
 // expressions without real risk of behavior drift.
+// Same signals extractRubricSignals derives, but computed by SQLite's JSON functions so the overview
+// no longer downloads and parses every completed session's full event_log on each page view (that
+// grew with every recorded session and made the overview slow under concurrent use).
 export async function getAnalyticsSessions(env: Env): Promise<AnalyticsSession[]> {
   const db = getDb(env);
-  const res = await db.execute(`SELECT event_log FROM sessions WHERE status = 'completed'`);
+  const res = await db.execute(`
+    SELECT
+      COALESCE(MAX(json_extract(j.value, '$.type') = 'fire_alarm_activate'), 0) AS alarm,
+      COALESCE(SUM((json_extract(j.value, '$.type') = 'EXT_SPRAY' AND json_extract(j.value, '$.data.hit_fire') = 1)
+                 OR (json_extract(j.value, '$.type') = 'extinguisher_use' AND json_extract(j.value, '$.data.hit_target') = 1)), 0) AS ext_hits,
+      COALESCE(SUM(json_extract(j.value, '$.type') = 'door_open'), 0) AS door_opens,
+      COALESCE(MAX(json_extract(j.value, '$.type') = 'assembly_area_reached'), 0) AS assembly,
+      COALESCE(MAX(json_extract(j.value, '$.type') = 'emergency_exit'
+                 AND COALESCE(json_extract(j.value, '$.data.exit'), json_extract(j.value, '$.data.interaction_target'), '') <> ''), 0) AS exit_used,
+      MAX(CASE WHEN json_extract(j.value, '$.type') = 'assembly_area_reached'
+                AND json_type(j.value, '$.data.t') IN ('integer', 'real')
+               THEN json_extract(j.value, '$.data.t') END) AS evac_s
+    FROM sessions s
+    LEFT JOIN json_each(CASE WHEN json_valid(s.event_log) THEN s.event_log ELSE '[]' END) j
+    WHERE s.status = 'completed'
+    GROUP BY s.id
+  `);
   return res.rows.map(r => {
     const row = r as Record<string, unknown>;
-    return { event_log: row.event_log != null ? String(row.event_log) : null };
+    return {
+      alarmActivated: Number(row.alarm) === 1,
+      extHits: Number(row.ext_hits ?? 0),
+      doorOpens: Number(row.door_opens ?? 0),
+      assemblyReached: Number(row.assembly) === 1,
+      exitUsed: Number(row.exit_used) === 1,
+      evacuationTimeSec: row.evac_s != null ? Number(row.evac_s) : null,
+    };
   });
 }
 

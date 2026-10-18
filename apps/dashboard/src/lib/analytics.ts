@@ -1,4 +1,4 @@
-import { extractRubricSignals, type AnalyticsSession } from './queries';
+import type { AnalyticsSession } from './queries';
 
 export interface SafetyBehaviorStat {
   label: string;
@@ -10,8 +10,7 @@ export interface SafetyBehaviorStat {
 export function buildSafetyBehavior(sessions: AnalyticsSession[]): SafetyBehaviorStat[] {
   const total = sessions.length;
   let alarm = 0, ext = 0, door = 0, assembly = 0, exit = 0;
-  for (const s of sessions) {
-    const sig = extractRubricSignals(s.event_log);
+  for (const sig of sessions) {
     if (sig.alarmActivated) alarm++;
     if (sig.extHits > 0) ext++;
     if (sig.doorOpens > 0) door++;
@@ -45,8 +44,7 @@ const EVAC_BUCKETS = [
 // Distribution of time-to-assembly-point across sessions that reached it.
 export function buildEvacuationTimeBuckets(sessions: AnalyticsSession[]): EvacBucket[] {
   const counts = new Array(EVAC_BUCKETS.length).fill(0);
-  for (const s of sessions) {
-    const sig = extractRubricSignals(s.event_log);
+  for (const sig of sessions) {
     if (sig.evacuationTimeSec == null) continue;
     const idx = EVAC_BUCKETS.findIndex(b => sig.evacuationTimeSec! <= b.max);
     counts[idx === -1 ? EVAC_BUCKETS.length - 1 : idx]++;
