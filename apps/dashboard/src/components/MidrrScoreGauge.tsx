@@ -33,8 +33,8 @@ export default function MidrrScoreGauge({ score, tier }: MidrrScoreGaugeProps) {
             stroke="none"
             isAnimationActive={false}
           >
-            <Cell fill={color} />
-            <Cell fill="var(--border-table)" />
+            <Cell fill={color} aria-label={`MiDRR score ${clamped} out of 100`} />
+            <Cell fill="var(--border-table)" aria-hidden="true" />
           </Pie>
         </PieChart>
       </ResponsiveContainer>

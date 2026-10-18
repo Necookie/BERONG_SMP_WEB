@@ -109,7 +109,7 @@ function sortClass(key: string): string {
           <table class="sessions-table" id="sessions-table">
             <thead>
               <tr>
-                <th class="checkbox-col"><input type="checkbox" id="check-all" /></th>
+                <th class="checkbox-col"><input type="checkbox" id="check-all" aria-label="Select all sessions on this page" /></th>
                 <th class={`sortable ${sortClass('id')}`} data-sort-key="id">ID</th>
                 <th class={`sortable ${sortClass('student')}`} data-sort-key="student">Student</th>
                 <th class={`sortable ${sortClass('section')}`} data-sort-key="section">Section</th>
@@ -127,7 +127,7 @@ function sortClass(key: string): string {
                 return (
                   <tr onclick={`window.location='/sessions/${s.id}'`}>
                     <td class="checkbox-col" onclick="event.stopPropagation()">
-                      <input type="checkbox" class="row-check" data-id={s.id} />
+                      <input type="checkbox" class="row-check" data-id={s.id} aria-label={`Select session ${s.id} (${s.student_name})`} />
                     </td>
                     <td class="td-mono-id">
                       {s.id}

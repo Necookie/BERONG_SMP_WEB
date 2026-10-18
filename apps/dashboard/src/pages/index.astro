@@ -78,8 +78,8 @@ const evacBuckets  = buildEvacuationTimeBuckets(analyticsSessions);
       </p>
     </div>
     <div class="view-switch" role="tablist" aria-label="Dashboard comprehensiveness">
-      <button type="button" class="view-switch-btn" data-view="basic">Basic</button>
-      <button type="button" class="view-switch-btn" data-view="advanced">Advanced</button>
+      <button type="button" class="view-switch-btn" role="tab" aria-selected="true" data-view="basic">Basic</button>
+      <button type="button" class="view-switch-btn" role="tab" aria-selected="false" data-view="advanced">Advanced</button>
     </div>
   </div>
 
@@ -294,7 +294,11 @@ const evacBuckets  = buildEvacuationTimeBuckets(analyticsSessions);
 
     function syncActiveState() {
       const isAdvanced = document.documentElement.classList.contains('view-advanced');
-      buttons.forEach(b => b.classList.toggle('active', b.dataset.view === (isAdvanced ? 'advanced' : 'basic')));
+      buttons.forEach(b => {
+        const on = b.dataset.view === (isAdvanced ? 'advanced' : 'basic');
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', String(on));
+      });
     }
 
     syncActiveState();

@@ -35,7 +35,7 @@ export default function PrepChart({ high, moderate, low }: PrepChartProps) {
             isAnimationActive={false}
           >
             {data.map(entry => (
-              <Cell key={entry.name} fill={COLORS[entry.name]} />
+              <Cell key={entry.name} fill={COLORS[entry.name]} aria-label={`${entry.name}: ${entry.value} sessions`} />
             ))}
           </Pie>
           <Tooltip
