@@ -23,7 +23,7 @@ if (!session) {
 
 const level = derivePrepLevel(session.simulation_score, session.prep_level);
 const tierClass = level !== 'PENDING' ? level.toLowerCase() : 'low';
-const isFireSession = session.simulation_type === 'FIRE' || session.simulation_type === 'CCS_FIRE';
+const isFireSession = session.simulation_type === 'FIRE' || session.simulation_type === 'CCS_FIRE' || session.simulation_type === 'NEW_SIM_BUILDING2_FIRE';
 const logEntries = parseEventLog(session.event_log);
 const rubric     = extractRubricSignals(session.event_log);
 const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
