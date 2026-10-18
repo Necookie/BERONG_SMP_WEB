@@ -2,14 +2,30 @@ import { defineMiddleware } from 'astro:middleware';
 import { getEnv } from './lib/db';
 import { validateSession } from './lib/queries';
 
+// Every other /api/* route reads or changes student data and requires a valid session.
+const PUBLIC_API_ROUTES = new Set([
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/api/auth/register',
+  '/api/auth/setup',
+]);
+
+function unauthorized(): Response {
+  return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), {
+    status: 401,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const url = new URL(context.request.url);
   const pathname = url.pathname;
 
-  // Exempt login, setup, and api routes from redirection
-  if (pathname === '/login' || pathname === '/setup' || pathname.startsWith('/api/')) {
+  // Login/setup pages and the pre-login auth endpoints stay public
+  if (pathname === '/login' || pathname === '/setup' || PUBLIC_API_ROUTES.has(pathname)) {
     return next();
   }
+  const isApi = pathname.startsWith('/api/');
 
   const env = await getEnv();
   if (!env) {
@@ -19,14 +35,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const sessionToken = context.cookies.get('session_token')?.value;
   if (!sessionToken) {
-    return context.redirect('/login');
+    return isApi ? unauthorized() : context.redirect('/login');
   }
 
   const sessionData = await validateSession(env, sessionToken);
   if (!sessionData) {
     // Clear invalid cookie
     context.cookies.delete('session_token', { path: '/' });
-    return context.redirect('/login');
+    return isApi ? unauthorized() : context.redirect('/login');
   }
 
   // Store user data in locals for use in pages if needed
