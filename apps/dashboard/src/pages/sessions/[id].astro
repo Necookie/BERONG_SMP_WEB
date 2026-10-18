@@ -44,6 +44,13 @@ const midrrRaw: Record<string, number> = session.midrr_features
 const cohortAvg = (env && session.simulation_type)
   ? await getMidrrCohortAverage(env, session.simulation_type)
   : null;
+// The confidence column holds two scales: a classifier probability (0 to 1) or the instructor's
+// /bfp confidence rating (1 to 5). Show each on its own terms instead of rendering 4.8 as 480%.
+const confidenceView = (() => {
+  const c = session?.confidence ?? 0;
+  if (c > 1) return { pct: Math.min(100, Math.round((c / 5) * 100)), label: `Instructor rating: ${c.toFixed(1)} / 5` };
+  return { pct: Math.max(0, Math.min(100, Math.round(c * 100))), label: `Confidence: ${Math.round(c * 100)}%` };
+})();
 ---
 
 <DashboardLayout
@@ -242,9 +249,9 @@ const cohortAvg = (env && session.simulation_type)
                 <>
                   <span class={`midrr-tier-${tierClass}`}>{level}</span>
                   <div class="feat-track" style="margin-top:8px;">
-                    <div class="feat-fill" style={`width: ${Math.round((session.confidence ?? 0) * 100)}%`}></div>
+                    <div class="feat-fill" style={`width: ${confidenceView.pct}%`}></div>
                   </div>
-                  <span class="midrr-timestamp">Confidence: {Math.round((session.confidence ?? 0) * 100)}%</span>
+                  <span class="midrr-timestamp">{confidenceView.label}</span>
                 </>
               ) : (
                 <span class="midrr-timestamp" style="margin-top:8px;">Not yet classified.</span>
