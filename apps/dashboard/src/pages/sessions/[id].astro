@@ -34,11 +34,16 @@ const rubric     = extractRubricSignals(session.event_log);
 const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
 
 const midrrTierClass = session.midrr_prep_level ? session.midrr_prep_level.toLowerCase() : null;
-const midrrWeights: { feature: string; weight: number }[] = session.midrr_feature_importance
-  ? JSON.parse(session.midrr_feature_importance)
-  : [];
-const midrrRaw: Record<string, number> = session.midrr_features
-  ? JSON.parse(session.midrr_features)
+// Stored JSON can be damaged (manual edits, an interrupted write); a bad value must not take the page down.
+function safeJson(text: string | null | undefined): unknown {
+  if (!text) return null;
+  try { return JSON.parse(text); } catch { return null; }
+}
+const weightsParsed = safeJson(session.midrr_feature_importance);
+const midrrWeights: { feature: string; weight: number }[] = Array.isArray(weightsParsed) ? weightsParsed : [];
+const featuresParsed = safeJson(session.midrr_features);
+const midrrRaw: Record<string, number> = featuresParsed && typeof featuresParsed === 'object' && !Array.isArray(featuresParsed)
+  ? featuresParsed as Record<string, number>
   : {};
 
 const cohortAvg = (env && session.simulation_type)
@@ -322,8 +327,8 @@ const confLabel = confIsRating ? 'Instructor rating: ' + confRaw.toFixed(1) + ' 
             <span class="stat-section-label">Change History</span>
             <div class="audit-log-list" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
               {auditLogs.map(log => {
-                const oldVals = log.old_values ? JSON.parse(log.old_values) : null;
-                const newVals = log.new_values ? JSON.parse(log.new_values) : null;
+                const oldVals = safeJson(log.old_values) as Record<string, unknown> | null;
+                const newVals = safeJson(log.new_values) as Record<string, unknown> | null;
                 
                 const changes: string[] = [];
                 if (log.action === 'edit' && oldVals && newVals) {
