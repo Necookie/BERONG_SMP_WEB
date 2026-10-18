@@ -62,7 +62,7 @@ export async function getOverviewStats(env: Env): Promise<OverviewStats> {
     SELECT
       COUNT(*)                                                          AS total,
       COALESCE(AVG(simulation_score), 0)                               AS avg_score,
-      SUM(CASE WHEN simulation_type IN ('FIRE','CCS_FIRE')               THEN 1 ELSE 0 END) AS fire_count,
+      SUM(CASE WHEN simulation_type IN ('FIRE','CCS_FIRE','NEW_SIM_BUILDING2_FIRE') THEN 1 ELSE 0 END) AS fire_count,
       SUM(CASE WHEN simulation_type IN ('EARTHQUAKE','CCS_EARTHQUAKE')   THEN 1 ELSE 0 END) AS quake_count,
       SUM(CASE WHEN date(start_time) >= date('now','-7 days') THEN 1 ELSE 0 END) AS this_week,
       SUM(CASE WHEN prep_level='HIGH'     THEN 1 ELSE 0 END)          AS high_count,
