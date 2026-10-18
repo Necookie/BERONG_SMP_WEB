@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getEnv } from '../../../../lib/db';
 import { deleteSession, getSessionById, logAuditEvent } from '../../../../lib/queries';
 
-export const POST: APIRoute = async ({ params }) => {
+export const POST: APIRoute = async ({ params, locals }) => {
   const env = await getEnv();
   if (!env) {
     return new Response('DB not configured', { status: 503 });
@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ params }) => {
         prep_level: oldSession.prep_level,
         passed: oldSession.passed,
       };
-      await logAuditEvent(env, 'delete', id, oldValues, null);
+      await logAuditEvent(env, 'delete', id, oldValues, null, locals.user?.username);
     }
 
     await deleteSession(env, id);

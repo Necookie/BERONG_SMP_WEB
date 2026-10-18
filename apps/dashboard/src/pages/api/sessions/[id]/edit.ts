@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getEnv } from '../../../../lib/db';
 import { updateSessionDetails, getSessionById, logAuditEvent } from '../../../../lib/queries';
 
-export const POST: APIRoute = async ({ params, request }) => {
+export const POST: APIRoute = async ({ params, request, locals }) => {
   const env = await getEnv();
   if (!env) {
     return new Response('DB not configured', { status: 503 });
@@ -62,7 +62,7 @@ export const POST: APIRoute = async ({ params, request }) => {
       passed: newValues.passed,
     });
 
-    await logAuditEvent(env, 'edit', id, oldValues, newValues);
+    await logAuditEvent(env, 'edit', id, oldValues, newValues, locals.user?.username);
 
     return new Response(null, {
       status: 303,
