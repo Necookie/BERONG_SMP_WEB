@@ -47,15 +47,11 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // Automatically make 'necookie' the owner & active
-    const isOwner = trimmedUsername.toLowerCase() === 'necookie';
-    const role = isOwner ? 'owner' : 'admin';
-    const status = isOwner ? 'active' : 'pending';
-
+    // Self-registered accounts always start as pending admins; only the owner can approve them.
     const passwordHash = await hashPassword(password);
-    await createUser(env, trimmedUsername, passwordHash, role, status);
+    await createUser(env, trimmedUsername, passwordHash, 'admin', 'pending');
 
-    return new Response(JSON.stringify({ ok: true, pending: !isOwner }), {
+    return new Response(JSON.stringify({ ok: true, pending: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
