@@ -327,8 +327,8 @@ const confLabel = confIsRating ? 'Instructor rating: ' + confRaw.toFixed(1) + ' 
             <span class="stat-section-label">Change History</span>
             <div class="audit-log-list" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
               {auditLogs.map(log => {
-                const oldVals = safeJson(log.old_values) as Record<string, unknown> | null;
-                const newVals = safeJson(log.new_values) as Record<string, unknown> | null;
+                const oldVals: any = safeJson(log.old_values);
+                const newVals: any = safeJson(log.new_values);
                 
                 const changes: string[] = [];
                 if (log.action === 'edit' && oldVals && newVals) {
