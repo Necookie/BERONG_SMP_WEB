@@ -391,6 +391,7 @@ const evacBuckets  = buildEvacuationTimeBuckets(analyticsSessions);
 
   function derivePrepLevelLocal(score, stored) {
     if (stored) return stored;
+    if (score === null || score === undefined) return 'PENDING';
     if (score >= 75) return 'HIGH';
     if (score >= 40) return 'MODERATE';
     return 'LOW';

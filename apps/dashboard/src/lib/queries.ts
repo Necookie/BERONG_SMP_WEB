@@ -114,7 +114,7 @@ export async function getSessionCount(env: Env): Promise<number> {
 
 // Mirrors derivePrepLevel(): a stored prep_level always wins, otherwise fall back
 // to the same score thresholds used client-side (data-sort-level, tier-badge class).
-const LEVEL_EXPR = `COALESCE(prep_level, CASE WHEN simulation_score >= 75 THEN 'HIGH' WHEN simulation_score >= 40 THEN 'MODERATE' ELSE 'LOW' END)`;
+const LEVEL_EXPR = `COALESCE(prep_level, CASE WHEN simulation_score IS NULL THEN 'PENDING' WHEN simulation_score >= 75 THEN 'HIGH' WHEN simulation_score >= 40 THEN 'MODERATE' ELSE 'LOW' END)`;
 const LEVEL_RANK_EXPR = `CASE ${LEVEL_EXPR} WHEN 'HIGH' THEN 3 WHEN 'MODERATE' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END`;
 const DURATION_MS_EXPR = `CASE WHEN end_time IS NOT NULL THEN (julianday(end_time) - julianday(start_time)) * 86400000 ELSE 0 END`;
 
@@ -353,8 +353,10 @@ export function formatDate(iso: string): string {
   });
 }
 
-export function derivePrepLevel(score: number, storedLevel: string | null): 'HIGH' | 'MODERATE' | 'LOW' | 'PENDING' {
+export function derivePrepLevel(score: number | null, storedLevel: string | null): 'HIGH' | 'MODERATE' | 'LOW' | 'PENDING' {
   if (storedLevel) return storedLevel as 'HIGH' | 'MODERATE' | 'LOW';
+  // No score yet (run still in progress or never graded): nothing to fall back on.
+  if (score === null || score === undefined) return 'PENDING';
   if (score >= 75) return 'HIGH';
   if (score >= 40) return 'MODERATE';
   return 'LOW';
