@@ -425,7 +425,16 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
 ### Task 1 — Seed initial admin user
 On first deploy, visit `/login` and the system will detect no users exist. Navigate to `/setup` (only accessible when zero users exist) to create the first admin account (which will be initialized as `owner` and `active`).
 
-**⚠️ Known quirk in `api/auth/register.ts`:** self-registering with the exact username `necookie` bypasses the normal pending-approval flow and is auto-approved as `owner` immediately (line ~51). Reads as a leftover dev convenience rather than an intended feature — flagged here so it isn't mistaken for correct behavior; should be removed before any real public deployment.
+**Self-registration:** `api/auth/register.ts` always creates a pending `admin`. (Until 2026-10-18 the username `necookie` was auto-approved as `owner`; removed as defect D-006 during system testing.)
+
+### System testing fixes (2026-10-18, branch `test/system-testing`)
+
+Found by the system test suite in `Thesis_Workspace/Testing/` (results and defect log there):
+- `middleware.ts` requires a valid session for every `/api/*` route except login, logout, register and setup (401 JSON otherwise). Before this, delete/edit/bulk-delete/export/notes/log endpoints worked without logging in.
+- Audit rows record the logged-in username in `changed_by`.
+- Session edit: `NEW_SIM_BUILDING2_FIRE` is in the scenario dropdown; unknown scenario/level values and scores outside 0–100 return 400.
+- `midrr.ts`: v1.2 `pin_pull`/`ext_spray` are used when present (legacy ABC duplicates skipped), other v1.2 events pass through, `duck_cover_hold` is sent as the contract's `drop_cover_hold`, and New Sim Building 2.0 is sent as scenario `fire`.
+- `derivePrepLevel`/SQL level expression return PENDING when there is no stored level and no score; the overview fire count includes New Sim Building 2.0; the session page shows the fire rubric for New Sim runs and says when a stored event log is malformed.
 
 ### MiDRR result columns
 ```sql
