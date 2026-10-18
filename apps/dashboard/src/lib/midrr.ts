@@ -63,14 +63,26 @@ interface MidrrWireEvent {
  * WEB_INTEGRATION_GUIDE.md — confirm the exact target event_type strings
  * against {BASE_URL}/docs before trusting it against a non-demo model.
  */
-function mapEventType(tursoType: string): string | null {
+// Contract v1.2 events the mod already logs under their wire names; sent through unchanged.
+const V12_PASSTHROUGH = new Set([
+  'phase_transition', 'hazard_neutralize', 'hazard_activated', 'hazard_failure',
+  'duck_cover_hold', 'first_aid_use', 'fire_blanket_use', 'smoke_detector_triggered',
+]);
+
+function mapEventType(tursoType: string, hasV12Extinguisher: boolean): string | null {
+  if (V12_PASSTHROUGH.has(tursoType)) return tursoType;
   switch (tursoType) {
     case 'SIM_START': return 'session_start';
     case 'SIM_END': return 'session_end';
     case 'PLAYER_TICK': return 'move';
-    case 'EXT_PIN_PULL': return 'pin_pull';
-    case 'EXT_SPRAY': return 'ext_spray';
-    case 'extinguisher_use': return 'ext_spray';
+    // Sessions logged after contract v1.2 carry lowercase pin_pull/ext_spray for every
+    // extinguisher (ABC also still emits the legacy pair). Use the v1.2 events when present
+    // so CO2/wet-chemical pin pulls are not lost and ABC sprays are not counted twice.
+    case 'pin_pull': return 'pin_pull';
+    case 'ext_spray': return 'ext_spray';
+    case 'EXT_PIN_PULL': return hasV12Extinguisher ? null : 'pin_pull';
+    case 'EXT_SPRAY': return hasV12Extinguisher ? null : 'ext_spray';
+    case 'extinguisher_use': return hasV12Extinguisher ? null : 'ext_spray';
     case 'fire_alarm_activate': return 'fire_alarm_activate';
     case 'door_open': return 'door_open';
     case 'assembly_area_reached': return 'assembly_area_reached';
@@ -83,9 +95,10 @@ function mapEventType(tursoType: string): string | null {
 function mapEventLogToMidrr(eventLogJson: string): MidrrWireEvent[] {
   const events = JSON.parse(eventLogJson) as RawEventLogEntry[];
   const mapped: MidrrWireEvent[] = [];
+  const hasV12Extinguisher = events.some((e) => e.type === 'pin_pull' || e.type === 'ext_spray');
 
   for (const e of events) {
-    const eventType = mapEventType(e.type);
+    const eventType = mapEventType(e.type, hasV12Extinguisher);
     if (!eventType) continue;
 
     const data = e.data ?? {};
@@ -174,7 +187,9 @@ export async function runPrediction(baseUrl: string, session: LiveSession): Prom
     throw new MidrrApiError('This session has no event_log to replay.');
   }
 
-  const scenarioType = (session.simulation_type ?? 'fire').toLowerCase();
+  // The API only knows fire/earthquake/ccs_fire/ccs_earthquake; New Sim Building 2.0 is a fire run.
+  const rawType = (session.simulation_type ?? 'fire').toLowerCase();
+  const scenarioType = rawType === 'new_sim_building2_fire' ? 'fire' : rawType;
   const playerId = session.station_account;
   const sessionId = String(session.id);
   const events = mapEventLogToMidrr(session.event_log);
