@@ -2,6 +2,9 @@ import type { APIRoute } from 'astro';
 import { getEnv } from '../../../../lib/db';
 import { updateSessionDetails, getSessionById, logAuditEvent } from '../../../../lib/queries';
 
+const SIMULATION_TYPES = new Set(['FIRE', 'EARTHQUAKE', 'CCS_FIRE', 'CCS_EARTHQUAKE', 'NEW_SIM_BUILDING2_FIRE']);
+const PREP_LEVELS = new Set(['HIGH', 'MODERATE', 'LOW', 'PENDING']);
+
 export const POST: APIRoute = async ({ params, request, locals }) => {
   const env = await getEnv();
   if (!env) {
@@ -17,13 +20,23 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   const student_name = form.get('student_name') as string;
   const student_id = form.get('student_id') as string | null;
   const section = form.get('section') as string | null;
-  const simulation_type = form.get('simulation_type') as 'FIRE' | 'EARTHQUAKE' | null;
+  const rawType = (form.get('simulation_type') as string | null) ?? '';
+  const simulation_type = rawType === '' ? null : rawType;
   const simulation_score = Number(form.get('simulation_score') ?? 0);
-  const prep_level = form.get('prep_level') as 'HIGH' | 'MODERATE' | 'LOW' | 'PENDING' | null;
+  const prep_level = (form.get('prep_level') as string | null) ?? 'PENDING';
   const passed = Number(form.get('passed') ?? 0);
 
   if (!student_name || student_name.trim() === '') {
     return new Response('Student name is required', { status: 400 });
+  }
+  if (simulation_type !== null && !SIMULATION_TYPES.has(simulation_type)) {
+    return new Response('Invalid scenario type', { status: 400 });
+  }
+  if (!PREP_LEVELS.has(prep_level)) {
+    return new Response('Invalid preparedness level', { status: 400 });
+  }
+  if (!Number.isFinite(simulation_score) || simulation_score < 0 || simulation_score > 100) {
+    return new Response('Score must be between 0 and 100', { status: 400 });
   }
 
   try {
@@ -46,9 +59,9 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
       student_name: student_name.trim(),
       student_id: student_id && student_id.trim() !== '' ? student_id.trim() : null,
       section: section && section.trim() !== '' ? section.trim() : null,
-      simulation_type,
-      simulation_score: Number.isFinite(simulation_score) ? Math.max(0, Math.min(100, simulation_score)) : 0,
-      prep_level: prep_level === 'PENDING' ? null : prep_level,
+      simulation_type: simulation_type as Parameters<typeof updateSessionDetails>[2]['simulation_type'],
+      simulation_score,
+      prep_level: prep_level === 'PENDING' ? null : (prep_level as 'HIGH' | 'MODERATE' | 'LOW'),
       passed: passed === 1 ? 1 : 0,
     };
 
