@@ -66,12 +66,14 @@ interface MidrrWireEvent {
 // Contract v1.2 events the mod already logs under their wire names; sent through unchanged.
 const V12_PASSTHROUGH = new Set([
   'phase_transition', 'hazard_neutralize', 'hazard_activated', 'hazard_failure',
-  'duck_cover_hold', 'first_aid_use', 'fire_blanket_use', 'smoke_detector_triggered',
+  'first_aid_use', 'fire_blanket_use', 'smoke_detector_triggered',
 ]);
 
 function mapEventType(tursoType: string, hasV12Extinguisher: boolean): string | null {
   if (V12_PASSTHROUGH.has(tursoType)) return tursoType;
   switch (tursoType) {
+    // The mod logs Duck/Cover/Hold as duck_cover_hold; contract v1.2 (and the API) call it drop_cover_hold.
+    case 'duck_cover_hold': return 'drop_cover_hold';
     case 'SIM_START': return 'session_start';
     case 'SIM_END': return 'session_end';
     case 'PLAYER_TICK': return 'move';
