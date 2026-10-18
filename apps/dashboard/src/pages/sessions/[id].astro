@@ -25,6 +25,11 @@ const level = derivePrepLevel(session.simulation_score, session.prep_level);
 const tierClass = level !== 'PENDING' ? level.toLowerCase() : 'low';
 const isFireSession = session.simulation_type === 'FIRE' || session.simulation_type === 'CCS_FIRE' || session.simulation_type === 'NEW_SIM_BUILDING2_FIRE';
 const logEntries = parseEventLog(session.event_log);
+// parseEventLog returns [] for both "no log" and "corrupt log"; tell the two apart for the empty state.
+const eventLogUnreadable = (() => {
+  if (!session.event_log) return false;
+  try { JSON.parse(session.event_log); return false; } catch { return true; }
+})();
 const rubric     = extractRubricSignals(session.event_log);
 const auditLogs = env ? await getAuditLog(env, Number(id)) : [];
 
@@ -115,7 +120,9 @@ const cohortAvg = (env && session.simulation_type)
         ) : (
           <div class="event-log" style="padding:16px;">
             <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);">
-              No event log data for this session.
+              {eventLogUnreadable
+                ? 'The stored event log could not be read (malformed JSON). The raw data is still in the database.'
+                : 'No event log data for this session.'}
             </span>
           </div>
         )}
