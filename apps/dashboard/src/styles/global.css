@@ -6,6 +6,7 @@
 
 /* ── CSS Custom Properties ───────────────────────────────────────────── */
 /* Dark mode (default) — navy-black base, BFP Red accent */
+/* Text tokens tuned on 2026-10-19 so small text meets WCAG AA contrast (4.5:1) on every surface (axe-core scan, W-USE-02..10). */
 :root,
 html.dark {
   --bg-base:            #0f1117;
@@ -13,39 +14,39 @@ html.dark {
   --bg-sidebar:         #0b0e14;
   --bg-log-panel:       #090c12;
   --bg-card:            #141929;
-  --text-brand:         #e53935;
-  --text-brand-sub:     #4d6080;
+  --text-brand:         #e84d49;
+  --text-brand-sub:     #76859d;
   --text-primary:       #dde3ed;
   --text-secondary:     #8a9ab8;
-  --text-muted:         #4d6080;
+  --text-muted:         #76859d;
   --text-heading:       #f0f4fa;
-  --text-kpi-unit:      #4d6080;
+  --text-kpi-unit:      #76859d;
   --border-card:        #1a2540;
   --border-table:       #111b2e;
   --bg-table-hover:     #141929;
   --text-table-cell:    #8a9ab8;
   --text-table-name:    #dde3ed;
-  --text-log-prompt:    #e53935;
-  --text-log-ts:        #4d6080;
+  --text-log-prompt:    #e84d49;
+  --text-log-ts:        #76859d;
   --text-log-code:      #c8d0e0;
-  --text-log-msg:       #5a6e8a;
+  --text-log-msg:       #74859d;
   --bg-result-block:    #141929;
-  --text-result-desc:   #5a6e8a;
+  --text-result-desc:   #74859d;
   --border-filter:      #1a2540;
-  --text-filter-label:  #4d6080;
-  --text-filter-pill:   #4d6080;
+  --text-filter-label:  #76859d;
+  --text-filter-pill:   #76859d;
   --bg-filter-pill-active: rgba(229, 57, 53, 0.08);
   --color-earthquake:   #8a9ab8;
   --text-theme-toggle:  #8a9ab8;
-  --color-fire:         #e53935;
+  --color-fire:         #e84d49;
   --color-separator:    #2d3a50;
   --bg-notes-block:     #111b2e;
-  --text-notes-label:   #4d6080;
+  --text-notes-label:   #76859d;
   --text-notes-body:    #8a9ab8;
-  --text-id-cell:       #4d6080;
-  --text-section-cell:  #4d6080;
-  --text-pending:       #4d6080;
-  --text-no-data:       #4d6080;
+  --text-id-cell:       #76859d;
+  --text-section-cell:  #76859d;
+  --text-pending:       #76859d;
+  --text-no-data:       #76859d;
 
   /* Unified border radii */
   --radius-card:        8px;
@@ -75,39 +76,39 @@ html.light {
   --bg-sidebar:         #e8edf5;
   --bg-log-panel:       #f8fafc;
   --bg-card:            #ffffff;
-  --text-brand:         #dc2626;
-  --text-brand-sub:     #64748b;
+  --text-brand:         #c22121;
+  --text-brand-sub:     #576579;
   --text-primary:       #0f172a;
   --text-secondary:     #475569;
-  --text-muted:         #64748b;
+  --text-muted:         #576579;
   --text-heading:       #0f172a;
-  --text-kpi-unit:      #64748b;
+  --text-kpi-unit:      #576579;
   --border-card:        #e2e8f0;
   --border-table:       #f1f5f9;
   --bg-table-hover:     #f8fafc;
   --text-table-cell:    #475569;
   --text-table-name:    #0f172a;
-  --text-log-prompt:    #dc2626;
-  --text-log-ts:        #94a3b8;
+  --text-log-prompt:    #c22121;
+  --text-log-ts:        #5a6370;
   --text-log-code:      #1e293b;
   --text-log-msg:       #475569;
   --bg-result-block:    #f1f5f9;
   --text-result-desc:   #475569;
   --border-filter:      #e2e8f0;
-  --text-filter-label:  #64748b;
-  --text-filter-pill:   #64748b;
+  --text-filter-label:  #576579;
+  --text-filter-pill:   #576579;
   --bg-filter-pill-active: rgba(220, 38, 38, 0.06);
-  --color-earthquake:   #64748b;
-  --text-theme-toggle:  #64748b;
-  --color-fire:         #dc2626;
+  --color-earthquake:   #576579;
+  --text-theme-toggle:  #576579;
+  --color-fire:         #c22121;
   --color-separator:    #cbd5e1;
   --bg-notes-block:     #f1f5f9;
-  --text-notes-label:   #64748b;
+  --text-notes-label:   #576579;
   --text-notes-body:    #475569;
-  --text-id-cell:       #64748b;
-  --text-section-cell:  #64748b;
-  --text-pending:       #94a3b8;
-  --text-no-data:       #94a3b8;
+  --text-id-cell:       #576579;
+  --text-section-cell:  #576579;
+  --text-pending:       #5a6370;
+  --text-no-data:       #5a6370;
 
   /* Unified border radii */
   --radius-card:        8px;
@@ -117,15 +118,15 @@ html.light {
   --radius-modal:       12px;
 
   /* Themed status colors */
-  --text-success:               #16a34a;
+  --text-success:               #0f7234;
   --bg-success-translucent:     rgba(22, 163, 74, 0.08);
   --border-success-translucent: rgba(22, 163, 74, 0.15);
 
-  --text-warning:               #d97706;
+  --text-warning:               #965204;
   --bg-warning-translucent:     rgba(217, 119, 6, 0.08);
   --border-warning-translucent: rgba(217, 119, 6, 0.15);
 
-  --text-danger:                #dc2626;
+  --text-danger:                #c22121;
   --bg-danger-translucent:      rgba(220, 38, 38, 0.08);
   --border-danger-translucent:  rgba(220, 38, 38, 0.15);
 }
