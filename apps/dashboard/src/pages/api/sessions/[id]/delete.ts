@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getEnv } from '../../../../lib/db';
 import { deleteSession, getSessionById, logAuditEvent } from '../../../../lib/queries';
+import { invalidateOverview } from '../../../../lib/overviewCache';
 
 export const POST: APIRoute = async ({ params, locals }) => {
   const env = await getEnv();
@@ -30,6 +31,7 @@ export const POST: APIRoute = async ({ params, locals }) => {
 
     await deleteSession(env, id);
 
+    invalidateOverview();
     return new Response(null, {
       status: 303,
       headers: { Location: '/sessions' },

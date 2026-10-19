@@ -27,6 +27,7 @@ import {
   buildEvacuationTimeBuckets,
 } from '../lib/analytics';
 import { getEnv } from '../lib/db';
+import { cachedOverview } from '../lib/overviewCache';
 
 const env = await getEnv();
 const hasDb = !!env;
@@ -44,15 +45,19 @@ let dbError: string | null = null;
 
 if (env) {
   try {
-    [stats, recent, scoreBuckets, analyticsSessions, scoreTrend, scenarioStats, prepByScenario, sectionStats] = await Promise.all([
+    const aggregates = cachedOverview(() => Promise.all([
       getOverviewStats(env),
-      getRecentSessions(env, 5),
       getScoreHistogramBuckets(env),
       getAnalyticsSessions(env),
       getScoreTrend(env),
       getScenarioBreakdown(env),
       getPrepByScenario(env),
       getSectionPerformance(env),
+    ]));
+    // Recent sessions stay live; only the heavy aggregates are shared and cached.
+    [[stats, scoreBuckets, analyticsSessions, scoreTrend, scenarioStats, prepByScenario, sectionStats], recent] = await Promise.all([
+      aggregates,
+      getRecentSessions(env, 5),
     ]);
   } catch (err) {
     dbError = err instanceof Error ? err.message : 'Unknown database error';

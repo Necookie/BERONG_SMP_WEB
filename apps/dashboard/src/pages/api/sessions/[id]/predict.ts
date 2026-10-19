@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getEnv } from '../../../../lib/db';
 import { getSessionById, updateSessionPrediction, validateSession } from '../../../../lib/queries';
 import { getMidrrBaseUrl, runPrediction, MidrrApiError } from '../../../../lib/midrr';
+import { invalidateOverview } from '../../../../lib/overviewCache';
 
 export const prerender = false;
 
@@ -38,6 +39,7 @@ export const POST: APIRoute = async ({ params, cookies }) => {
     const baseUrl = await getMidrrBaseUrl();
     const result = await runPrediction(baseUrl, session);
     await updateSessionPrediction(env, sessionId, result);
+    invalidateOverview();
     return json({ ok: true, ...result }, 200);
   } catch (err) {
     if (err instanceof MidrrApiError) {

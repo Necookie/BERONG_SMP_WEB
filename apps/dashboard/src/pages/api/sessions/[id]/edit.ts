@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getEnv } from '../../../../lib/db';
 import { updateSessionDetails, getSessionById, logAuditEvent } from '../../../../lib/queries';
+import { invalidateOverview } from '../../../../lib/overviewCache';
 
 const SIMULATION_TYPES = new Set(['FIRE', 'EARTHQUAKE', 'CCS_FIRE', 'CCS_EARTHQUAKE', 'NEW_SIM_BUILDING2_FIRE']);
 const PREP_LEVELS = new Set(['HIGH', 'MODERATE', 'LOW', 'PENDING']);
@@ -77,6 +78,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
 
     await logAuditEvent(env, 'edit', id, oldValues, newValues, locals.user?.username);
 
+    invalidateOverview();
     return new Response(null, {
       status: 303,
       headers: { Location: `/sessions/${id}` },

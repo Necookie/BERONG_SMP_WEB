@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getDb, getEnv } from '../../../lib/db';
 import { logAuditEvent, getSessionById } from '../../../lib/queries';
+import { invalidateOverview } from '../../../lib/overviewCache';
 
 export const POST: APIRoute = async ({ request, locals }) => {
   const env = await getEnv();
@@ -61,6 +62,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       await logAuditEvent(env, 'delete', s.id, oldValues, null, locals.user?.username);
     }
 
+    invalidateOverview();
     return new Response(JSON.stringify({ deleted: numericIds.length }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
