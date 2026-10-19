@@ -181,6 +181,19 @@ export async function getSessionsPage(
   };
 }
 
+/**
+ * Reads one log column of one session (null when the session does not exist, '' when it has no log).
+ * The log download endpoints use this instead of getSessionById, which also pulls the event_log:
+ * for a long run that is several MB the download never sends.
+ */
+export async function getSessionLog(env: Env, id: number, column: 'move_log_csv' | 'fire_log_csv'): Promise<string | null> {
+  if (!Number.isFinite(id)) return null;
+  const db = getDb(env);
+  const res = await db.execute({ sql: `SELECT ${column} AS log FROM sessions WHERE id = ?`, args: [id] });
+  if (res.rows.length === 0) return null;
+  return (res.rows[0] as Record<string, unknown>).log as string | null ?? '';
+}
+
 export async function getSessionById(env: Env, id: number): Promise<LiveSession | null> {
   const db = getDb(env);
   const res = await db.execute(`SELECT * FROM sessions WHERE id = ?`, [id]);
