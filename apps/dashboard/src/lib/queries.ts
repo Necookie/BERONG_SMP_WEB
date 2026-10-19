@@ -731,7 +731,10 @@ export async function getAnalyticsSessions(env: Env): Promise<AnalyticsSession[]
                 AND json_type(j.value, '$.data.t') IN ('integer', 'real')
                THEN json_extract(j.value, '$.data.t') END) AS evac_s
     FROM sessions s
-    LEFT JOIN json_each(CASE WHEN json_valid(s.event_log) THEN s.event_log ELSE '[]' END) j
+    -- Only a JSON list of event objects is read; anything else (corrupt text, an object, stray values)
+    -- counts as no events, so one damaged row can never break the whole overview.
+    LEFT JOIN json_each(CASE WHEN json_valid(s.event_log) AND json_type(s.event_log) = 'array' THEN s.event_log ELSE '[]' END) j
+      ON j.type = 'object'
     WHERE s.status = 'completed'
     GROUP BY s.id
   `);
