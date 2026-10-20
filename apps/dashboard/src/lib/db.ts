@@ -23,7 +23,15 @@ export async function getEnv(): Promise<Env | undefined> {
 }
 
 export function getDb(env: Env) {
-  const client = createClient({ url: env.TURSO_URL, authToken: env.TURSO_TOKEN });
+  // Ask Turso for compressed responses. Movement and event logs are plain text that shrinks about
+  // 6x; without this header a 3 MB log came over the wire uncompressed. Only the header changes:
+  // no timeouts or retries here (those live in execute below).
+  const fetchCompressed = (input: RequestInfo | URL, init?: RequestInit) => {
+    const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+    if (!headers.has('accept-encoding')) headers.set('accept-encoding', 'gzip, br');
+    return fetch(input, { ...init, headers });
+  };
+  const client = createClient({ url: env.TURSO_URL, authToken: env.TURSO_TOKEN, fetch: fetchCompressed });
   const execute = client.execute.bind(client) as (...args: unknown[]) => ReturnType<typeof client.execute>;
   // The Workers runtime sometimes reuses a pooled connection the database already closed and fails
   // with "Network connection lost", which used to surface as a 500 page. Statements that are safe to
