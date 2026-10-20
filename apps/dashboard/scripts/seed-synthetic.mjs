@@ -547,7 +547,7 @@ async function seed(){
       t(s.name),t("station_demo"),t(`synth-${s.id}`),t(s.id),t(s.section),
       t(s.start),t(s.end),t("completed"),i(1),i(90),
       t(s.simType),i(s.score),i(s.passed),
-      t(JSON.stringify(s.log)),t(s.prep),f(s.conf),t(s.notes),
+      t(JSON.stringify(s.log)),t(s.prep),f(s.conf / 5),t(s.notes),   // conf is an instructor rating out of 5; the column is 0 to 1 (as /bfp confidence stores it)
       t(moveCsv),
     ])]);
     const csvRows=moveCsv.split('\n').length-1;
