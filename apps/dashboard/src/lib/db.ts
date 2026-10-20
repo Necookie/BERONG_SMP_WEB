@@ -26,24 +26,26 @@ export function getDb(env: Env) {
   const client = createClient({ url: env.TURSO_URL, authToken: env.TURSO_TOKEN });
   const execute = client.execute.bind(client) as (...args: unknown[]) => ReturnType<typeof client.execute>;
   // The Workers runtime sometimes reuses a pooled connection the database already closed and fails
-  // with "Network connection lost", which used to surface as a 500 page. Read statements are
-  // retried once on that error; writes are not, so nothing can be applied twice.
+  // with "Network connection lost", which used to surface as a 500 page. Statements that are safe to
+  // repeat (reads, and DELETE, which removes the same rows twice or none) are retried once on that
+  // error. Logout needs this: a lost DELETE left the session token valid after the user logged out.
+  // Inserts and updates are not retried, so nothing can be applied twice.
   client.execute = (async (...args: unknown[]) => {
     try {
       return await execute(...args);
     } catch (err) {
-      if (!isReadOnly(args[0]) || !isDroppedConnection(err)) throw err;
+      if (!isSafeToRepeat(args[0]) || !isDroppedConnection(err)) throw err;
       return execute(...args);
     }
   }) as typeof client.execute;
   return client;
 }
 
-const READ_ONLY_SQL = /^\s*(select|with|pragma)\b/i;
+const REPEATABLE_SQL = /^\s*(select|with|pragma|delete)\b/i;
 
-function isReadOnly(stmt: unknown): boolean {
+function isSafeToRepeat(stmt: unknown): boolean {
   const sql = typeof stmt === 'string' ? stmt : (stmt as { sql?: unknown } | null)?.sql;
-  return typeof sql === 'string' && READ_ONLY_SQL.test(sql);
+  return typeof sql === 'string' && REPEATABLE_SQL.test(sql);
 }
 
 function isDroppedConnection(err: unknown): boolean {
