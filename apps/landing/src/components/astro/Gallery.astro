@@ -44,6 +44,7 @@ const avpPosterUrl = avpVideoUrl.replace(/\.mp4$/, '.jpg');
         poster={avpPosterUrl}
         preload="metadata"
         playsinline
+        loop
       >
         <source src={avpVideoUrl} type="video/mp4" />
         Your browser does not support embedded video.
@@ -85,13 +86,5 @@ const avpPosterUrl = avpVideoUrl.replace(/\.mp4$/, '.jpg');
       caption?.classList.add('opacity-0');
     };
     playBtn.addEventListener('click', start);
-
-    video.addEventListener('ended', () => {
-      video.controls = false;
-      video.currentTime = 0;
-      playBtn.style.display = '';
-      gradient?.classList.remove('opacity-0');
-      caption?.classList.remove('opacity-0');
-    });
   }
 </script>
