@@ -94,6 +94,25 @@ function mapEventType(tursoType: string, hasV12Extinguisher: boolean): string | 
   }
 }
 
+/**
+ * Refuses a record that cannot be assessed, with a clear message, before anything is sent to the model.
+ * Without this an empty log (all-zero features) was scored HIGH, and a missing scenario type was
+ * silently treated as a fire run. Only the shape and the presence of a start marker are checked here;
+ * ranges and ordering of the times are not.
+ */
+function assertAssessable(session: LiveSession): void {
+  const reject = (why: string): never => { throw new MidrrApiError(`This session cannot be assessed: ${why}.`, 422); };
+  if (!session.simulation_type) reject('it has no scenario type');
+  if (!session.station_account || !String(session.station_account).trim()) reject('it has no station account');
+  let parsed: unknown;
+  try { parsed = JSON.parse(session.event_log as string); } catch { return reject('its event log is not valid JSON'); }
+  if (!Array.isArray(parsed)) return reject('its event log is not a list of events');
+  const bad = parsed.findIndex((e) => !e || typeof e !== 'object' || typeof (e as RawEventLogEntry).type !== 'string' || !(e as RawEventLogEntry).type.trim()
+    || typeof (e as RawEventLogEntry).tOffsetMs !== 'number' || !Number.isFinite((e as RawEventLogEntry).tOffsetMs));
+  if (bad !== -1) reject(`event ${bad + 1} has no type or no numeric time`);
+  if (!parsed.some((e) => (e as RawEventLogEntry).type === 'SIM_START')) reject('its event log has no SIM_START event');
+}
+
 function mapEventLogToMidrr(eventLogJson: string): MidrrWireEvent[] {
   const events = JSON.parse(eventLogJson) as RawEventLogEntry[];
   const mapped: MidrrWireEvent[] = [];
@@ -188,6 +207,7 @@ export async function runPrediction(baseUrl: string, session: LiveSession): Prom
   if (!session.event_log) {
     throw new MidrrApiError('This session has no event_log to replay.');
   }
+  assertAssessable(session);
 
   // The API only knows fire/earthquake/ccs_fire/ccs_earthquake; New Sim Building 2.0 is a fire run.
   const rawType = (session.simulation_type ?? 'fire').toLowerCase();

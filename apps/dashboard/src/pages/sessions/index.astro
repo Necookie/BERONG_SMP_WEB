@@ -123,7 +123,7 @@ function sortClass(key: string): string {
             </thead>
             <tbody>
               {sessions.map(s => {
-                const lvl = derivePrepLevel(s.simulation_score, s.prep_level);
+                const lvl = derivePrepLevel(s.simulation_score, s.prep_level, s.simulation_type);
                 return (
                   <tr onclick={`window.location='/sessions/${s.id}'`}>
                     <td class="checkbox-col" onclick="event.stopPropagation()">

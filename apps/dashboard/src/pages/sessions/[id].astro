@@ -21,7 +21,7 @@ if (!session) {
   return Astro.rewrite('/404');
 }
 
-const level = derivePrepLevel(session.simulation_score, session.prep_level);
+const level = derivePrepLevel(session.simulation_score, session.prep_level, session.simulation_type);
 const tierClass = level !== 'PENDING' ? level.toLowerCase() : 'low';
 const isFireSession = session.simulation_type === 'FIRE' || session.simulation_type === 'CCS_FIRE' || session.simulation_type === 'NEW_SIM_BUILDING2_FIRE';
 const logEntries = parseEventLog(session.event_log);
@@ -331,7 +331,7 @@ const confLabel = confIsRating ? 'Instructor rating: ' + confRaw.toFixed(1) + ' 
                 const newVals: any = safeJson(log.new_values);
                 
                 const changes: string[] = [];
-                if (log.action === 'edit' && oldVals && newVals) {
+                if ((log.action === 'edit' || log.action === 'notes') && oldVals && newVals) {
                   const keys = Object.keys(newVals);
                   for (const key of keys) {
                     if (oldVals[key] !== newVals[key]) {

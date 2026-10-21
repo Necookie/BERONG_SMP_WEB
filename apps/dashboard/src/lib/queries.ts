@@ -112,9 +112,9 @@ export async function getSessionCount(env: Env): Promise<number> {
   return Number((res.rows[0] as Record<string, unknown>).total ?? 0);
 }
 
-// Mirrors derivePrepLevel(): a stored prep_level always wins, otherwise fall back
-// to the same score thresholds used client-side (data-sort-level, tier-badge class).
-const LEVEL_EXPR = `COALESCE(prep_level, CASE WHEN simulation_score IS NULL THEN 'PENDING' WHEN simulation_score >= 75 THEN 'HIGH' WHEN simulation_score >= 40 THEN 'MODERATE' ELSE 'LOW' END)`;
+// Mirrors derivePrepLevel(): a stored prep_level always wins, earthquake runs without one are PENDING,
+// otherwise fall back to the same score thresholds used client-side (data-sort-level, tier-badge class).
+const LEVEL_EXPR = `COALESCE(prep_level, CASE WHEN simulation_type IN ('EARTHQUAKE','CCS_EARTHQUAKE') THEN 'PENDING' WHEN simulation_score IS NULL THEN 'PENDING' WHEN simulation_score >= 75 THEN 'HIGH' WHEN simulation_score >= 40 THEN 'MODERATE' ELSE 'LOW' END)`;
 const LEVEL_RANK_EXPR = `CASE ${LEVEL_EXPR} WHEN 'HIGH' THEN 3 WHEN 'MODERATE' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END`;
 const DURATION_MS_EXPR = `CASE WHEN end_time IS NOT NULL THEN (julianday(end_time) - julianday(start_time)) * 86400000 ELSE 0 END`;
 
@@ -366,8 +366,11 @@ export function formatDate(iso: string): string {
   });
 }
 
-export function derivePrepLevel(score: number | null, storedLevel: string | null): 'HIGH' | 'MODERATE' | 'LOW' | 'PENDING' {
+export function derivePrepLevel(score: number | null, storedLevel: string | null, simulationType: string | null = null): 'HIGH' | 'MODERATE' | 'LOW' | 'PENDING' {
   if (storedLevel) return storedLevel as 'HIGH' | 'MODERATE' | 'LOW';
+  // An earthquake run has no automatic rubric: the mod stores score 0 until an instructor rates it,
+  // so without a reviewer's level it is awaiting review, not a LOW.
+  if (simulationType === 'EARTHQUAKE' || simulationType === 'CCS_EARTHQUAKE') return 'PENDING';
   // No score yet (run still in progress or never graded): nothing to fall back on.
   if (score === null || score === undefined) return 'PENDING';
   if (score >= 75) return 'HIGH';
@@ -540,7 +543,7 @@ export async function getMidrrCohortAverage(
 export interface AuditLogEntry {
   id: number;
   session_id: number;
-  action: 'edit' | 'delete';
+  action: 'edit' | 'delete' | 'notes';
   changed_by: string;
   changed_at: string;
   old_values: string | null;
@@ -549,7 +552,7 @@ export interface AuditLogEntry {
 
 export async function logAuditEvent(
   env: Env,
-  action: 'edit' | 'delete',
+  action: 'edit' | 'delete' | 'notes',
   sessionId: number,
   oldValues: Record<string, unknown> | null,
   newValues: Record<string, unknown> | null,

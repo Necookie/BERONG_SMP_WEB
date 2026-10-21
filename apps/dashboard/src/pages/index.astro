@@ -239,7 +239,7 @@ const evacBuckets  = buildEvacuationTimeBuckets(analyticsSessions);
           </thead>
           <tbody>
             {recent.map(s => {
-              const level = derivePrepLevel(s.simulation_score, s.prep_level);
+              const level = derivePrepLevel(s.simulation_score, s.prep_level, s.simulation_type);
               const durationMs = s.start_time && s.end_time 
                 ? new Date(s.end_time).getTime() - new Date(s.start_time).getTime() 
                 : 0;
@@ -398,8 +398,9 @@ const evacBuckets  = buildEvacuationTimeBuckets(analyticsSessions);
     });
   }
 
-  function derivePrepLevelLocal(score, stored) {
+  function derivePrepLevelLocal(score, stored, type) {
     if (stored) return stored;
+    if (type === 'EARTHQUAKE' || type === 'CCS_EARTHQUAKE') return 'PENDING';
     if (score === null || score === undefined) return 'PENDING';
     if (score >= 75) return 'HIGH';
     if (score >= 40) return 'MODERATE';
@@ -420,7 +421,7 @@ const evacBuckets  = buildEvacuationTimeBuckets(analyticsSessions);
 
       tableBody.innerHTML = '';
       data.forEach(s => {
-        const level = derivePrepLevelLocal(s.simulation_score, s.prep_level);
+        const level = derivePrepLevelLocal(s.simulation_score, s.prep_level, s.simulation_type);
         const tierClass = level !== 'PENDING' ? level.toLowerCase() : 'low';
         const durationMs = s.start_time && s.end_time 
           ? new Date(s.end_time).getTime() - new Date(s.start_time).getTime() 
