@@ -22,7 +22,7 @@ export type LeadResult =
  */
 export async function submitLead(data: LeadPayload): Promise<LeadResult> {
   try {
-    const res = await fetch('/api/leads', {
+    const res = await fetch(`${import.meta.env.PUBLIC_API_ORIGIN ?? ''}/api/leads`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),

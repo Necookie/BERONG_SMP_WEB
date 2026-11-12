@@ -5,16 +5,19 @@ import MobileMenu from '../react/MobileMenu';
 import ThemeToggle from './ThemeToggle.astro';
 import logo from '../../assets/images/berong-elearning-logo.png';
 
-const isCommandsPage = Astro.url.pathname.startsWith('/commands');
+// '' on Cloudflare, '/BERONG_SMP_WEB' on the GitHub Pages build
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const home = `${base}/`;
+const isCommandsPage = Astro.url.pathname.startsWith(`${base}/commands`);
 
 const navLinks = [
-  { key: 'home',         href: isCommandsPage ? '/' : '#',        label: 'Home'     },
-  { key: 'about',        href: isCommandsPage ? '/#about' : '#about',   label: 'About'    },
-  { key: 'features',     href: isCommandsPage ? '/#features' : '#features',label: 'Features' },
-  { key: 'gallery',      href: isCommandsPage ? '/#gallery' : '#gallery', label: 'Gallery'  },
-  { key: 'rules',        href: isCommandsPage ? '/#rules' : '#rules',   label: 'Rules'    },
-  { key: 'instructions', href: isCommandsPage ? '/#instructions' : '#instructions', label: 'Instructions' },
-  { key: 'commands',     href: '/commands', label: 'Commands' },
+  { key: 'home',         href: isCommandsPage ? home : '#',        label: 'Home'     },
+  { key: 'about',        href: isCommandsPage ? `${home}#about` : '#about',   label: 'About'    },
+  { key: 'features',     href: isCommandsPage ? `${home}#features` : '#features',label: 'Features' },
+  { key: 'gallery',      href: isCommandsPage ? `${home}#gallery` : '#gallery', label: 'Gallery'  },
+  { key: 'rules',        href: isCommandsPage ? `${home}#rules` : '#rules',   label: 'Rules'    },
+  { key: 'instructions', href: isCommandsPage ? `${home}#instructions` : '#instructions', label: 'Instructions' },
+  { key: 'commands',     href: `${base}/commands`, label: 'Commands' },
 ];
 ---
 
@@ -24,7 +27,7 @@ const navLinks = [
 >
   <div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-2.5 max-w-container-max mx-auto">
     <!-- Logo -->
-    <a href="/" aria-label="BERONG SMP home" class="flex items-center gap-2">
+    <a href={home} aria-label="BERONG SMP home" class="flex items-center gap-2">
       <Image
         src={logo}
         alt="BERONG SMP logo"

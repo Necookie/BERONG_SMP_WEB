@@ -1,0 +1,75 @@
+name: Deploy landing page to GitHub Pages
+
+# Second, independent deployment of apps/landing. The Cloudflare Workers
+# deployments (landing + dashboard) are not touched by this workflow.
+#
+#   https://necookie.github.io/BERONG_SMP_WEB/            static landing page
+#   https://necookie.github.io/BERONG_SMP_WEB/dashboard/  redirect to the Cloudflare dashboard
+#     (the dashboard is server-rendered with login, so it cannot run on Pages)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/landing/**'
+      - '.github/workflows/pages.yml'
+      - '.github/pages/**'
+      - 'tailwind.base.cjs'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.18.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install landing dependencies
+        run: pnpm install --frozen-lockfile --filter landing...
+
+      # The API routes need a server; Pages has none. The static build calls
+      # the Cloudflare copy of them instead (see PUBLIC_API_ORIGIN below).
+      - name: Drop server-only API routes
+        run: rm -rf apps/landing/src/pages/api
+
+      - name: Build landing for GitHub Pages
+        run: pnpm --filter landing build
+        env:
+          DEPLOY_TARGET: github-pages
+          PUBLIC_API_ORIGIN: https://berong-smp-landing.necookie.dev
+
+      - name: Add dashboard redirect
+        run: cp -r .github/pages/. apps/landing/dist/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/landing/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

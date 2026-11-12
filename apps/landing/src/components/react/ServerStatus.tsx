@@ -7,7 +7,7 @@ export default function ServerStatus() {
   useEffect(() => {
     async function fetchStatus() {
       try {
-        const res = await fetch('/api/server-status');
+        const res = await fetch(`${import.meta.env.PUBLIC_API_ORIGIN ?? ''}/api/server-status`);
         if (res.ok) {
           const data = await res.json();
           setStatus(data);

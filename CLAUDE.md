@@ -52,6 +52,7 @@ pnpm typecheck            # tsc --noEmit both apps
 - **Deployment:** Cloudflare Worker (static assets via `[assets]` binding)
 - **Config:** `apps/landing/wrangler.toml` → `name = "berong-smp-landing"`
 - **Deploy command:** `pnpm deploy:landing` (runs `wrangler deploy`)
+- **Second deployment — GitHub Pages:** `.github/workflows/pages.yml` builds this same app on every push to `main` and publishes it to `https://necookie.github.io/BERONG_SMP_WEB/`, independent of Cloudflare. That build sets `DEPLOY_TARGET=github-pages`, which makes `astro.config.mjs` drop the Cloudflare adapter and set `base: '/BERONG_SMP_WEB'`. Pages is static-only, so the workflow deletes `src/pages/api` before building and sets `PUBLIC_API_ORIGIN` so the browser calls the Cloudflare copy of `/api/server-status` and `/api/leads` (both send CORS headers for this). `/dashboard/` on Pages is a redirect stub from `.github/pages/`. **Internal links and public assets must be prefixed with `import.meta.env.BASE_URL`** (see `Navbar.astro`, `BaseLayout.astro`) — a bare `/commands` 404s on Pages.
 - **Fonts:** Space Grotesk, Inter, JetBrains Mono (Google Fonts)
 - **Styling:** Tailwind CSS + custom CSS variables in `src/styles/global.css`
 - **Theme:** Supports light/dark mode via `html.dark` / `html.light` classes and CSS custom properties. Toggle is a React island (`ThemeToggle.tsx`).

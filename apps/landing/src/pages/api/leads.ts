@@ -3,12 +3,24 @@ import { getDb, getEnv } from '../../lib/db';
 
 export const prerender = false;
 
+// The GitHub Pages copy of the landing page posts here cross-origin.
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': 'https://necookie.github.io',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Vary': 'Origin',
+};
+
+// CORS preflight for the JSON POST below.
+export const OPTIONS: APIRoute = () => new Response(null, { status: 204, headers: HEADERS });
+
 export const POST: APIRoute = async ({ request }) => {
   const env = await getEnv();
   if (!env) {
     return new Response(JSON.stringify({ ok: false, error: 'Database not configured' }), {
       status: 503,
-      headers: { 'Content-Type': 'application/json' },
+      headers: HEADERS,
     });
   }
 
@@ -18,7 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!username || !email) {
       return new Response(JSON.stringify({ ok: false, error: 'Username and email are required' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: HEADERS,
       });
     }
 
@@ -45,7 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: HEADERS,
     });
   } catch (err) {
     console.error('Error saving lead:', err);
@@ -53,7 +65,7 @@ export const POST: APIRoute = async ({ request }) => {
       JSON.stringify({ ok: false, error: err instanceof Error ? err.message : 'Database error' }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: HEADERS,
       }
     );
   }
